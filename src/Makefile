@@ -3,7 +3,7 @@ include example.mk
 CC=mpic++
 
 LDIR =
-RUNDIR = ../wrk
+RUNDIR = ../wrk/
 
 OBJ = main.o
 
@@ -29,4 +29,5 @@ debug:
 
 clean:
 	rm -f *.o *~ core stoic
+	rm *.vtp *.pvtp
 
