@@ -86,9 +86,16 @@ int main(int argc, char* argv[])
 
     //** VECTOR INSTANTIATION **//
     //contains two vectoral properties
-	vector_dist<3,double, aggregate<double[3],double[3]> > vd(0,domain,bc,ghost);
+	//vector_dist<3,double, aggregate<float,double[3],double[3]> > vd(0,domain,bc,ghost);
     //typedef vector_dist<3,double,aggregate<size_t,double,double,double,double,double[3],double[3], double[3]>> particles;
-	
+	vector_dist<3,float, aggregate<float,float[3],float[3][3]> > vd(4096,domain,bc,g); //each processor runs with 4096 particles
+    // the scalar is the element at position 0 in the aggregate
+    const int scalar = 0;
+    // the vector is the element at position 1 in the aggregate
+    const int vector = 1;
+    // the tensor is the element at position 2 in the aggregate
+    const int tensor = 2;
+
     size_t cnt = 0; //used later
 
     //**ASSIGN POSITION**//
@@ -106,8 +113,8 @@ int main(int argc, char* argv[])
 
         // set the property values of the last particle we added
 		vd.template getLastProp<velocity>()[0] = 01.0;
-		vd.template getLastProp<velocity>()[1] = 0.0;
-		vd.template getLastProp<velocity>()[2] = 0.0;
+		vd.template getLastProp<velocity>()[1] = 1.0;
+		vd.template getLastProp<velocity>()[2] = 1.0;
 
 		vd.template getLastProp<force>()[0] = 0.0;
 		vd.template getLastProp<force>()[1] = 0.0;
