@@ -18,10 +18,29 @@ using namespace std;
     double dt,dx,dy,dz;
     double delta;
   };
+  class engine
+  { 
+      public:
+      double bore,stroke,conRod,crankRad,Rcomp;
+      int rpm,rps;
+      double Vdisp,VBDC,VTDC;
+  };
+
+  class grid_prop
+  {
+      public:
+      int nx,ny,nz;
+      int nr,nphi;
+      int dim;
+      double lx,ly,lz;
+      double dx,dy,dz;
+      double ang;
+  };
 
 // Initialize global velocity/force
 constexpr int velocity = 0;
 constexpr int force = 0;
+const double pi = 3.14159265358979323846;
 
 
 int main(int argc, char* argv[])
@@ -30,6 +49,7 @@ int main(int argc, char* argv[])
     
     //** VARIABLES **//
     Cfd simulation;
+    std::default_random_engine generator;
 
     //simulation parameters
     simulation.nparticles = 1000;
@@ -38,10 +58,20 @@ int main(int argc, char* argv[])
     simulation.frame = 10;
     simulation.delta = 0.01;
 
+    //basic engine params
+    engine eng;
+    eng.bore = 12.065;
+    eng.stroke = 14.0;
+    
+    double lx = eng.bore/2;
+    double ly = eng.stroke + eng.VTDC/(pi*pow(eng.bore,2)/4);
+
     // implements a 1D std:vector like structure to create grid   
     openfpm::vector<double> x;
     openfpm::vector<openfpm::vector<double>> y;
 
+    //gaussian distribtuion (0,1)
+    std::normal_distribution<double> distribution(0.0,1.0);
 
     //** INITIALIZATION **//
     //initialize openfpm
@@ -50,14 +80,10 @@ int main(int argc, char* argv[])
     Box<3,double> domain({0.0,0.0,0.0},{1.0,1.0,1.0});  //define 3D box
     size_t bc[3]={PERIODIC,PERIODIC,PERIODIC};    // boundary conditions: Periodic means the 1 boundary is equal to the 0 boundary
     Ghost<3,double> ghost(simulation.delta);   // extended to contain interaction radius
-    
-    //randomly place particles within box
-    size_t sz[3] = {10,10,10};// place particles on a 10x10x10 Grid like
 
     //** VECTOR INSTANTIATION **//
     //contains two vectoral properties
     vector_dist<3,double, aggregate<double[3],double[3]> > vd(0,domain,bc,ghost);
-    //typedef vector_dist<3,double,aggregate<size_t,double,double,double,double,double[3],double[3], double[3]>> particles;
 
     size_t cnt = 0; //used later    
     
@@ -73,18 +99,19 @@ int main(int argc, char* argv[])
         auto key = it.get();    //contains (i,j,k) index of grid
 
         // we define x, assign a random position between 0.0 and 1.0
-        vd.getPos(key)[0] = (double)rand() / RAND_MAX;
+        vd.getPos(key)[0] = (double)rand() / RAND_MAX;  //rand_max just normalizes it to between 0 and 1
         vd.getPos(key)[1] = (double)rand() / RAND_MAX;
         vd.getPos(key)[2] = (double)rand() / RAND_MAX;
 
+        //set random property of the particles
+        double numberx = distribution(generator);
+        double numbery = distribution(generator);
+        double numberz = distribution(generator);
+
         //set the property of the particles
-        vd.template getProp<velocity>(key)[0] = 0.0;
+        vd.template getProp<velocity>(key)[0] = 2.0;
         vd.template getProp<velocity>(key)[1] = 1.0;
         vd.template getProp<velocity>(key)[2] = 0.0;
-        // set the property values of the last particle we added
-        //vd.add();   //adds particle? <- i think needed if doing a getLast
-        //vd.template getLastProp<velocity>()[1] = 1.0;
-        //vd.template getLastProp<velocity>()[2] = 0.0;
         
         // next particle
         ++it;
@@ -95,20 +122,6 @@ int main(int argc, char* argv[])
     vd.map();       //distribute particle positions across the processors       
     vd.ghost_get<>();   //syncs the ghost with the newly mapped particles
 
-    auto it2 = vd.getDomainIterator();
-    while (it2.isNext())
-    {
-        auto key = it2.get();    //contains (i,j,k) index of grid
-
-        //set the property of the particles
-        vd.template getProp<velocity>(key)[0] = 2.0;
-        vd.template getProp<velocity>(key)[1] = 1.0;
-        vd.template getProp<velocity>(key)[2] = 0.0;
-        
-        // next particle
-        ++it2;
-    }
-
     cout << " ---------  particles initialized  ------- " << cnt << endl;
  
     //**ASSIGNING VALUES**//
@@ -116,12 +129,11 @@ int main(int argc, char* argv[])
     timer tsim;
     tsim.start();
     double dt = simulation.dt;
+    unsigned long int f = 0;
 
     auto NN = vd.getCellList<CELL_MEMBAL(3,double)>(simulation.delta); //cell list structure
 
-    unsigned long int f = 0;
-
-// MD time stepping
+    // MD time stepping
     for (size_t i = 0; i < simulation.nsteps ; i++)
     {
         auto it3 = vd.getDomainIterator();  //iterator that traverses the particles in the domain
