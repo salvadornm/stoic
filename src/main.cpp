@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
     std::default_random_engine generator;
 
     //simulation parameters
-    simulation.nparticles = 1000;
+    simulation.nparticles = 10000;
     simulation.nsteps = 100;
     simulation.dt = 0.01;
     simulation.frame = 10;
@@ -109,9 +109,9 @@ int main(int argc, char* argv[])
         double numberz = distribution(generator);
 
         //set the property of the particles
-        vd.template getProp<velocity>(key)[0] = 2.0;
-        vd.template getProp<velocity>(key)[1] = 1.0;
-        vd.template getProp<velocity>(key)[2] = 0.0;
+        vd.template getProp<velocity>(key)[0] = numberx;
+        vd.template getProp<velocity>(key)[1] = numbery;
+        vd.template getProp<velocity>(key)[2] = numberz;
         
         // next particle
         ++it;
@@ -145,9 +145,9 @@ int main(int argc, char* argv[])
 
             // v = v + .5dt calculate v(tn + 0.5)
             // velocity is always dependent on the previous velocity (getProp)
-            //vd.template getProp<velocity>(p)[0] += 0.5*dt;
-            //vd.template getProp<velocity>(p)[1] += 0.5*dt;
-            //vd.template getProp<velocity>(p)[2] += 0.5*dt;
+            vd.template getProp<velocity>(p)[0] += 0.5*dt;
+            vd.template getProp<velocity>(p)[1] += 0.5*dt;
+            vd.template getProp<velocity>(p)[2] += 0.5*dt;
 
             // calculate x(tn + 1)
             vd.getPos(p)[0] += vd.template getProp<velocity>(p)[0]*dt;
