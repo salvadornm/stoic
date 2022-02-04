@@ -3,6 +3,7 @@
 #include "timer.hpp"
 #include "Plot/GoogleChart.hpp"
 #include "Plot/util.hpp"
+#include <math.h>
 
 #include <iostream>
 #include <stdlib.h>
@@ -26,16 +27,6 @@ using namespace std;
       double Vdisp,VBDC,VTDC;
   };
 
-  class grid_prop
-  {
-      public:
-      int nx,ny,nz;
-      int nr,nphi;
-      int dim;
-      double lx,ly,lz;
-      double dx,dy,dz;
-      double ang;
-  };
 
 // Initialize global velocity/force
 constexpr int velocity = 0;
@@ -52,7 +43,7 @@ int main(int argc, char* argv[])
     std::default_random_engine generator;
 
     //simulation parameters
-    simulation.nparticles = 10000;
+    simulation.nparticles = 1000;
     simulation.nsteps = 100;
     simulation.dt = 0.01;
     simulation.frame = 10;
@@ -62,9 +53,6 @@ int main(int argc, char* argv[])
     engine eng;
     eng.bore = 12.065;
     eng.stroke = 14.0;
-    
-    double lx = eng.bore/2;
-    double ly = eng.stroke + eng.VTDC/(pi*pow(eng.bore,2)/4);
 
     // implements a 1D std:vector like structure to create grid   
     openfpm::vector<double> x;
@@ -103,7 +91,7 @@ int main(int argc, char* argv[])
         vd.getPos(key)[1] = (double)rand() / RAND_MAX;
         vd.getPos(key)[2] = (double)rand() / RAND_MAX;
 
-        //set random property of the particles
+        //set random velocity of the particles
         double numberx = distribution(generator);
         double numbery = distribution(generator);
         double numberz = distribution(generator);
@@ -138,16 +126,16 @@ int main(int argc, char* argv[])
     {
         auto it3 = vd.getDomainIterator();  //iterator that traverses the particles in the domain
 
-        // Calculate velocities to update positions
+        // Calculate velocities to update positions for each particle
         while (it3.isNext())
         {
             auto p = it3.get();
 
-            // v = v + .5dt calculate v(tn + 0.5)
+            // v = v + .5dt calculate v(tn + 0.5) += 0.5*dt;
             // velocity is always dependent on the previous velocity (getProp)
-            vd.template getProp<velocity>(p)[0] += 0.5*dt;
-            vd.template getProp<velocity>(p)[1] += 0.5*dt;
-            vd.template getProp<velocity>(p)[2] += 0.5*dt;
+            vd.template getProp<velocity>(p)[0] += (0.5-vd.template getProp<velocity>(p)[0])*dt/0.1;
+            vd.template getProp<velocity>(p)[1] += (0.5-vd.template getProp<velocity>(p)[1])*dt/0.1;
+            vd.template getProp<velocity>(p)[2] += (0.5-vd.template getProp<velocity>(p)[2])*dt/0.1;
 
             // calculate x(tn + 1)
             vd.getPos(p)[0] += vd.template getProp<velocity>(p)[0]*dt;
