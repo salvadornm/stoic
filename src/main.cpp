@@ -119,6 +119,7 @@ int main(int argc, char* argv[])
     double dt = simulation.dt;
     unsigned long int f = 0;
 
+
     auto NN = vd.getCellList<CELL_MEMBAL(3,double)>(simulation.delta); //cell list structure
 
     // MD time stepping
@@ -131,13 +132,46 @@ int main(int argc, char* argv[])
         {
             auto p = it3.get();
 
+            //find average of nearest neighbor
+            Point<3,double> xp = vd.getPos(p);  //position point p
+            auto Np = NN.template getNNIterator<NO_CHECK>(p.getKey());  //iterator over neighborhood particles
+
+            Point<3,double> temp_velx = 0;
+            Point<3,double> temp_vely = 0;
+            Point<3,double> temp_velz = 0;
+            double ct_neighbors = 0;
+            
+            while (Np.isNext())
+            {
+                auto q = Np.get();
+                if (q == p.getKey())    {++Np; continue;}; //skip if same point
+
+                Point<3,double> xq = vd.getPos(q);
+                double rn = norm2(xp - xq);    //distance btwn pt p and q
+
+
+                if (rn > simulation.delta)    {++Np; continue;};  //skip if not in neighborhood
+
+                temp_velx += vd.template getProp<velocity>(q)[0];
+                temp_vely += vd.template getProp<velocity>(q)[1];
+                temp_velz += vd.template getProp<velocity>(q)[2];
+
+                ++ct_neighbors;
+            }
+
+            temp_velx = temp_velx/ct_neighbors; 
+            temp_vely = temp_vely/ct_neighbors; 
+            temp_velz = temp_velz/ct_neighbors; 
+
+            std::cout << "neighbors: " << ct_neighbors << std::endl;
+
             // v = v + .5dt calculate v(tn + 0.5) += 0.5*dt;
             // velocity is always dependent on the previous velocity (getProp)
-            vd.template getProp<velocity>(p)[0] += (0.5-vd.template getProp<velocity>(p)[0])*dt/0.1;
-            vd.template getProp<velocity>(p)[1] += (0.5-vd.template getProp<velocity>(p)[1])*dt/0.1;
-            vd.template getProp<velocity>(p)[2] += (0.5-vd.template getProp<velocity>(p)[2])*dt/0.1;
+            vd.template getProp<velocity>(p)[0] += (temp_velx-vd.template getProp<velocity>(p)[0])*dt/0.1;
+            vd.template getProp<velocity>(p)[1] += (temp_vely-vd.template getProp<velocity>(p)[1])*dt/0.1;
+            vd.template getProp<velocity>(p)[2] += (temp_velz-vd.template getProp<velocity>(p)[2])*dt/0.1;
 
-            // calculate x(tn + 1)
+            // update particle position based on velocity
             vd.getPos(p)[0] += vd.template getProp<velocity>(p)[0]*dt;
             vd.getPos(p)[1] += vd.template getProp<velocity>(p)[1]*dt;
             vd.getPos(p)[2] += vd.template getProp<velocity>(p)[2]*dt;
