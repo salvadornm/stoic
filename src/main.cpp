@@ -17,7 +17,7 @@ using namespace std;
     int nparticles;
     int frame;
     double dt,dx,dy,dz;
-    double delta;
+    double rad;
   };
   class engine
   { 
@@ -39,6 +39,7 @@ int main(int argc, char* argv[])
     cout << "Hello World \n" << endl;
     
     //** VARIABLES **//
+    // to do: create separate input parameter function/file
     Cfd simulation;
     std::default_random_engine generator;
 
@@ -47,7 +48,7 @@ int main(int argc, char* argv[])
     simulation.nsteps = 100;
     simulation.dt = 0.01;
     simulation.frame = 10;
-    simulation.delta = 0.01;
+    simulation.rad = 2;
 
     //basic engine params
     engine eng;
@@ -58,16 +59,15 @@ int main(int argc, char* argv[])
     openfpm::vector<double> x;
     openfpm::vector<openfpm::vector<double>> y;
 
-    //gaussian distribtuion (0,1)
+    // test gaussian distribtuion (0,1)
     std::normal_distribution<double> distribution(0.0,1.0);
 
-    //** INITIALIZATION **//
-    //initialize openfpm
+    //** initialize openfpm **//
     openfpm_init(&argc,&argv);
 
     Box<3,double> domain({0.0,0.0,0.0},{1.0,1.0,1.0});  //define 3D box
     size_t bc[3]={PERIODIC,PERIODIC,PERIODIC};    // boundary conditions: Periodic means the 1 boundary is equal to the 0 boundary
-    Ghost<3,double> ghost(simulation.delta);   // extended to contain interaction radius
+    Ghost<3,double> ghost(simulation.rad);   // extended to contain interaction radius
 
     //** VECTOR INSTANTIATION **//
     //contains two vectoral properties
@@ -78,8 +78,7 @@ int main(int argc, char* argv[])
     openfpm::vector<std::string> names({"velocity","force"});
     vd.setPropNames(names);
 
-    //**ASSIGN Random POSITION**//
-    //should generate all values
+    //**ADD PARTICLES**//
     auto it = vd.getDomainIterator();
     for (size_t i = 0; i < simulation.nparticles ; i++)
     {
@@ -119,8 +118,21 @@ int main(int argc, char* argv[])
     double dt = simulation.dt;
     unsigned long int f = 0;
 
+    const double H = simulation.rad;
+    auto NN = vd.getCellList(2*H);
 
-    auto NN = vd.getCellList<CELL_MEMBAL(3,double)>(simulation.delta); //cell list structure
+    //find nearest neighbors
+
+    //compute averages
+    //compute gradient
+
+    //advance particles
+        //updateParticleProperties
+        //moveParticles
+    
+    //check boundary
+
+    //move boundary (movePiston)
 
     // MD time stepping
     for (size_t i = 0; i < simulation.nsteps ; i++)
@@ -132,44 +144,11 @@ int main(int argc, char* argv[])
         {
             auto p = it3.get();
 
-            //find average of nearest neighbor
-            Point<3,double> xp = vd.getPos(p);  //position point p
-            auto Np = NN.template getNNIterator<NO_CHECK>(p.getKey());  //iterator over neighborhood particles
-
-            Point<3,double> temp_velx = 0;
-            Point<3,double> temp_vely = 0;
-            Point<3,double> temp_velz = 0;
-            double ct_neighbors = 0;
-            
-            while (Np.isNext())
-            {
-                auto q = Np.get();
-                if (q == p.getKey())    {++Np; continue;}; //skip if same point
-
-                Point<3,double> xq = vd.getPos(q);
-                double rn = norm2(xp - xq);    //distance btwn pt p and q
-
-
-                if (rn > simulation.delta)    {++Np; continue;};  //skip if not in neighborhood
-
-                temp_velx += vd.template getProp<velocity>(q)[0];
-                temp_vely += vd.template getProp<velocity>(q)[1];
-                temp_velz += vd.template getProp<velocity>(q)[2];
-
-                ++ct_neighbors;
-            }
-
-            temp_velx = temp_velx/ct_neighbors; 
-            temp_vely = temp_vely/ct_neighbors; 
-            temp_velz = temp_velz/ct_neighbors; 
-
-            std::cout << "neighbors: " << ct_neighbors << std::endl;
-
             // v = v + .5dt calculate v(tn + 0.5) += 0.5*dt;
             // velocity is always dependent on the previous velocity (getProp)
-            vd.template getProp<velocity>(p)[0] += (temp_velx-vd.template getProp<velocity>(p)[0])*dt/0.1;
-            vd.template getProp<velocity>(p)[1] += (temp_vely-vd.template getProp<velocity>(p)[1])*dt/0.1;
-            vd.template getProp<velocity>(p)[2] += (temp_velz-vd.template getProp<velocity>(p)[2])*dt/0.1;
+            vd.template getProp<velocity>(p)[0] += (0.5-vd.template getProp<velocity>(p)[0])*dt/0.1;
+            vd.template getProp<velocity>(p)[1] += (0.5-vd.template getProp<velocity>(p)[1])*dt/0.1;
+            vd.template getProp<velocity>(p)[2] += (0.5-vd.template getProp<velocity>(p)[2])*dt/0.1;
 
             // update particle position based on velocity
             vd.getPos(p)[0] += vd.template getProp<velocity>(p)[0]*dt;
@@ -206,16 +185,7 @@ int main(int argc, char* argv[])
     cout << " ---------  END  ------- "  << endl;
 
     //**VISUALIZATION**// <--- NEEDS UPDATED STILL
-    //A VTK file contains information about particle position and properties
 
-
-    // save vtk format (vtk is always the default)
-    //vd.write("particles_moving");
-    // save in vtk format with time
-    //vd.write("particles_moving_with_time","time=1.234");
-    // save in vtk format with time
-    //vd.write("particles_moving_with_time_bin","time=1.234",VTK_WRITER | FORMAT_BINARY);
-    
     //De - initialize openfpm
     openfpm_finalize();
 }
