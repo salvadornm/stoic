@@ -75,11 +75,14 @@ int main(int argc, char* argv[])
     //** VECTOR INSTANTIATION **//
     //contains two vectoral properties
     vector_dist<3,double, aggregate<double[3],double[3]> > vd(0,domain,bc,ghost);
+    vector_dist<3,double,aggregate<size_t,double,  double,    double,     double,     double[3], double[3], double[3]>> particles;
 
     size_t cnt = 0; //used later    
     
-    openfpm::vector<std::string> names({"velocity","force"});
-    vd.setPropNames(names);
+    openfpm::vector<std::string> names1({"velocity","force"});
+    openfpm::vector<std::string> names2({"type","rho","rho_prev","Pressure","drho","force","velocity","velocity_prev"});
+    vd.setPropNames(names1);
+    particles.setPropNames(names2);
 
     //**ADD PARTICLES**//
     auto it = vd.getDomainIterator();
@@ -128,10 +131,12 @@ int main(int argc, char* argv[])
     const double H = simulation.rad;
     auto NN = vd.getCellList(2*H);
 
-    //find nearest neighbors
+    //in the time loop:
+    // in the particle loop:
+        //find nearest neighbors
 
-    //compute averages
-    //compute gradient
+        //compute averages
+        //compute gradient
 
     //advance particles
         //updateParticleProperties
@@ -141,7 +146,7 @@ int main(int argc, char* argv[])
 
     //move boundary (movePiston)
 
-    // MD time stepping
+    // Time loop
     for (size_t i = 0; i < simulation.nsteps ; i++)
     {
         auto it3 = vd.getDomainIterator();  //iterator that traverses the particles in the domain
