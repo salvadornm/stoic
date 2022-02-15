@@ -16,14 +16,13 @@ double Wab(double r)
         return 0.0;
 }
 
-//gradient of cubic kernel function
+// define gradient of cubic kernel function
 const double c1 = -3.0/M_PI/H/H/H/H;
 const double d1 = 9.0/4.0/M_PI/H/H/H/H;
 const double c2 = -3.0/4.0/M_PI/H/H/H/H;
 const double a2_4 = 0.25*a2;
 
-// Filled later
-double W_dap = 0.0;
+
 void DWab(Point<3,double> & dx, Point<3,double> & DW, double r, bool print)
 {
     const double qq=r/H;

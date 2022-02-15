@@ -11,6 +11,7 @@ using namespace std;
 
 //include functions
 #include "kernel.h"
+#include "findNeighbors.h"
 
 //Create global variable class
  class Cfd
@@ -35,6 +36,9 @@ using namespace std;
 constexpr int velocity = 0;
 constexpr int force = 0;
 const double pi = 3.14159265358979323846;
+
+#define BOUNDARY 0 // A constant to indicate boundary particles
+#define FLUID 1 // A constant to indicate fluid particles
 
 
 int main(int argc, char* argv[])
@@ -75,14 +79,14 @@ int main(int argc, char* argv[])
     //** VECTOR INSTANTIATION **//
     //contains two vectoral properties
     vector_dist<3,double, aggregate<double[3],double[3]> > vd(0,domain,bc,ghost);
-    vector_dist<3,double,aggregate<size_t,double,  double,    double,     double,     double[3], double[3], double[3]>> particles;
+    vector_dist<3,double,aggregate<size_t,double,  double,    double,     double,     double[3], double[3], double[3]>> particleset;
 
     size_t cnt = 0; //used later    
     
     openfpm::vector<std::string> names1({"velocity","force"});
     openfpm::vector<std::string> names2({"type","rho","rho_prev","Pressure","drho","force","velocity","velocity_prev"});
     vd.setPropNames(names1);
-    particles.setPropNames(names2);
+    particleset.setPropNames(names2);
 
     //**ADD PARTICLES**//
     auto it = vd.getDomainIterator();
@@ -128,9 +132,6 @@ int main(int argc, char* argv[])
     double dt = simulation.dt;
     unsigned long int f = 0;
 
-    const double H = simulation.rad;
-    auto NN = vd.getCellList(2*H);
-
     //in the time loop:
     // in the particle loop:
         //find nearest neighbors
@@ -146,6 +147,9 @@ int main(int argc, char* argv[])
 
     //move boundary (movePiston)
 
+    const double H = simulation.rad;
+    auto NN = vd.getCellList(2*H);
+    double temp = 0;
     // Time loop
     for (size_t i = 0; i < simulation.nsteps ; i++)
     {
@@ -155,6 +159,8 @@ int main(int argc, char* argv[])
         while (it3.isNext())
         {
             auto p = it3.get();
+
+            //find_neighbors(vd, NN, temp, H);
 
             // v = v + .5dt calculate v(tn + 0.5) += 0.5*dt;
             // velocity is always dependent on the previous velocity (getProp)
