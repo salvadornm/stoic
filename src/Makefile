@@ -1,6 +1,7 @@
 include example.mk
 
 CC=mpic++
+CFLAGS+= -v
 
 LDIR =
 RUNDIR = ../wrk/

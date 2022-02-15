@@ -5,4 +5,4 @@
 #include "kernel.h"
 #include "global.h"
 
-template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN, double & max_visc, double H);
+template<typename CellList> inline void find_neighbors(particleset  & vd, CellList & NN, double & max_visc, double H);

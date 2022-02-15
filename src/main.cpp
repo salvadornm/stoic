@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
         {
             auto p = it3.get();
 
-           // find_neighbors(vd, NN, temp, H);
+            find_neighbors(vd, NN, temp, H);
 
             // v = v + .5dt calculate v(tn + 0.5) += 0.5*dt;
             // velocity is always dependent on the previous velocity (getProp)

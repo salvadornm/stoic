@@ -9,7 +9,7 @@ double W_dap = 0.0;
 constexpr int velocity = 0;
 constexpr int force = 0;
 
-template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN, double & max_visc, double H)
+template<typename CellList> inline void find_neighbors(particleset  & vd, CellList & NN, double & max_visc, double H)
 {
     const double Eta2 = 0.01 * H*H;// Eta in the formulas
     auto part = vd.getDomainIterator();
