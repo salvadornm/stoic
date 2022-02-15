@@ -5,7 +5,7 @@ CC=mpic++
 LDIR =
 RUNDIR = ../wrk/
 
-OBJ = main.o
+OBJ = main.o kernel.o
 
 %.o: %.cpp
 	$(CC) -O0 -g -c --std=c++14 -o $@ $< $(INCLUDE_PATH)

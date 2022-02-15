@@ -9,6 +9,9 @@
 #include <stdlib.h>
 using namespace std;
 
+//include functions
+#include "kernel.h"
+
 //Create global variable class
  class Cfd
   {
@@ -111,6 +114,10 @@ int main(int argc, char* argv[])
 
     cout << " ---------  particles initialized  ------- " << cnt << endl;
  
+    // test kernel function
+    double test12 = Wab(0.001);
+    cout << " ---------  kernel output 0.15  ------- " << test12 << endl;
+
     //**ASSIGNING VALUES**//
 
     timer tsim;
