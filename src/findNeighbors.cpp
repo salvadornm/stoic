@@ -1,4 +1,5 @@
 #include "findNeighbors.h"
+#include "global.h"
 
 
 const double dp = 0.0085;//initial spacing between particles dp in the formulas
@@ -8,7 +9,7 @@ double W_dap = 0.0;
 constexpr int velocity = 0;
 constexpr int force = 0;
 
-template<typename CellList> void find_neighbors(vector_dist<3,double, aggregate<double[3],double[3]> > & vd, CellList & NN, double & max_visc, double H)
+template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN, double & max_visc, double H)
 {
     const double Eta2 = 0.01 * H*H;// Eta in the formulas
     auto part = vd.getDomainIterator();

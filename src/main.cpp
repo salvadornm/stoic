@@ -1,5 +1,5 @@
 #include <stddef.h>
-#include "Vector/vector_dist.hpp"
+//#include "Vector/vector_dist.hpp"
 #include "timer.hpp"
 #include "Plot/GoogleChart.hpp"
 #include "Plot/util.hpp"
@@ -12,6 +12,7 @@ using namespace std;
 //include functions
 #include "kernel.h"
 #include "findNeighbors.h"
+#include "global.h"
 
 //Create global variable class
  class Cfd
@@ -37,8 +38,20 @@ constexpr int velocity = 0;
 constexpr int force = 0;
 const double pi = 3.14159265358979323846;
 
+// properties index
+const int i_rho         = 1;
+const int i_energy      = 2;
+const int i_pressure    = 3;
+const int i_temperature = 4;
+const int i_velocity    = 5;
+const int i_scalars     = 6;
+const int i_species     = 7;
+
+
 #define BOUNDARY 0 // A constant to indicate boundary particles
 #define FLUID 1 // A constant to indicate fluid particles
+
+const double H = 0.0147224318643;
 
 
 int main(int argc, char* argv[])
@@ -76,17 +89,16 @@ int main(int argc, char* argv[])
     size_t bc[3]={PERIODIC,PERIODIC,PERIODIC};    // boundary conditions: Periodic means the 1 boundary is equal to the 0 boundary
     Ghost<3,double> ghost(simulation.rad);   // extended to contain interaction radius
 
-    //** VECTOR INSTANTIATION **//
-    //contains two vectoral properties
-    vector_dist<3,double, aggregate<double[3],double[3]> > vd(0,domain,bc,ghost);
-    vector_dist<3,double,aggregate<size_t,double,  double,    double,     double,     double[3], double[3], double[3]>> particleset;
+    // extended boundary around the domain, and the processor domain
+    Ghost<3,double> g(2*H);
+
+    particleset vd(0,domain,bc,g,DEC_GRAN(512)); 
+
 
     size_t cnt = 0; //used later    
     
-    openfpm::vector<std::string> names1({"velocity","force"});
-    openfpm::vector<std::string> names2({"type","rho","rho_prev","Pressure","drho","force","velocity","velocity_prev"});
+    openfpm::vector<std::string> names1({"rho","energy","Pressure","Temperature","velocity","scalars","species"});
     vd.setPropNames(names1);
-    particleset.setPropNames(names2);
 
     //**ADD PARTICLES**//
     auto it = vd.getDomainIterator();
@@ -106,9 +118,9 @@ int main(int argc, char* argv[])
         double numberz = distribution(generator);
 
         //set the property of the particles
-        vd.template getProp<velocity>(key)[0] = numberx;
-        vd.template getProp<velocity>(key)[1] = numbery;
-        vd.template getProp<velocity>(key)[2] = numberz;
+        vd.template getProp<i_velocity>(key)[0] = numberx;
+        vd.template getProp<i_velocity>(key)[1] = numbery;
+        vd.template getProp<i_velocity>(key)[2] = numberz;
         
         // next particle
         ++it;
@@ -122,8 +134,10 @@ int main(int argc, char* argv[])
     cout << " ---------  particles initialized  ------- " << cnt << endl;
  
     // test kernel function
-    double test12 = Wab(0.001);
-    cout << " ---------  kernel output 0.15  ------- " << test12 << endl;
+    cout << " kernel(0.0 H)  " << Wab(0.0)<< endl;
+    cout << " kernel(0.99 H) " << Wab(0.99*H)<< endl;
+    cout << " kernel(1.01 H) " << Wab(1.01*H)<< endl;
+    cout << " kernel(1.9 H)  " << Wab(1.9*H) << endl;
 
     //**ASSIGNING VALUES**//
 
@@ -147,7 +161,7 @@ int main(int argc, char* argv[])
 
     //move boundary (movePiston)
 
-    const double H = simulation.rad;
+   // const double H = simulation.rad;
     auto NN = vd.getCellList(2*H);
     double temp = 0;
     // Time loop
@@ -160,18 +174,18 @@ int main(int argc, char* argv[])
         {
             auto p = it3.get();
 
-            //find_neighbors(vd, NN, temp, H);
+           // find_neighbors(vd, NN, temp, H);
 
             // v = v + .5dt calculate v(tn + 0.5) += 0.5*dt;
             // velocity is always dependent on the previous velocity (getProp)
-            vd.template getProp<velocity>(p)[0] += (0.5-vd.template getProp<velocity>(p)[0])*dt/0.1;
-            vd.template getProp<velocity>(p)[1] += (0.5-vd.template getProp<velocity>(p)[1])*dt/0.1;
-            vd.template getProp<velocity>(p)[2] += (0.5-vd.template getProp<velocity>(p)[2])*dt/0.1;
+            vd.template getProp<i_velocity>(p)[0] += (0.5-vd.template getProp<i_velocity>(p)[0])*dt/0.1;
+            vd.template getProp<i_velocity>(p)[1] += (0.5-vd.template getProp<i_velocity>(p)[1])*dt/0.1;
+            vd.template getProp<i_velocity>(p)[2] += (0.5-vd.template getProp<i_velocity>(p)[2])*dt/0.1;
 
             // update particle position based on velocity
-            vd.getPos(p)[0] += vd.template getProp<velocity>(p)[0]*dt;
-            vd.getPos(p)[1] += vd.template getProp<velocity>(p)[1]*dt;
-            vd.getPos(p)[2] += vd.template getProp<velocity>(p)[2]*dt;
+            vd.getPos(p)[0] += vd.template getProp<i_velocity>(p)[0]*dt;
+            vd.getPos(p)[1] += vd.template getProp<i_velocity>(p)[1]*dt;
+            vd.getPos(p)[2] += vd.template getProp<i_velocity>(p)[2]*dt;
 
             ++it3;
         }

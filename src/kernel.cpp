@@ -2,16 +2,15 @@
 #include "kernel.h"
 
 const double H = 0.0147224318643;
-
 //define cubic SPH Kernel
-const double a2 = 1.0/M_PI/H/H/H;
+const double a2 = 1.0;// 1.0/M_PI/H/H/H;
 double Wab(double r)
 {
     r /= H;
     if (r < 1.0)
         return (1.0 - 3.0/2.0*r*r + 3.0/4.0*r*r*r)*a2;
     else if (r < 2.0)
-        return (1.0/4.0*(2.0 - r*r)*(2.0 - r*r)*(2.0 - r*r))*a2;
+        return (0.25*(2.0 - r)*(2.0 - r)*(2.0 - r))*a2;
     else
         return 0.0;
 }
