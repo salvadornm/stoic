@@ -10,7 +10,6 @@
 using namespace std;
 
 //include functions
-#include "kernel.h"
 #include "findNeighbors.h"
 #include "global.h"
 
@@ -132,12 +131,7 @@ int main(int argc, char* argv[])
     vd.ghost_get<>();   //syncs the ghost with the newly mapped particles
 
     cout << " ---------  particles initialized  ------- " << cnt << endl;
- 
-    // test kernel function
-    cout << " kernel(0.0 H)  " << Wab(0.0)<< endl;
-    cout << " kernel(0.99 H) " << Wab(0.99*H)<< endl;
-    cout << " kernel(1.01 H) " << Wab(1.01*H)<< endl;
-    cout << " kernel(1.9 H)  " << Wab(1.9*H) << endl;
+
 
     //**ASSIGNING VALUES**//
 

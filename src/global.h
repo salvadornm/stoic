@@ -1,3 +1,6 @@
+#ifndef _global_h
+#define _global_h
+
 #include "Vector/vector_dist.hpp"
 
 // // properties index
@@ -11,3 +14,5 @@
 
 // particle structure
 typedef vector_dist<3,double,aggregate<size_t,double,  double,    double,  double, double[3], double, double>> particleset;
+
+#endif // _global_h
