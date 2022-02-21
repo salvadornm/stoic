@@ -2,10 +2,6 @@
 #define _kernel_h
 
 #include "Vector/vector_dist.hpp"
-#include <math.h>
-#include <iostream>
-
-//const double H = 0.0147224318643;
 
 //SPH Kernel --> kernel.cpp
 double Wab(double r);
