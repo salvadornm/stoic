@@ -1,9 +1,7 @@
 
 #include "kernel.h"
 
-const double H = 0.0147224318643;
 //define cubic SPH Kernel
-const double a2 = 1.0;// 1.0/M_PI/H/H/H;
 double Wab(double r)
 {
     r /= H;
@@ -16,12 +14,6 @@ double Wab(double r)
 }
 
 // define gradient of cubic kernel function
-const double c1 = -3.0/M_PI/H/H/H/H;
-const double d1 = 9.0/4.0/M_PI/H/H/H/H;
-const double c2 = -3.0/4.0/M_PI/H/H/H/H;
-const double a2_4 = 0.25*a2;
-
-
 void DWab(Point<3,double> & dx, Point<3,double> & DW, double r, bool print)
 {
     const double qq=r/H;
@@ -35,4 +27,30 @@ void DWab(Point<3,double> & dx, Point<3,double> & DW, double r, bool print)
     DW.get(0) = factor * dx.get(0);
     DW.get(1) = factor * dx.get(1);
     DW.get(2) = factor * dx.get(2);
+}
+
+// Tensile correction
+double Tensile(double r, double rhoa, double rhob, double prs1, double prs2, double temp_wdap)
+{
+    const double qq=r/H;
+    //-Cubic Spline kernel
+    double wab;
+    if(r>H)
+    {
+        double wqq1=2.0f-qq;
+        double wqq2=wqq1*wqq1;
+        wab=a2_4*(wqq2*wqq1);
+    }
+    else
+    {
+        double wqq2=qq*qq;
+        double wqq3=wqq2*qq;
+        wab=a2*(1.0f-1.5f*wqq2+0.75f*wqq3);
+    }
+    //-Tensile correction.
+    double fab=wab*temp_wdap;
+    fab*=fab; fab*=fab; //fab=fab^4
+    const double tensilp1=(prs1/(rhoa*rhoa))*(prs1>0? 0.01: -0.2);
+    const double tensilp2=(prs2/(rhob*rhob))*(prs2>0? 0.01: -0.2);
+    return (fab*(tensilp1+tensilp2));
 }

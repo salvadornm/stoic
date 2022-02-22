@@ -12,11 +12,10 @@ using namespace std;
 //include functions
 #include "global.h"
 #include "findNeighbors.h"
+#include "calculations.h"
 
 #define BOUNDARY 0 // A constant to indicate boundary particles
 #define FLUID 1 // A constant to indicate fluid particles
-
-const double H = 0.0147224318643;
 
 int main(int argc, char* argv[])
 {
@@ -134,7 +133,10 @@ int main(int argc, char* argv[])
         {
             auto p = it3.get();
 
-           find_neighbors(vd, NN, temp, H); //vd, NN, temp, H
+            calcPressure(vd);
+            double max_visc = 0.0;
+
+            find_neighbors(vd, NN, temp, H);
 
             // v = v + .5dt calculate v(tn + 0.5) += 0.5*dt;
             // velocity is always dependent on the previous velocity (getProp)

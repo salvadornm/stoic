@@ -12,8 +12,10 @@ constexpr int i_temperature = 4;
 constexpr int i_scalars     = 5;
 constexpr int i_species     = 6;
 
-// Initialize global velocity/force
+// Initialize global vars
 const double pi = 3.14159265358979323846;
+const double H = 0.0147224318643; //for kernel
+const double Eta2 = 0.01 * H*H;
 
 //Create global variable class
  class Cfd
