@@ -14,6 +14,7 @@ using namespace std;
 #include "findNeighbors.h"
 #include "global.h"
 
+
 //Create global variable class
  class Cfd
   {

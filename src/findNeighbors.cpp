@@ -6,8 +6,7 @@ const double dp = 0.0085;//initial spacing between particles dp in the formulas
 // Filled later
 double W_dap = 0.0;
 //these are already in main.cpp vv ?? should I have them here too?
-constexpr int velocity = 0;
-constexpr int force = 0;
+constexpr int i_velocity = 0;
 
 template<typename CellList> inline void find_neighbors(particleset  & vd, CellList & NN, double & max_visc, double H)
 {
@@ -24,10 +23,7 @@ template<typename CellList> inline void find_neighbors(particleset  & vd, CellLi
 
         // Get all properties of the particle
         Point<3,double> xa = vd.getPos(a);
-        //double massa = (vd.getProp<type>(a) == FLUID)?MassFluid:MassBound;
-        //double rhoa = vd.getProp<rho>(a);
-        //double Pa = vd.getProp<Pressure>(a);
-        Point<3,double> va = vd.getProp<velocity>(a);
+        Point<3,double> va = vd.getProp<i_velocity>(a);
 
         auto Np = NN.template getNNIterator<NO_CHECK>(NN.getCell(vd.getPos(a)));
         
@@ -40,11 +36,7 @@ template<typename CellList> inline void find_neighbors(particleset  & vd, CellLi
             if (a.getKey() == b)    {++Np; continue;};// if (p == q) skip this particle
                 
             // Get all properties of the particle
-            //double massb = (vd.getProp<type>(b) == FLUID)?MassFluid:MassBound;
-            Point<3,double> vb = vd.template getProp<velocity>(b);
-            //double Pb = vd.getProp<Pressure>(b);
-            //double rhob = vd.getProp<rho>(b);
-
+            Point<3,double> vb = vd.template getProp<i_velocity>(b);
             // Get the distance between p and q
             Point<3,double> dr = xa - xb;
             double r2 = norm2(dr);
@@ -58,10 +50,7 @@ template<typename CellList> inline void find_neighbors(particleset  & vd, CellLi
                 Point<3,double> DW;
                 DWab(dr,DW,r,false);
                 const double dot = dr.get(0)*dv.get(0) + dr.get(1)*dv.get(1) + dr.get(2)*dv.get(2);
-                const double dot_rr2 = dot/(r2+Eta2);
-                
-                //max_visc=std::max(dot_rr2,max_visc);
-                //vd.getProp<drho>(a) += massb*(dv.get(0)*DW.get(0)+dv.get(1)*DW.get(1)+dv.get(2)*DW.get(2));
+                const double dot_rr2 = dot/(r2+Eta2);                
             }
             ++Np;
         }
