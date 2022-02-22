@@ -7,7 +7,7 @@
 const double dp = 0.0085;//initial spacing between particles dp in the formulas
 double W_dap = 0.0;
 
-template<typename t> void find_neighbors(particleset  & vd, t & NN, double & max_visc, double H)
+template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN, double & max_visc, double H)
 {
     cout << " start nearest neighbor  " << endl;
     const double Eta2 = 0.01 * H*H;// Eta in the formulas
@@ -15,12 +15,6 @@ template<typename t> void find_neighbors(particleset  & vd, t & NN, double & max
     vd.updateCellList(NN);
 
     W_dap = 1.0/Wab(H/1.5);
-
-    // test kernel function
-    cout << " kernel(0.0 H)  " << Wab(0.0)<< endl;
-    cout << " kernel(0.99 H) " << Wab(0.99*H)<< endl;
-    cout << " kernel(1.01 H) " << Wab(1.01*H)<< endl;
-    cout << " kernel(1.9 H)  " << Wab(1.9*H) << endl;
 
     // For each particle ...
     while (part.isNext())
@@ -32,7 +26,7 @@ template<typename t> void find_neighbors(particleset  & vd, t & NN, double & max
         //double massa = (vd.getProp<type>(a) == FLUID)?MassFluid:MassBound;
         //double rhoa = vd.getProp<rho>(a);
         //double Pa = vd.getProp<Pressure>(a);
-        Point<3,double> va = vd.getProp<velocity>(a);
+        Point<3,double> va = vd.getProp<i_velocity>(a);
 
         auto Np = NN.template getNNIterator<NO_CHECK>(NN.getCell(vd.getPos(a)));
         
@@ -46,7 +40,7 @@ template<typename t> void find_neighbors(particleset  & vd, t & NN, double & max
                 
             // Get all properties of the particle
             //double massb = (vd.getProp<type>(b) == FLUID)?MassFluid:MassBound;
-            Point<3,double> vb = vd.template getProp<velocity>(b);
+            Point<3,double> vb = vd.template getProp<i_velocity>(b);
             //double Pb = vd.getProp<Pressure>(b);
             //double rhob = vd.getProp<rho>(b);
 

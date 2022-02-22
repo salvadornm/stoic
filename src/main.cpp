@@ -1,7 +1,7 @@
 #include <stddef.h>
+#include <math.h>
 #include <iostream>
 #include <stdlib.h>
-#include <math.h>
 #include "Vector/vector_dist.hpp"
 #include "timer.hpp"
 #include "Plot/GoogleChart.hpp"
@@ -12,15 +12,6 @@ using namespace std;
 //include functions
 #include "global.h"
 #include "findNeighbors.h"
-
-// properties index
-const int i_rho         = 1;
-const int i_energy      = 2;
-const int i_pressure    = 3;
-const int i_temperature = 4;
-const int i_velocity    = 5;
-const int i_scalars     = 6;
-const int i_species     = 7;
 
 #define BOUNDARY 0 // A constant to indicate boundary particles
 #define FLUID 1 // A constant to indicate fluid particles
@@ -60,7 +51,7 @@ int main(int argc, char* argv[])
 
     Box<3,double> domain({0.0,0.0,0.0},{1.0,1.0,1.0});  //define 3D box
     size_t bc[3]={PERIODIC,PERIODIC,PERIODIC};    // boundary conditions: Periodic means the 1 boundary is equal to the 0 boundary
-    Ghost<3,double> ghost(simulation.rad);   // extended to contain interaction radius
+    //Ghost<3,double> ghost(simulation.rad);   // extended to contain interaction radius
 
     // extended boundary around the domain, and the processor domain
     Ghost<3,double> g(2*H);
@@ -70,8 +61,8 @@ int main(int argc, char* argv[])
 
     size_t cnt = 0; //used later    
     
-    openfpm::vector<std::string> names1({"rho","energy","Pressure","Temperature","velocity","scalars","species"});
-    vd.setPropNames(names1);
+    openfpm::vector<std::string> names({"velocity","rho","energy","Pressure","Temperature","scalars","species"});
+    vd.setPropNames(names);
 
     //**ADD PARTICLES**//
     auto it = vd.getDomainIterator();
@@ -143,7 +134,7 @@ int main(int argc, char* argv[])
         {
             auto p = it3.get();
 
-           //find_neighbors(vd, NN, temp, H); //vd, NN, temp, H
+           find_neighbors(vd, NN, temp, H); //vd, NN, temp, H
 
             // v = v + .5dt calculate v(tn + 0.5) += 0.5*dt;
             // velocity is always dependent on the previous velocity (getProp)

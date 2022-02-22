@@ -4,17 +4,15 @@
 #include "Vector/vector_dist.hpp"
 
 // // properties index
-// const int i_rho         = 1;
-// const int i_energy      = 2;
-// const int i_pressure    = 3;
-// const int i_temperature = 4;
-// const int i_velocity    = 5;
-// const int i_scalars     = 6;
-// const int i_species     = 7;
+constexpr int i_velocity    = 0;
+constexpr int i_rho         = 1;
+constexpr int i_energy      = 2;
+constexpr int i_pressure    = 3;
+constexpr int i_temperature = 4;
+constexpr int i_scalars     = 5;
+constexpr int i_species     = 6;
 
 // Initialize global velocity/force
-constexpr int velocity = 0;
-constexpr int force = 0;
 const double pi = 3.14159265358979323846;
 
 //Create global variable class
@@ -36,6 +34,6 @@ const double pi = 3.14159265358979323846;
   };
 
 // particle structure
-typedef vector_dist<3,double,aggregate<size_t,double,  double,    double,  double, double[3], double, double>> particleset;
+typedef vector_dist<3,double,aggregate<double[3], double,  double,    double,  double, double, double>> particleset;
 
 #endif // _global_h
