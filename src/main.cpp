@@ -27,8 +27,8 @@ int main(int argc, char* argv[])
     std::default_random_engine generator;
 
     //simulation parameters
-    simulation.nparticles = 1000;
-    simulation.nsteps = 100;
+    simulation.nparticles = 100; //1000
+    simulation.nsteps = 10; //100
     simulation.dt = 0.01;
     simulation.frame = 10;
     simulation.rad = 2;
@@ -56,12 +56,14 @@ int main(int argc, char* argv[])
     Ghost<3,double> g(2*H);
 
     particleset vd(0,domain,bc,g,DEC_GRAN(512)); 
+    particleset vdmean(0,domain,bc,g,DEC_GRAN(512)); //added today
 
 
     size_t cnt = 0; //used later    
     
     openfpm::vector<std::string> names({"velocity","rho","energy","Pressure","Temperature","scalars","species"});
     vd.setPropNames(names);
+    vdmean.setPropNames(names);
 
     //**ADD PARTICLES**//
     auto it = vd.getDomainIterator();
@@ -95,6 +97,8 @@ int main(int argc, char* argv[])
     vd.map();       //distribute particle positions across the processors       
     vd.ghost_get<>();   //syncs the ghost with the newly mapped particles
 
+    vdmean = vd;
+
     cout << " ---------  particles initialized  ------- " << cnt << endl;
 
 
@@ -122,7 +126,6 @@ int main(int argc, char* argv[])
 
    // const double H = simulation.rad;
     auto NN = vd.getCellList(2*H);
-    double temp = 1.81 * exp(-5);
     // Time loop
     for (size_t i = 0; i < simulation.nsteps ; i++)
     {
@@ -133,16 +136,14 @@ int main(int argc, char* argv[])
         {
             auto p = it3.get();
 
-            calcPressure(vd);
-            double max_visc = 0.0;
+            updateEqtnState(vd);    //calc pressure based on local density
 
-            find_neighbors(vd, NN, temp, H);
+            find_neighbors(vd, vdmean, NN, H); //contaions properties of neighbors
 
-            // v = v + .5dt calculate v(tn + 0.5) += 0.5*dt;
             // velocity is always dependent on the previous velocity (getProp)
-            vd.template getProp<i_velocity>(p)[0] += (0.5-vd.template getProp<i_velocity>(p)[0])*dt/0.1;
-            vd.template getProp<i_velocity>(p)[1] += (0.5-vd.template getProp<i_velocity>(p)[1])*dt/0.1;
-            vd.template getProp<i_velocity>(p)[2] += (0.5-vd.template getProp<i_velocity>(p)[2])*dt/0.1;
+            vd.template getProp<i_velocity>(p)[0] += (vdmean.template getProp<i_velocity>(p)[0]-vd.template getProp<i_velocity>(p)[0])*dt/0.1;
+            vd.template getProp<i_velocity>(p)[1] += (vdmean.template getProp<i_velocity>(p)[1]-vd.template getProp<i_velocity>(p)[1])*dt/0.1;
+            vd.template getProp<i_velocity>(p)[2] += (vdmean.template getProp<i_velocity>(p)[2]-vd.template getProp<i_velocity>(p)[2])*dt/0.1;
 
             // update particle position based on velocity
             vd.getPos(p)[0] += vd.template getProp<i_velocity>(p)[0]*dt;

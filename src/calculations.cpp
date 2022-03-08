@@ -5,7 +5,7 @@ const double rho_zero = 1000.0;
 double B = 20.0*20.0*9.81*1.0*rho_zero / 7.0; //(coeff_sound)*(coeff_sound)*gravity*h_swl*rho_zero / gamma_;
 
 //calculate pressure based on local density (called EqState in openfpm)
-void calcPressure(particleset & vd)
+void updateEqtnState(particleset & vd)
 {
     auto it = vd.getDomainIterator();
     while (it.isNext())

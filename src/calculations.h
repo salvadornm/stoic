@@ -3,7 +3,7 @@
 
 #include "global.h"
 
-void calcPressure(particleset & vd);
+void updateEqtnState(particleset & vd);
 double viscous(const Point<3,double> & dr, double rr2, Point<3,double> & dv, double rhoa, double rhob, double massb, double & visc);
 
 
