@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
     std::default_random_engine generator;
 
     //simulation parameters
-    simulation.nparticles = 100; //1000
+    simulation.nparticles = 5000; //1000
     simulation.nsteps = 100; //100
     simulation.dt = 0.01;
     simulation.frame = 10;
@@ -59,6 +59,10 @@ int main(int argc, char* argv[])
 
     particleset vd(0,domain,bc,g,DEC_GRAN(512)); 
     particleset vdmean(0,domain,bc,g,DEC_GRAN(512)); //added today
+    particleset dvdmeanx(0,domain,bc,g,DEC_GRAN(512)); //added today
+    particleset dvdmeany(0,domain,bc,g,DEC_GRAN(512)); //added today
+    particleset dvdmeanz(0,domain,bc,g,DEC_GRAN(512)); //added today
+
 
 
     size_t cnt = 0; //used later    
@@ -66,12 +70,17 @@ int main(int argc, char* argv[])
     openfpm::vector<std::string> names({"velocity","rho","energy","Pressure","Temperature","scalars","species"});
     vd.setPropNames(names);
     vdmean.setPropNames(names);
+    dvdmeanx.setPropNames(names);
+    dvdmeany.setPropNames(names);
+    dvdmeanz.setPropNames(names);
+    
 
     //**ADD PARTICLES**//
     auto it = vd.getDomainIterator();
     for (size_t i = 0; i < simulation.nparticles ; i++)
     {
         vd.add();
+
         auto key = it.get();    //contains (i,j,k) index of grid
 
         // we define x, assign a random position between 0.0 and 1.0
@@ -99,7 +108,12 @@ int main(int argc, char* argv[])
     vd.map();       //distribute particle positions across the processors       
     vd.ghost_get<>();   //syncs the ghost with the newly mapped particles
 
+    // initialise mean
     vdmean = vd;
+    // initilaise grads (values no meaning)
+    dvdmeanx = vd;
+    dvdmeany = vd;
+    dvdmeanz = vd;
 
     cout << " ---------  particles initialized  ------- " << cnt << endl;
 
@@ -111,25 +125,25 @@ int main(int argc, char* argv[])
     double dt = simulation.dt;
     unsigned long int f = 0;
 
-    
-    // const double H = simulation.rad;
-    auto NN = vd.getCellList(2*H);
+        
+    auto NN = vd.getCellList(4*H);
     // Time loop
     for (size_t i = 0; i < simulation.nsteps ; i++)
     {
         auto it3 = vd.getDomainIterator();  //iterator that traverses the particles in the domain
+
+        find_neighbors(vd, vdmean,dvdmeanx, NN, H); //contaions properties of neighbors
+ 
 
         // Particle loop...
         while (it3.isNext())
         {
             auto p = it3.get();
             
-            // (this may break due to int overflow with high numbers of particles, change to double)
             int place = p.getKey();
             
-            updateEqtnState(vd);    //calc pressure based on local density
+            //updateEqtnState(vd);    //calc pressure based on local density
 
-            find_neighbors(vd, vdmean, NN, H); //contaions properties of neighbors
             updateParticleProperties(vd, vdmean, place, dt);
 
             moveParticles(vd, vdmean, place, dt);
@@ -150,6 +164,9 @@ int main(int argc, char* argv[])
             vd.deleteGhost();
             vd.write_frame("particles_",i);
 
+            vdmean.write_frame("partmean_",i);
+            
+
             // resync the ghost
             vd.ghost_get<>();
 
@@ -160,6 +177,13 @@ int main(int argc, char* argv[])
         }
 
         //MOVE BOUNDARY/UPDATE PISTON LOCATION
+
+        if (i % 10 ==0 )
+        {
+          cout << " --------- STEP   i="  << i  << std::endl;  
+        }
+
+
     }
 
     tsim.stop();

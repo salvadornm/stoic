@@ -12,11 +12,18 @@ void updateParticleProperties(particleset  & vd, particleset  & vdmean, int p, d
     //update density
     //calculate pressure
     //calculate pressure velocity term...
+    double time_turb = 0.1;
+    double eps_turb = 0.1;
 
     //update velocity transport term
-    vd.template getProp<i_velocity>(p)[0] += (vdmean.template getProp<i_velocity>(p)[0])*dt*.5;
-    vd.template getProp<i_velocity>(p)[1] += (vdmean.template getProp<i_velocity>(p)[1])*dt*.5;
-    vd.template getProp<i_velocity>(p)[2] += (vdmean.template getProp<i_velocity>(p)[2])*dt*.5;
+    // drift term
+    double du = (vdmean.template getProp<i_velocity>(p)[0] -  vd.template getProp<i_velocity>(p)[0]);
+    // stoic
+    double dW = 0.0; // eps_turb*distribution(generator)*sqrt(dt);
+
+    vd.template getProp<i_velocity>(p)[0] += du*dt/(time_turb + dt) + dW;
+    vd.template getProp<i_velocity>(p)[1] += (vdmean.template getProp<i_velocity>(p)[1])*dt;
+    vd.template getProp<i_velocity>(p)[2] += (vdmean.template getProp<i_velocity>(p)[2])*dt;
 
     //check continuity?
     //update velocity

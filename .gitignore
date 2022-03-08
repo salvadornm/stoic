@@ -2,3 +2,4 @@ wrk/*.pvtp
 wrk/*.vtp
 src/*.o
 src/example.mk
+wrk/stoic
