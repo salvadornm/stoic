@@ -10,7 +10,7 @@ double mass_p = 1.0; //m_tot/N;
 
 template<typename CellList> void find_neighbors(particleset  & vd, particleset  & vdmean, CellList & NN, double H)
 {
-    cout << " start nearest neighbor  " << endl;
+    //cout << " start nearest neighbor  " << endl;
     const double Eta2 = 0.01 * H*H;// Eta in the formulas
     const double W_dap = 1.0/Wab(H/1.5);
 
@@ -22,7 +22,6 @@ template<typename CellList> void find_neighbors(particleset  & vd, particleset  
     while (part.isNext())
     {
         auto a = part.get();
-        cout << " particle  " << endl;
 
         // Get all properties of the particle
         Point<3,double> xa = vd.getPos(a);
@@ -45,7 +44,6 @@ template<typename CellList> void find_neighbors(particleset  & vd, particleset  
         while (Np.isNext() == true)
         {
             auto b = Np.get();
-            cout << " neighbor  loop " << endl;
               
             Point<3,double> xb = vd.getPos(b);  // position xp of the particle
             
@@ -63,24 +61,23 @@ template<typename CellList> void find_neighbors(particleset  & vd, particleset  
             double r2 = norm2(dr);
 
             // If the particles interact ... (if r2 is less than the cutoff radius)
-            //if (r2 < 4.0*H*H)
-            if (r2 < 0.1)
+            if (r2 < 4.0*H*H)
+            //if (r2 < 0.1)
             {
                 double r = sqrt(r2);
                 Point<3,double> dv = va - vb;
                 Point<3,double> DW;
                 DWab(dr,DW,r,false);    //compute gradient but do not use gradient...
                 double W = Wab(r);  //weighting
-                cout << "neighbor" << endl;
                 
                 // else if it is a fluid particle: 
                 // collect the mean of the properties of each negihbor, weighted
                 vdmean.template getProp<i_rho>(a)         += W*rhob;
                 vdmean.template getProp<i_temperature>(a) += W*temp_b;
                 vdmean.template getProp<i_pressure>(a)    += W*Pb;
-                vdmean.template getProp<i_velocity>(a)[0] += W* vb[0];
-                vdmean.template getProp<i_velocity>(a)[1] += W* vb[1];
-                vdmean.template getProp<i_velocity>(a)[2] += W* vb[2];
+                vdmean.template getProp<i_velocity>(a)[0] += DW.get(0)* vb[0];
+                vdmean.template getProp<i_velocity>(a)[1] += DW.get(1)* vb[1];
+                vdmean.template getProp<i_velocity>(a)[2] += DW.get(2)* vb[2];
 
             }
             ++Np;

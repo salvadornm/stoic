@@ -13,6 +13,8 @@ using namespace std;
 #include "global.h"
 #include "findNeighbors.h"
 #include "calculations.h"
+#include "updateProps.h"
+#include "moveParticles.h"
 
 #define BOUNDARY 0 // A constant to indicate boundary particles
 #define FLUID 1 // A constant to indicate fluid particles
@@ -28,7 +30,7 @@ int main(int argc, char* argv[])
 
     //simulation parameters
     simulation.nparticles = 100; //1000
-    simulation.nsteps = 10; //100
+    simulation.nsteps = 100; //100
     simulation.dt = 0.01;
     simulation.frame = 10;
     simulation.rad = 2;
@@ -131,25 +133,21 @@ int main(int argc, char* argv[])
     {
         auto it3 = vd.getDomainIterator();  //iterator that traverses the particles in the domain
 
-        // Calculate velocities to update positions for each particle
+        // For each particle...
         while (it3.isNext())
         {
             auto p = it3.get();
-
+            
+            // (this may break due to int overflow with high numbers of particles, change to double)
+            int place = p.getKey();
+            
             updateEqtnState(vd);    //calc pressure based on local density
 
             find_neighbors(vd, vdmean, NN, H); //contaions properties of neighbors
+            updateParticleProperties(vd, vdmean, place, dt);
 
-            // velocity is always dependent on the previous velocity (getProp)
-            vd.template getProp<i_velocity>(p)[0] += (vdmean.template getProp<i_velocity>(p)[0]-vd.template getProp<i_velocity>(p)[0])*dt/0.1;
-            vd.template getProp<i_velocity>(p)[1] += (vdmean.template getProp<i_velocity>(p)[1]-vd.template getProp<i_velocity>(p)[1])*dt/0.1;
-            vd.template getProp<i_velocity>(p)[2] += (vdmean.template getProp<i_velocity>(p)[2]-vd.template getProp<i_velocity>(p)[2])*dt/0.1;
-
-            // update particle position based on velocity
-            vd.getPos(p)[0] += vd.template getProp<i_velocity>(p)[0]*dt;
-            vd.getPos(p)[1] += vd.template getProp<i_velocity>(p)[1]*dt;
-            vd.getPos(p)[2] += vd.template getProp<i_velocity>(p)[2]*dt;
-
+            moveParticles(vd, vdmean, place, dt);
+            
             ++it3;
         }
 
