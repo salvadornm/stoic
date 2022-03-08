@@ -111,29 +111,15 @@ int main(int argc, char* argv[])
     double dt = simulation.dt;
     unsigned long int f = 0;
 
-    //in the time loop:
-    // in the particle loop:
-        //find nearest neighbors
-
-        //compute averages
-        //compute gradient
-
-    //advance particles
-        //updateParticleProperties
-        //moveParticles
     
-    //check boundary
-
-    //move boundary (movePiston)
-
-   // const double H = simulation.rad;
+    // const double H = simulation.rad;
     auto NN = vd.getCellList(2*H);
     // Time loop
     for (size_t i = 0; i < simulation.nsteps ; i++)
     {
         auto it3 = vd.getDomainIterator();  //iterator that traverses the particles in the domain
 
-        // For each particle...
+        // Particle loop...
         while (it3.isNext())
         {
             auto p = it3.get();
@@ -150,6 +136,8 @@ int main(int argc, char* argv[])
             
             ++it3;
         }
+
+        //moveParticles outside of particle loop bc want to be done all at once??
 
         // Map particles and re-sync the ghost
         vd.map();
@@ -170,6 +158,8 @@ int main(int argc, char* argv[])
             v_cl.sum(cnt);
             v_cl.execute();
         }
+
+        //MOVE BOUNDARY/UPDATE PISTON LOCATION
     }
 
     tsim.stop();

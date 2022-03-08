@@ -39,6 +39,8 @@ template<typename CellList> void find_neighbors(particleset  & vd, particleset  
         vdmean.template getProp<i_velocity>(a)[2] = 0.0;
 
         auto Np = NN.template getNNIterator<NO_CHECK>(NN.getCell(vd.getPos(a)));
+
+        double ct_neighbors = 0;
         
         // For each neighborhood particle, (assuming all particles are fluid particles)
         while (Np.isNext() == true)
@@ -81,6 +83,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, particleset  
 
             }
             ++Np;
+            ct_neighbors += 1;
         }
         ++part;
     }

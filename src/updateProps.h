@@ -10,11 +10,16 @@ const double Rideal = 8.3144621;
 void updateParticleProperties(particleset  & vd, particleset  & vdmean, int p, double dt)
 {
     //update density
+    //calculate pressure
+    //calculate pressure velocity term...
 
-    //update velocity
+    //update velocity transport term
     vd.template getProp<i_velocity>(p)[0] += (vdmean.template getProp<i_velocity>(p)[0])*dt*.5;
     vd.template getProp<i_velocity>(p)[1] += (vdmean.template getProp<i_velocity>(p)[1])*dt*.5;
     vd.template getProp<i_velocity>(p)[2] += (vdmean.template getProp<i_velocity>(p)[2])*dt*.5;
+
+    //check continuity?
+    //update velocity
 
 }
 #endif // _updateProps_h
