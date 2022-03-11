@@ -43,8 +43,6 @@ int main(int argc, char* argv[])
     // implements a 1D std:vector like structure to create grid   
     openfpm::vector<double> x;
     openfpm::vector<openfpm::vector<double>> y;
-
-    // test gaussian distribtuion (0,1)
     std::normal_distribution<double> distribution(0.0,1.0);
 
     //** initialize openfpm **//
@@ -63,8 +61,6 @@ int main(int argc, char* argv[])
     particleset dvdmeany(0,domain,bc,g,DEC_GRAN(512)); //added today
     particleset dvdmeanz(0,domain,bc,g,DEC_GRAN(512)); //added today
 
-
-
     size_t cnt = 0; //used later    
     
     openfpm::vector<std::string> names({"velocity","rho","energy","Pressure","Temperature","scalars","species"});
@@ -80,14 +76,12 @@ int main(int argc, char* argv[])
     for (size_t i = 0; i < simulation.nparticles ; i++)
     {
         vd.add();
-
         auto key = it.get();    //contains (i,j,k) index of grid
 
         // we define x, assign a random position between 0.0 and 1.0
         vd.getPos(key)[0] = (double)rand() / RAND_MAX;  //rand_max just normalizes it to between 0 and 1
         vd.getPos(key)[1] = (double)rand() / RAND_MAX;
         vd.getPos(key)[2] = (double)rand() / RAND_MAX;
-
 
         //set random velocity of the particles
         double numberx = distribution(generator);
@@ -139,19 +133,17 @@ int main(int argc, char* argv[])
         while (it3.isNext())
         {
             auto p = it3.get();
-            
             int place = p.getKey();
             
             //updateEqtnState(vd);    //calc pressure based on local density
 
             updateParticleProperties(vd, vdmean, place, dt);
-
             moveParticles(vd, vdmean, place, dt);
             
             ++it3;
         }
 
-        //moveParticles outside of particle loop bc want to be done all at once??
+        //MOVE BOUNDARY/UPDATE PISTON LOCATION
 
         // Map particles and re-sync the ghost
         vd.map();
@@ -163,10 +155,8 @@ int main(int argc, char* argv[])
             // Write the particle position for visualization (Without ghost)
             vd.deleteGhost();
             vd.write_frame("particles_",i);
-
             vdmean.write_frame("partmean_",i);
             
-
             // resync the ghost
             vd.ghost_get<>();
 
@@ -176,23 +166,16 @@ int main(int argc, char* argv[])
             v_cl.execute();
         }
 
-        //MOVE BOUNDARY/UPDATE PISTON LOCATION
 
         if (i % 10 ==0 )
         {
           cout << " --------- STEP   i="  << i  << std::endl;  
         }
-
-
     }
 
     tsim.stop();
     std::cout << "Time: " << tsim.getwct() << std::endl;
 
     cout << " ---------  END  ------- "  << endl;
-
-    //**VISUALIZATION**// <--- NEEDS UPDATED STILL
-
-    //De - initialize openfpm
-    openfpm_finalize();
+    openfpm_finalize(); //De - initialize openfpm
 }
