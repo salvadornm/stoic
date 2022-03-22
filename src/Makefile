@@ -2,18 +2,36 @@ include example.mk
 
 CC=mpic++
 
-#CFLAGS= -O0
-CFLAGS= -O2
-#LFLAGS= -O0
-LFLAGS= -O2
+#default flags
+CFLAGS= 
+LFLAGS= 
 
 LDIR =
 RUNDIR = ../wrk/
+
 
 OBJ = main.o kernel.o calculations.o
 
 #libary rules
 $(OBJ): global.h findNeighbors.h 
+
+
+#options
+ifeq ($(CANTERA),1)
+  CANTERA_FLG="$(shell pkg-config --cflags --libs cantera)"
+  CFLAGS += $(CANTERA_FLG)
+  CFLAGS += -Dchem_cantera
+endif
+
+ifeq ($(DEBUG),1)
+  CFLAGS += -Ddebug
+  CFLAGS += -O0
+else
+  CFLAGS += -O2
+endif
+
+
+
 
 %.o: %.cpp
 	$(CC) $(CFLAGS) -g -c --std=c++14 -o $@ $< $(INCLUDE_PATH)
@@ -21,6 +39,7 @@ $(OBJ): global.h findNeighbors.h
 stoic: $(OBJ)
 	$(CC) -o $@ $^ $(LFLAGS) $(LIBS_PATH) $(LIBS)
 	mv stoic $(RUNDIR)
+	$(call echogreen," SUCCESS")
 
 all: stoic
 
@@ -40,7 +59,36 @@ clean:
 	rm -f $(RUNDIR)*.vtp $(RUNDIR)*.pvtp
 
 flags:
-	echo "RUNDIR=" $(RUNDIR) 
-	echo "CFLAGS=" $(CFLAGS) 
-	echo "LFLAGS=" $(LFLAGS) 
+	$(call echoblue," RUNDIR =  ")
+	@echo $(RUNDIR)
+	$(call echoblue," compile flags  CFLAGS=  ")
+	@echo $(CFLAGS)
+	$(call echoblue," linking flags  LFLAGS=  ")
+	@echo "LFLAGS = $(LFLAGS) "
 
+#=============== color schemes 
+define echored
+      @tput setaf 1
+      @echo $1
+      @tput sgr0
+endef
+define echogreen
+      @tput setaf 2
+      @echo $1
+      @tput sgr0
+endef
+define echoblue
+      @tput setaf 4
+      @echo $1
+      @tput sgr0
+endef
+define echocyan
+      @tput setaf 6
+      @echo $1
+      @tput sgr0
+endef
+define echoinfo
+      @tput setaf 2
+      @echo $1 "  :  "  `tput setaf 0` $2
+      @tput sgr0
+endef	 
