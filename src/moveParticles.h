@@ -5,7 +5,7 @@
 #include <iostream>
 #include "global.h"
 
-void moveParticles(particleset  & vd, particleset  & vdmean, int p, double dt)
+void moveParticles(particleset  & vd, int p, double dt)
 {
     vd.getPos(p)[0] += vd.template getProp<i_velocity>(p)[0]*dt;
     vd.getPos(p)[1] += vd.template getProp<i_velocity>(p)[1]*dt;

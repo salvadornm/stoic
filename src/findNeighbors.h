@@ -5,7 +5,7 @@
 #include "kernel.h"
 #include "calculations.h"
 
-template<typename CellList> void find_neighbors(particleset  & vd, particleset &vdmean, particleset &dvdmeanx, CellList & NN, double H)
+template<typename CellList> void find_neighbors(particleset  & vd, particleset &vdmean, particleset &dvdmean, CellList & NN, double H)
 {
     int n,ingh,ip;
     float iavg=0;
@@ -17,6 +17,8 @@ template<typename CellList> void find_neighbors(particleset  & vd, particleset &
 
     // For each particle ...
     ip=1;
+    //timer tsim;
+    //tsim.start();
     while (part.isNext())
     {
         auto a = part.get();
@@ -33,9 +35,12 @@ template<typename CellList> void find_neighbors(particleset  & vd, particleset &
         vdmean.template getProp<i_velocity>(a)[1] = 0.0;
         vdmean.template getProp<i_velocity>(a)[2] = 0.0;
 
-        dvdmeanx.template getProp<i_velocity>(a)[0] = 0.0;
-        dvdmeanx.template getProp<i_velocity>(a)[1] = 0.0;
-        dvdmeanx.template getProp<i_velocity>(a)[2] = 0.0;
+        dvdmean.template getProp<i_velocity>(a)[0] = 0.0;
+        dvdmean.template getProp<i_velocity>(a)[1] = 0.0;
+        dvdmean.template getProp<i_velocity>(a)[2] = 0.0;
+        dvdmean.template getProp<i_rho>(a)         = 0.0;
+        dvdmean.template getProp<i_temperature>(a) = 0.0;
+        dvdmean.template getProp<i_pressure>(a)    = 0.0;
 
         
         auto Np = NN.template getNNIterator<NO_CHECK>(NN.getCell(vd.getPos(a)));
@@ -64,22 +69,28 @@ template<typename CellList> void find_neighbors(particleset  & vd, particleset &
             vdmean.template getProp<i_rho>(a)         += W*vd.getProp<i_rho>(b);
             vdmean.template getProp<i_temperature>(a) += W*vd.getProp<i_temperature>(b);
             vdmean.template getProp<i_pressure>(a)    += W*vd.getProp<i_pressure>(b);
+            vdmean.template getProp<i_energy>(a)      += W*vd.getProp<i_energy>(b);
             vdmean.template getProp<i_velocity>(a)[0] += W*vd.getProp<i_velocity>(b)[0];
             vdmean.template getProp<i_velocity>(a)[1] += W*vd.getProp<i_velocity>(b)[1];
             vdmean.template getProp<i_velocity>(a)[2] += W*vd.getProp<i_velocity>(b)[2];
 
-            // grad x of partciel property at a particle position
-            dvdmeanx.template getProp<i_velocity>(a)[0] += DW.get(0)*vd.getProp<i_velocity>(b)[0];
-            dvdmeanx.template getProp<i_velocity>(a)[1] += DW.get(0)*vd.getProp<i_velocity>(b)[1];
-            dvdmeanx.template getProp<i_velocity>(a)[2] += DW.get(0)*vd.getProp<i_velocity>(b)[2];
+            // grad x of particle property at a particle position
+            dvdmean.template getProp<i_velocity>(a)[0] += DW.get(0)*vd.getProp<i_velocity>(b)[0];
+            dvdmean.template getProp<i_velocity>(a)[1] += DW.get(0)*vd.getProp<i_velocity>(b)[1];
+            dvdmean.template getProp<i_velocity>(a)[2] += DW.get(0)*vd.getProp<i_velocity>(b)[2];
+            dvdmean.template getProp<i_rho>(a)         += DW.get(0)*vd.getProp<i_rho>(b);
+            dvdmean.template getProp<i_pressure>(a)    += DW.get(0)*vd.getProp<i_pressure>(b);
 
             ++Np;
         }
+
         iavg = iavg + ingh;
         ++part;
     }
-    //cout << "i = " << ip << " neigh= "<< ingh  << endl;
+    cout << "i = " << ip << " neigh= "<< ingh  << endl;
     cout << " Avg number of neighbours=" << iavg/ip << endl;
+    //tsim.stop();
+    //std::cout << "Time: " << tsim.getwct() << std::endl;
 }
 
 #endif // _neighbors_h

@@ -29,8 +29,8 @@ int main(int argc, char* argv[])
     std::default_random_engine generator;
 
     //simulation parameters
-    simulation.nparticles = 5000; //1000
-    simulation.nsteps = 100; //100
+    simulation.nparticles = 100; //1000
+    simulation.nsteps = 50; //100
     simulation.dt = 0.01;
     simulation.frame = 10;
     simulation.rad = 2;
@@ -39,6 +39,10 @@ int main(int argc, char* argv[])
     engine eng;
     eng.bore = 12.065;
     eng.stroke = 14.0;
+
+    //time step variables
+    double Vol = 1; //[m3]
+    double mass_mix, mass_p; 
 
     // implements a 1D std:vector like structure to create grid   
     openfpm::vector<double> x;
@@ -56,9 +60,9 @@ int main(int argc, char* argv[])
     Ghost<3,double> g(2*H);
 
     particleset vd(0,domain,bc,g,DEC_GRAN(512)); 
-    particleset vdmean(0,domain,bc,g,DEC_GRAN(512)); //added today
-    particleset dvdmeanx(0,domain,bc,g,DEC_GRAN(512)); //added today
-    particleset dvdmeany(0,domain,bc,g,DEC_GRAN(512)); //added today
+    particleset vdmean(0,domain,bc,g,DEC_GRAN(512)); 
+    particleset dvdmean(0,domain,bc,g,DEC_GRAN(512)); 
+    particleset dvdmeany(0,domain,bc,g,DEC_GRAN(512)); 
     particleset dvdmeanz(0,domain,bc,g,DEC_GRAN(512)); //added today
 
     size_t cnt = 0; //used later    
@@ -66,7 +70,7 @@ int main(int argc, char* argv[])
     openfpm::vector<std::string> names({"velocity","rho","energy","Pressure","Temperature","scalars","species"});
     vd.setPropNames(names);
     vdmean.setPropNames(names);
-    dvdmeanx.setPropNames(names);
+    dvdmean.setPropNames(names);
     dvdmeany.setPropNames(names);
     dvdmeanz.setPropNames(names);
     
@@ -92,6 +96,11 @@ int main(int argc, char* argv[])
         vd.template getProp<i_velocity>(key)[0] = numberx;
         vd.template getProp<i_velocity>(key)[1] = numbery;
         vd.template getProp<i_velocity>(key)[2] = numberz;
+
+        //set remaining properties
+        vd.template getProp<i_temperature>(key) = 300; //[K]
+        vd.template getProp<i_pressure>(key) = 101300;  //[pa] atmospheric pressure
+        vd.template getProp<i_rho>(key) = 850; //[kg/m3] temporary placeholder
         
         // next particle
         ++it;
@@ -105,7 +114,7 @@ int main(int argc, char* argv[])
     // initialise mean
     vdmean = vd;
     // initilaise grads (values no meaning)
-    dvdmeanx = vd;
+    dvdmean = vd;
     dvdmeany = vd;
     dvdmeanz = vd;
 
@@ -126,7 +135,14 @@ int main(int argc, char* argv[])
     {
         auto it3 = vd.getDomainIterator();  //iterator that traverses the particles in the domain
 
-        find_neighbors(vd, vdmean,dvdmeanx, NN, H); //contaions properties of neighbors
+        //find new volume of cylinder
+        // crank angle;
+        Vol = 1; //[m3]
+        mass_mix = 0;
+        //calculate mass of particle
+        mass_p = mass_mix/simulation.nparticles;
+
+        find_neighbors(vd, vdmean,dvdmean, NN, H); //contaions properties of neighbors
  
 
         // Particle loop...
@@ -137,8 +153,12 @@ int main(int argc, char* argv[])
             
             //updateEqtnState(vd);    //calc pressure based on local density
 
-            updateParticleProperties(vd, vdmean, place, dt);
-            moveParticles(vd, vdmean, place, dt);
+            updateParticleProperties(vd, vdmean, dvdmean, place, dt, H);
+            moveParticles(vd, place, dt);
+            
+            vdmean.getPos(p)[0] = vd.getPos(p)[0];
+            vdmean.getPos(p)[1] = vd.getPos(p)[1];
+            vdmean.getPos(p)[2] = vd.getPos(p)[2];
             
             ++it3;
         }
@@ -147,7 +167,8 @@ int main(int argc, char* argv[])
 
         // Map particles and re-sync the ghost
         vd.map();
-        vd.template ghost_get<>();
+        vd.template ghost_get<>();        
+        NN = vd.getCellList(4*H);
 
         // collect some statistic about the configuration
         if (i % simulation.frame == 0)
@@ -165,7 +186,6 @@ int main(int argc, char* argv[])
             v_cl.sum(cnt);
             v_cl.execute();
         }
-
 
         if (i % 10 ==0 )
         {
