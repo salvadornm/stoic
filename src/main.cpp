@@ -29,8 +29,8 @@ int main(int argc, char* argv[])
     std::default_random_engine generator;
 
     //simulation parameters
-    simulation.nparticles = 100; //1000
-    simulation.nsteps = 50; //100
+    simulation.nparticles = 1000; //1000
+    simulation.nsteps = 100; //100
     simulation.dt = 0.01;
     simulation.frame = 10;
     simulation.rad = 2;
@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
 
     particleset vd(0,domain,bc,g,DEC_GRAN(512)); 
     particleset vdmean(0,domain,bc,g,DEC_GRAN(512)); 
-    particleset dvdmean(0,domain,bc,g,DEC_GRAN(512)); 
+    particleset dvdmeanx(0,domain,bc,g,DEC_GRAN(512)); 
     particleset dvdmeany(0,domain,bc,g,DEC_GRAN(512)); 
     particleset dvdmeanz(0,domain,bc,g,DEC_GRAN(512)); //added today
 
@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
     openfpm::vector<std::string> names({"velocity","rho","energy","Pressure","Temperature","scalars","species"});
     vd.setPropNames(names);
     vdmean.setPropNames(names);
-    dvdmean.setPropNames(names);
+    dvdmeanx.setPropNames(names);
     dvdmeany.setPropNames(names);
     dvdmeanz.setPropNames(names);
     
@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
     // initialise mean
     vdmean = vd;
     // initilaise grads (values no meaning)
-    dvdmean = vd;
+    dvdmeanx = vd;
     dvdmeany = vd;
     dvdmeanz = vd;
 
@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
         //calculate mass of particle
         mass_p = mass_mix/simulation.nparticles;
 
-        find_neighbors(vd, vdmean,dvdmean, NN, H); //contaions properties of neighbors
+        find_neighbors(vd, vdmean,dvdmeanx, NN, H); //contaions properties of neighbors
  
 
         // Particle loop...
@@ -153,7 +153,7 @@ int main(int argc, char* argv[])
             
             //updateEqtnState(vd);    //calc pressure based on local density
 
-            updateParticleProperties(vd, vdmean, dvdmean, place, dt, H);
+            updateParticleProperties(vd, vdmean, dvdmeanx, place, dt, H);
             moveParticles(vd, place, dt);
             
             vdmean.getPos(p)[0] = vd.getPos(p)[0];
