@@ -4,6 +4,8 @@
 #include "global.h"
 
 void updateEqtnState(particleset & vd);
+void updateDensity(particleset & vd);
+void updateThermalProperties1(particleset & vd, particleset & vdmean, int a);
 double viscous(const Point<3,double> & dr, double rr2, Point<3,double> & dv, double rhoa, double rhob, double massb, double & visc);
 
 

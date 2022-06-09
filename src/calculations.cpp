@@ -18,6 +18,32 @@ void updateEqtnState(particleset & vd)
     }
 }
 
+//solve for density and energy from Pressure and Temperature
+// rho = (M*P)/(R*T)
+void updateDensity(particleset & vd)
+{
+    auto it = vd.getDomainIterator();
+    while (it.isNext())
+    {
+        auto a = it.get();
+        double P = vd.template getProp<i_pressure>(a);
+        double T = vd.template getProp<i_temperature>(a);
+        vd.template getProp<i_rho>(a) = P/(R_air*T);        //ideal gas law: assume dry air for now
+        ++it;
+    }
+}
+
+//solve for Pressure and Temperature from density and energy 
+// P = (rho*R*T)/M
+void updateThermalProperties1(particleset & vd, particleset & vdmean, int a)
+{
+    double rho = vd.template getProp<i_rho>(a);
+    //k = vd.template getProp<i_species>(a);
+    double k = 1;   //temporary
+    vd.template getProp<i_temperature>(a) = vdmean.template getProp<i_temperature>(a) - k * vd.template getProp<i_energy>(a);
+    vd.template getProp<i_pressure>(a) = rho*(R_air*vd.template getProp<i_temperature>(a));        //assume dry air for now
+}
+
 double cbar = 20.0 * sqrt(9.81*1.0); //cbar in formula //coeff_sound * sqrt(gravity * h_swl);
 const double visco = 0.1; // alpha in the formula
 
