@@ -14,6 +14,8 @@ constexpr int i_scalars     = 5;
 constexpr int i_species     = 6;
 constexpr int i_vdmean     = 7;
 constexpr int i_dvdmean     = 8;
+constexpr int i_vely     = 5;
+constexpr int i_velz     = 6;
 
 
 // Initialize global vars
@@ -54,7 +56,7 @@ const double R_global = .831; //[J/mol/K]
   };
 
 // particle structure
-typedef vector_dist<3,double,aggregate<double[3], double,  double,    double,  double, double, double, double[7], double[5][4]>> particleset;
+typedef vector_dist<3,double,aggregate<double[3], double,  double,    double,  double, double, double, double[7], double[4][5]>> particleset;
 //typedef vector_dist<3,double,aggregate<double[3], double,  double,    double,  double, double, double>> particleset;
 //typedef vector_dist<1,double,aggregate<double,  double,    double,  double, double>> gradientset;
 

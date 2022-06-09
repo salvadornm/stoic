@@ -35,12 +35,12 @@ void updateDensity(particleset & vd)
 
 //solve for Pressure and Temperature from density and energy 
 // P = (rho*R*T)/M
-void updateThermalProperties1(particleset & vd, particleset & vdmean, int a)
+void updateThermalProperties1(particleset & vd, int a)
 {
     double rho = vd.template getProp<i_rho>(a);
     //k = vd.template getProp<i_species>(a);
     double k = 1;   //temporary
-    vd.template getProp<i_temperature>(a) = vdmean.template getProp<i_temperature>(a) - k * vd.template getProp<i_energy>(a);
+    vd.template getProp<i_temperature>(a) = vd.template getProp<i_vdmean>(a)[i_temperature] - k * vd.template getProp<i_energy>(a);
     vd.template getProp<i_pressure>(a) = rho*(R_air*vd.template getProp<i_temperature>(a));        //assume dry air for now
 }
 

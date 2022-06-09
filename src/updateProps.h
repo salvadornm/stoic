@@ -10,7 +10,7 @@
 
 
 const double Rideal = 8.3144621;
-void updateParticleProperties(particleset  & vd, particleset  & vdmean, gradientset  & dvdmeanx, gradientset  & dvdmeany, gradientset  & dvdmeanz, int p, double dt, double l, turbulence turb)
+void updateParticleProperties(particleset  & vd, int p, double dt, double l, turbulence turb)
 {
     // stoic
     std::default_random_engine generator;
@@ -29,11 +29,11 @@ void updateParticleProperties(particleset  & vd, particleset  & vdmean, gradient
     double m_p, mass_p, edensity_p;
 
     //mean particle properties
-    double Tmean = vdmean.template getProp<i_temperature>(p);
-    double Pmean = vdmean.template getProp<i_pressure>(p);
-    double rho_mean = vdmean.template getProp<i_rho>(p);
-    double energy_mean = vdmean.template getProp<i_energy>(p);
-    vector <double> u_mean {vdmean.template getProp<i_velocity>(p)[0],vdmean.template getProp<i_velocity>(p)[1],vdmean.template getProp<i_velocity>(p)[2]};
+    double Tmean = vd.template getProp<i_vdmean>(p)[i_temperature];
+    double Pmean = vd.template getProp<i_vdmean>(p)[i_pressure];
+    double rho_mean = vd.template getProp<i_vdmean>(p)[i_rho];
+    double energy_mean = vd.template getProp<i_vdmean>(p)[i_temperature];
+    vector <double> u_mean {vd.template getProp<i_vdmean>(p)[i_velocity],vd.template getProp<i_vdmean>(p)[i_vely],vd.template getProp<i_vdmean>(p)[i_velz]};
     double vel_mean = sqrt(u_mean[0]*u_mean[0]+u_mean[1]*u_mean[1]+u_mean[2]*u_mean[2]);
     
     //gradient particle properties
@@ -56,22 +56,15 @@ void updateParticleProperties(particleset  & vd, particleset  & vdmean, gradient
 
     //----------------------------------------------------------------------------
     //----------------------------------------------------------------------------
-    auto dvdmean = dvdmeanx;
 
     for (size_t i = 0; i < 3 ; i++) //loop through x,y,z directions
     {
-        switch(i){
-            case 0: dvdmean = dvdmeanx; break;
-            case 1: dvdmean = dvdmeany; break;
-            case 2: dvdmean = dvdmeanz; break;
-        }
-
         //gradient particle properties
-        T_grad = dvdmean.template getProp<i_temperature>(p);  //not used
-        P_grad = dvdmean.template getProp<i_pressure>(p); 
-        rho_grad = dvdmean.template getProp<i_rho>(p);
-        energy_grad = dvdmean.template getProp<i_energy>(p);
-        m_grad = dvdmean.template getProp<i_momentum>(p);
+        T_grad = vd.template getProp<i_dvdmean>(p)[i][i_temperature];  //not used
+        P_grad = vd.template getProp<i_dvdmean>(p)[i][i_pressure]; 
+        rho_grad = vd.template getProp<i_dvdmean>(p)[i][i_rho];
+        energy_grad = vd.template getProp<i_dvdmean>(p)[i][i_energy];
+        m_grad = vd.template getProp<i_dvdmean>(p)[i][i_momentum];
         // (0) check continuity
 
         // (1) update density

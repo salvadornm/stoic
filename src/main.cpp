@@ -116,13 +116,15 @@ int main(int argc, char* argv[])
         vd.template getProp<i_energy>(key) = 1; //temporary placeholder
         
         //initialize dvdmean particles
-        dvdmean.getPos(key)[0] = 0.0;
-        dvdmean.template getProp<i_momentum>(key) = 0.0; 
-        dvdmean.template getProp<i_rho>(key)  = 0.0;
-        dvdmean.template getProp<i_energy>(key)   = 0.0;
-        dvdmean.template getProp<i_temperature>(key) = 0.0;
-        dvdmean.template getProp<i_pressure>(key)    = 0.0;
-    
+        for (size_t j = 0; j < 6.0 ; j++)
+        { vd.template getProp<i_vdmean>(key)[j] = 0.0; }
+        for (size_t j = 0; j < 3.0 ; j++)
+        { vd.template getProp<i_dvdmean>(key)[j][i_momentum]  = 0.0;
+        vd.template getProp<i_dvdmean>(key)[j][i_rho]  = 0.0;
+        vd.template getProp<i_dvdmean>(key)[j][i_energy]  = 0.0;
+        vd.template getProp<i_dvdmean>(key)[j][i_pressure]  = 0.0;
+        vd.template getProp<i_dvdmean>(key)[j][i_temperature]  = 0.0;
+        }
         //updateChemicalProperties(vd); //initialize temperature and composition
         //updateThermalProperties1(vd);   //update conductivity,diffusivity,specific haet capacity, based on T/Y 
         //updateDensity(vd);
@@ -133,16 +135,9 @@ int main(int argc, char* argv[])
         cnt++;
     }
 
-/*
     //-- Map Particles to grid --/
     vd.map();       //distribute particle positions across the processors       
     vd.ghost_get<>();   //syncs the ghost with the newly mapped particles
-
-    // initialise mean and gradients (values have no meaning rn)
-    vdmean = vd;
-    dvdmeanx = dvdmean;
-    dvdmeany = dvdmean;
-    dvdmeanz = dvdmean;
 
     cout << " ---------  particles initialized  ------- " << cnt << endl;
 
@@ -160,7 +155,7 @@ int main(int argc, char* argv[])
     for (size_t i = 0; i < simulation.nsteps ; i++)
     {
         auto it3 = vd.getDomainIterator();  //iterator that traverses the particles in the domain 
-        find_neighbors(vd, vdmean, dvdmean, dvdmeanx, dvdmeany, dvdmeanz, NN); //contaions properties of neighbors
+        find_neighbors(vd, NN); //contaions properties of neighbors
         
         std::cout << "step: " << i << std::endl;
         //function to solve for new cylinder geometry
@@ -173,16 +168,12 @@ int main(int argc, char* argv[])
             
             //updateEqtnState(vd);    //calc pressure based on local density
 
-            updateParticleProperties(vd, vdmean, dvdmeanx, dvdmeany, dvdmeanz, place, dt, H, turb);
+            updateParticleProperties(vd, place, dt, H, turb);
             //update thermal properties; pressure, total energy
             //updateThermalProperties2(vd, vdmean, place);
             //updateThermoDynamics
             //advanceNavierStokes
             cout << "New pressure = " << vd.template getProp<i_pressure>(p) << " new temp = "<< vd.template getProp<i_temperature>(p)  << endl;
-
-            vdmean.getPos(p)[0] = vd.getPos(p)[0];
-            vdmean.getPos(p)[1] = vd.getPos(p)[1];
-            vdmean.getPos(p)[2] = vd.getPos(p)[2];
             
             moveParticles(vd, place, dt);
             ++it3;
@@ -207,7 +198,6 @@ int main(int argc, char* argv[])
             // Write the particle position for visualization (Without ghost)
             vd.deleteGhost();
             vd.write_frame("particles_",i);
-            vdmean.write_frame("partmean_",i);
             
             // resync the ghost
             vd.ghost_get<>();
@@ -221,12 +211,13 @@ int main(int argc, char* argv[])
         if (i % 10 ==0 )
         {
           cout << " --------- STEP   i="  << i  << std::endl;  
-        }    
-    }
+        }  
+         
+    } 
 
     tsim.stop();
     std::cout << "Time: " << tsim.getwct() << std::endl;
-*/
+
     cout << " ---------  END  ------- "  << endl;
     openfpm_finalize(); //De - initialize openfpm
 }

@@ -2,10 +2,10 @@ include example.mk
 
 CC=mpic++
 
-#CFLAGS= -O0
-CFLAGS= -O2
-#LFLAGS= -O0
-LFLAGS= -O2
+CFLAGS= -O0
+#CFLAGS= -O2
+LFLAGS= -O0
+#LFLAGS= -O2
 
 LDIR =
 RUNDIR = ../wrk/
