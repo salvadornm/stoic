@@ -57,61 +57,58 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     //----------------------------------------------------------------------------
     //----------------------------------------------------------------------------
 
+    turb.k_sgs = 0.0;
+    for (size_t i = 0; i < 3 ; i++) turb.k_sgs += (up[i] - u_mean[i])*(up[i] - u_mean[i]));
+    turb.Eps_sgs = turb.k_sgs/l;
+    //time scales
+    double Cu = 2.1; //Kolmogorov constant
+    double C0 = 1;
+    tau_sgs = turb.k_sgs/turb.Eps_sgs;
+    tau_mol = 0.001;//(l*l)/(rho_p*up[i]);    //l = kernel width (H)
+    tau_eq = 1/((1/tau_mol)+(Cu/tau_sgs));
+
+
     for (size_t i = 0; i < 3 ; i++) //loop through x,y,z directions
     {
         //gradient particle properties
-        T_grad = vd.template getProp<i_dvdmean>(p)[i][i_temperature];  //not used
-        P_grad = vd.template getProp<i_dvdmean>(p)[i][i_pressure]; 
-        rho_grad = vd.template getProp<i_dvdmean>(p)[i][i_rho];
-        energy_grad = vd.template getProp<i_dvdmean>(p)[i][i_energy];
-        m_grad = vd.template getProp<i_dvdmean>(p)[i][i_momentum];
+     //   T_grad[i] = vd.template getProp<i_dvdmean>(p)[i][i_temperature];  //not used
+        P_grad[i] = vd.template getProp<i_dvdmean>(p)[i][i_pressure]; 
+        mom_grad[i] = vd.template getProp<i_dvdmean>(p)[i][i_rho];
+    //    energy_grad[i] = vd.template getProp<i_dvdmean>(p)[i][i_energy];
+    }
         // (0) check continuity
 
-        // (1) update density
-        drho = -(rho_grad)*dt;
-        rho_new += drho;
+        // (1) update density ---------------------------------
+        drho = - (mom_grad[0] + mom_grad[1] + mom_grad[2])*dt;
+        rho_new = rhop + drho;
         cout << "drho = " << drho << " rho_grad, rho_mean = " << rho_grad << ", " << rho_mean << endl;
- 
-        // (2) update momentum
+        vd.template getProp<i_rho>(p) =  rho_new;
+
+        // (2) update momentum ---------------------
+        Au_turb = ((rho_p*Cu)/tau_sgs);
+        Au_mol = (rho_p/tau_mol);
+        Au_p = Au_mol + Au_turb;
+        Au_p_alt = (rho_p/(tau_eq+dt));   //confirmed Au_p and Au_p_alt (wo +dt) are equivalent
+        B = C0*sqrt(turb.Eps_sgs);        //turbulent diffusion
+        for (size_t i = 0; i < 3 ; i++) 
+        {
         // drift term
         du = (u_mean[i] -  up[i]);
-    
-        //move to a class to manipulate outside
-        //turbulent kinetic energy is half the sum of the variances of the velocities
-        turb.k_sgs = .5 * ((up[i] - u_mean[i])*(up[i] - u_mean[i]));
-        turb.Eps_sgs = turb.k_sgs/l;
-
-        //time scales
-        double Cu = 2.1; //Kolmogorov constant
-        double C0 = 1;
-        tau_sgs = turb.k_sgs/turb.Eps_sgs;
-        tau_mol = (l*l)/(rho_p*up[i]);    //l = kernel width (H)
-        tau_eq = 1/((1/tau_mol)+(Cu/tau_sgs));
-
         //solve momentum equation
-        // dm = -dP/dx|dt + Audt + BdW
-        Au_turb = ((rho_p*Cu)/tau_sgs)*du;
-        Au_mol = (rho_p/tau_mol)*du;
-        Au_p = Au_mol + Au_turb;
-        Au_p_alt = (rho_p/(tau_eq+dt))*du;   //confirmed Au_p and Au_p_alt (wo +dt) are equivalent
-        B = C0*sqrt(turb.Eps_sgs);   //turbulent diffusion
-
-        //momentum equation
-        m_p = rho_p * up[i];
-        m_new = m_p - (P_grad * dt) + (Au_p_alt * dt) + (B * dWien);
-
+        mom_p[i]  = rho_p * up[i];
+        mom_p[i] +=  P_grad * dt + Au_p_alt *du* dt + B * dWien *sqrt(dt);
+        
         cout << "New momentum = " << m_new << " old momentum = "<< m_p  << endl;
-
         // (3) update velocity
-        u_new = m_new / rho_p;
-        vd.template getProp<i_velocity>(p)[i] = u_new;
+        vd.template getProp<i_velocity>(p)[i] = mom_p[i] / rho_new;
+        }
 
         cout << "New u velocity = " << u_new << endl;
 
         // (4) solve energy density
         // (5) find specific enthalpy
-        h_p = up[i] - (Pp / rho_p);
-        h_mean = u_mean[i] - (Pmean / rho_mean);
+        h_p =  energy_p      + (Pp / rho_p);
+        h_mean = energy_mean - (Pmean / rho_mean);
         dh = h_mean - h_p;
 
         D_therm = (1);    //placeholder for thermal diffusivity (dependent on equivalence ratio)
@@ -121,16 +118,14 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
 
         //energy density equation
         edensity_p = rho_p * energy_p;
-        //edensity_new += edensity_p - (P_grad * u_grad[i] * dt) + (Ae_p * dt) + (B * dWien);
+      //  edensity_p += - (P_grad * u_grad[i] * dt) + (Ae_p * dt) + (B * dWien);
 
-        //energy_new = edensity_new / rho_p;
+       // vd.template getProp<i_energy>(p)= edensity_p/rho_new;
     }
 
     //check continuity again?
 
     //UPDATE OVERALL PROPERTIES
-    vd.template getProp<i_rho>(p) = drho;
-    vd.template getProp<i_energy>(p) = edensity_p / rho_p;// edensity_new / rho_p;
     cout << "New specific energy = " << vd.template getProp<i_energy>(p) << " old energy = "<< energy_p  << endl;
     cout << "New density = " << vd.template getProp<i_rho>(p) << " old density = "<< rho_p  << endl; 
 
