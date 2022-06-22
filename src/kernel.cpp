@@ -4,12 +4,12 @@
 //define cubic SPH Kernel
 double Wab(double r)
 {
-    //r /= H;
-    std::cout << "r/h = " << r << std::endl;
+    r /= H;
+    //std::cout << "r/h = " << r << std::endl;
     if (r < 1.0)
-        return (1.0 - (3.0/2.0)*r*r + (3.0/4.0)*r*r*r);//*a2;
+        return (1.0 - (3.0/2.0)*r*r + (3.0/4.0)*r*r*r)*a2;
     else if (r < 2.0)
-        return (0.25*(2.0 - r)*(2.0 - r)*(2.0 - r));//*a2;
+        return (0.25*(2.0 - r)*(2.0 - r)*(2.0 - r))*a2;
     else
         return 0.0;
 }
@@ -17,12 +17,12 @@ double Wab(double r)
 // define gradient of cubic kernel function
 double DWab(Point<3,double> & dx, Point<3,double> & DW, double r, bool print)
 {
-    const double qq=r; ///H;
+    const double qq=r/H;
     double qq2 = qq * qq;
-    double fac1 = (c1*qq + d1*qq2)/a2;// /r;
+    double fac1 = (c1*qq + d1*qq2)/r;
     double b1 = (qq < 1.0)?1.0f:0.0f;
     double wqq = (2.0 - qq);
-    double fac2 = c2 * wqq * wqq/a2;// / r;
+    double fac2 = c2 * wqq * wqq/r;
     double b2 = (qq >= 1.0 && qq < 2.0)?1.0f:0.0f;
     double factor = (b1*fac1 + b2*fac2);
     DW.get(0) = factor * dx.get(0);

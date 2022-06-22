@@ -33,8 +33,8 @@ int main(int argc, char* argv[])
     std::default_random_engine generator;
 
     //simulation parameters
-    simulation.nparticles = 1000; //1000
-    simulation.nsteps = 1; //100
+    simulation.nparticles = 10000; //1000
+    simulation.nsteps = 100; //100
     simulation.dt = 0.01;
     simulation.frame = 10;
     simulation.rad = 2;

@@ -16,8 +16,8 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
 
     // For each particle ...
     ip=1;
-    timer tsim;
-    tsim.start();
+    //timer tsim;
+    //tsim.start();
     
     while (part.isNext())
     {
@@ -63,17 +63,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
             Point<3,double> DW;
             double factor = DWab(dr,DW,r,false); // gradient kernel //
             double W = Wab(r); //kernel
-
-            //testing kernel
-            r = -0.1;
-            while (r < 2)
-            {
-            r += 0.1;
-            W = Wab(r); //kernel
             //cout << " W = " << W << endl;
-            factor = DWab(dr,DW,r,false);
-            cout << " dW = " << factor << endl;
-            }
             //cout << "dWab = " << DW.get(0) << " , " << DW.get(1) << " , " << DW.get(2) << endl;
 
             vd.template getProp<i_vdmean>(a)[i_rho] += W*vd.getProp<i_rho>(b);
@@ -103,8 +93,8 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
 
     cout << "i = " << ip << " neigh= "<< ingh  << endl;
     cout << " Avg number of neighbours=" << iavg/ip << endl;
-    tsim.stop();
-    std::cout << "Time: " << tsim.getwct() << std::endl;
+    //tsim.stop();
+    //std::cout << "Time: " << tsim.getwct() << std::endl;
 }
 
 #endif // _neighbors_h
