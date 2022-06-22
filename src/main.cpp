@@ -16,6 +16,7 @@ using namespace std;
 #include "calculations.h"
 #include "updateProps.h"
 #include "moveParticles.h"
+#include "test.h"
 
 //selections for run setup ------------------------------------
 #define BOUNDARY 0 // A constant to indicate boundary particles
@@ -24,6 +25,7 @@ using namespace std;
 int main(int argc, char* argv[])
 {
     cout << "Hello World \n" << endl;
+    cout << "H = " << H << endl;
     
     //-- VARIABLES --// ------------------------------------
     // to do: create separate input parameter function/file
@@ -32,10 +34,11 @@ int main(int argc, char* argv[])
 
     //simulation parameters
     simulation.nparticles = 1000; //1000
-    simulation.nsteps = 100; //100
+    simulation.nsteps = 1; //100
     simulation.dt = 0.01;
     simulation.frame = 10;
     simulation.rad = 2;
+    simulation.dp = 1/sqrt(simulation.nparticles);
 
     //basic engine params
     engine eng;
@@ -67,21 +70,11 @@ int main(int argc, char* argv[])
     Ghost<3,double> g(2*H); //why using g(2*H)??
 
     // initialize particlesets
-    particleset vd(0,domain,bc,g,DEC_GRAN(512)); 
-    //particleset vdmean(0,domain,bc,g,DEC_GRAN(512)); 
-    //gradientset dvdmean(0,domain,bc,g,DEC_GRAN(512)); 
-    //gradientset dvdmeanx(0,domain,bc,g,DEC_GRAN(512)); 
-    //gradientset dvdmeany(0,domain,bc,g,DEC_GRAN(512)); 
-    //gradientset dvdmeanz(0,domain,bc,g,DEC_GRAN(512)); 
+    particleset vd(0,domain,bc,g,DEC_GRAN(512));  
 
     openfpm::vector<std::string> names({"velocity","rho","energy","Pressure","Temperature","scalars","species","vdmean","dvdmean"});
     openfpm::vector<std::string> grad_names({"momentum","density","energy","Pressure","Temperature"});
     vd.setPropNames(names);
-    //vdmean.setPropNames(names);
-    //dvdmean.setPropNames(grad_names);
-    //dvdmeanx.setPropNames(grad_names);
-    //dvdmeany.setPropNames(grad_names);
-    //dvdmeanz.setPropNames(grad_names);
     
     size_t cnt = 0; //used later  
     //auto obstacle_box = DrawParticles::DrawSkin(vd,bc,domain,piston);
@@ -114,6 +107,7 @@ int main(int argc, char* argv[])
         vd.template getProp<i_temperature>(key) = 300; //[K]
         vd.template getProp<i_pressure>(key) = 101300;  //[pa] atmospheric pressure
         vd.template getProp<i_energy>(key) = 1; //temporary placeholder
+        vd.template getProp<i_rho>(key) = 1; //temporary placeholder
         
         //initialize dvdmean particles
         for (size_t j = 0; j < 6.0 ; j++)
@@ -125,6 +119,7 @@ int main(int argc, char* argv[])
         vd.template getProp<i_dvdmean>(key)[j][i_pressure]  = 0.0;
         vd.template getProp<i_dvdmean>(key)[j][i_temperature]  = 0.0;
         }
+        
         //updateChemicalProperties(vd); //initialize temperature and composition
         //updateThermalProperties1(vd);   //update conductivity,diffusivity,specific haet capacity, based on T/Y 
         //updateDensity(vd);
@@ -154,10 +149,15 @@ int main(int argc, char* argv[])
     // Time loop
     for (size_t i = 0; i < simulation.nsteps ; i++)
     {
+        std::cout << "step: " << i << std::endl;
         auto it3 = vd.getDomainIterator();  //iterator that traverses the particles in the domain 
         find_neighbors(vd, NN); //contaions properties of neighbors
         
-        std::cout << "step: " << i << std::endl;
+            auto p = it3.get();
+            int place = p.getKey();
+            
+            output_vd(vd,place);
+
         //function to solve for new cylinder geometry
     
         // Particle loop...
@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
             //updateThermalProperties2(vd, vdmean, place);
             //updateThermoDynamics
             //advanceNavierStokes
-            cout << "New pressure = " << vd.template getProp<i_pressure>(p) << " new temp = "<< vd.template getProp<i_temperature>(p)  << endl;
+            //cout << "New pressure = " << vd.template getProp<i_pressure>(p) << " new temp = "<< vd.template getProp<i_temperature>(p)  << endl;
             
             moveParticles(vd, place, dt);
             ++it3;
@@ -216,7 +216,7 @@ int main(int argc, char* argv[])
     } 
 
     tsim.stop();
-    std::cout << "Time: " << tsim.getwct() << std::endl;
+    std::cout << "Total Time: " << tsim.getwct() << std::endl;
 
     cout << " ---------  END  ------- "  << endl;
     openfpm_finalize(); //De - initialize openfpm

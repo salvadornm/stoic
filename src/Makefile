@@ -10,7 +10,7 @@ LFLAGS= -O0
 LDIR =
 RUNDIR = ../wrk/
 
-OBJ = main.o kernel.o calculations.o
+OBJ = main.o kernel.o calculations.o test.o
 
 #libary rules
 $(OBJ): global.h findNeighbors.h 

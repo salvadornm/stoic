@@ -1,8 +1,14 @@
+#ifndef _test_h
+#define _test_h
 
-    // test kernel function
-    cout << " kernel(0.0 H)  " << Wab(0.0)<< endl;
-    cout << " kernel(0.99 H) " << Wab(0.99*H)<< endl;
-    cout << " kernel(1.01 H) " << Wab(1.01*H)<< endl;
-    cout << " kernel(1.9 H)  " << Wab(1.9*H) << endl;
+#include "Vector/vector_dist.hpp"
+#include <iostream>
+#include "global.h"
+#include "kernel.h"
+#include "calculations.h"
 
+void kernel_test(double H);
+void output_kernel(double r, double h);
+void output_vd(particleset  & vd, int p);
     
+#endif

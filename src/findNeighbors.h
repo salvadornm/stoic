@@ -4,19 +4,20 @@
 #include "global.h"
 #include "kernel.h"
 #include "calculations.h"
+#include"test.h"
 
 template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN)
 {
     int n,ingh,ip;
     float iavg=0;
-
+    
     auto part = vd.getDomainIterator();
     vd.updateCellList(NN);
 
     // For each particle ...
     ip=1;
-    //timer tsim;
-    //tsim.start();
+    timer tsim;
+    tsim.start();
     
     while (part.isNext())
     {
@@ -57,10 +58,23 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
             double r2 = norm2(dr);
             // ... calculate delta rho
             double r = sqrt(r2);
-
+            //cout << "r = " << r << endl;    // r = 0.028 is the cutoff. > = no impact
+            
             Point<3,double> DW;
-            DWab(dr,DW,r,false); // gradient kernel //
+            double factor = DWab(dr,DW,r,false); // gradient kernel //
             double W = Wab(r); //kernel
+
+            //testing kernel
+            r = -0.1;
+            while (r < 2)
+            {
+            r += 0.1;
+            W = Wab(r); //kernel
+            //cout << " W = " << W << endl;
+            factor = DWab(dr,DW,r,false);
+            cout << " dW = " << factor << endl;
+            }
+            //cout << "dWab = " << DW.get(0) << " , " << DW.get(1) << " , " << DW.get(2) << endl;
 
             vd.template getProp<i_vdmean>(a)[i_rho] += W*vd.getProp<i_rho>(b);
             vd.template getProp<i_vdmean>(a)[i_temperature] += W*vd.getProp<i_temperature>(b);
@@ -70,7 +84,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
             vd.template getProp<i_vdmean>(a)[i_vely] += W*vd.getProp<i_velocity>(b)[1];
             vd.template getProp<i_vdmean>(a)[i_velz] += W*vd.getProp<i_velocity>(b)[2];
 
-            for (size_t i = 1; i < 4 ; i++) //loop through x,y,z directions
+            for (size_t i = 0; i < 3 ; i++) //loop through x,y,z directions
             {
                 // grad of particle property at a particle position
                 vd.template getProp<i_dvdmean>(a)[i][i_rho]         += DW.get(i)*vd.getProp<i_rho>(b);
@@ -89,8 +103,8 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
 
     cout << "i = " << ip << " neigh= "<< ingh  << endl;
     cout << " Avg number of neighbours=" << iavg/ip << endl;
-    //tsim.stop();
-    //std::cout << "Time: " << tsim.getwct() << std::endl;
+    tsim.stop();
+    std::cout << "Time: " << tsim.getwct() << std::endl;
 }
 
 #endif // _neighbors_h
