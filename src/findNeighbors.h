@@ -15,7 +15,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
     vd.updateCellList(NN);
 
     // For each particle ...
-    ip=1;
+    ip=0;   
     //timer tsim;
     //tsim.start();
     
@@ -39,7 +39,8 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
             vd.template getProp<i_dvdmean>(a)[j][i_temperature]  = 0.0;
         }
 
-        auto Np = NN.template getNNIterator<NO_CHECK>(NN.getCell(vd.getPos(a)));
+        // Get an iterator of all the particles neighborhood of p
+        auto Np = NN.template getNNIterator<NO_CHECK>(NN.getCell(vd.getPos(a))); 
         
         // For each neighborhood particle
         ingh =0;
@@ -56,15 +57,12 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
             // Get the distance between a and b
             Point<3,double> dr = xa - xb;
             double r2 = norm2(dr);
-            // ... calculate delta rho
             double r = sqrt(r2);
             //cout << "r = " << r << endl;    // r = 0.028 is the cutoff. > = no impact
             
             Point<3,double> DW;
             double factor = DWab(dr,DW,r,false); // gradient kernel //
             double W = Wab(r); //kernel
-            //cout << " W = " << W << endl;
-            //cout << "dWab = " << DW.get(0) << " , " << DW.get(1) << " , " << DW.get(2) << endl;
 
             vd.template getProp<i_vdmean>(a)[i_rho] += W*vd.getProp<i_rho>(b);
             vd.template getProp<i_vdmean>(a)[i_temperature] += W*vd.getProp<i_temperature>(b);
@@ -84,14 +82,17 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
                 //vd.template getProp<i_dvdmean>(a)[i][i_energy]      += W*vd.getProp<i_energy>(b);
 
             }
-
             ++Np;
         }
-        iavg = iavg + ingh;
+        
+        //vd.template getProp<i_vdmean>(a)[i_velocity] /= ingh;
+        //vd.template getProp<i_vdmean>(a)[i_vely] /= ingh;
+        //vd.template getProp<i_vdmean>(a)[i_velz] /= ingh;
+        cout << "particle = " << ip << " neigh= "<< ingh  << endl;
+        iavg += ingh;
         ++part;
     }
 
-    cout << "i = " << ip << " neigh= "<< ingh  << endl;
     cout << " Avg number of neighbours=" << iavg/ip << endl;
     //tsim.stop();
     //std::cout << "Time: " << tsim.getwct() << std::endl;

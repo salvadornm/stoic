@@ -1,7 +1,7 @@
 
 #include "kernel.h"
 
-//define cubic SPH Kernel
+//define cubic SPH Kernel where r is distance btwn them
 double Wab(double r)
 {
     r /= H;

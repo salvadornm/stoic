@@ -25,8 +25,8 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     double rho_p = vd.template getProp<i_rho>(p);
     vector <double> mom_p {0.0,0.0,0.0};
     double energy_p = vd.template getProp<i_energy>(p);
-    vector <double> up {vd.template getProp<i_velocity>(p)[0],vd.template getProp<i_velocity>(p)[1],vd.template getProp<i_velocity>(p)[2]};
-    double vel_p = sqrt(up[0]*up[0]+up[1]*up[1]+up[2]*up[2]);
+    vector <double> u_p {vd.template getProp<i_velocity>(p)[0],vd.template getProp<i_velocity>(p)[1],vd.template getProp<i_velocity>(p)[2]};
+    double vel_p = sqrt(u_p[0]*u_p[0]+u_p[1]*u_p[1]+u_p[2]*u_p[2]);
     double mass_p, edensity_p;
 
 
@@ -62,14 +62,14 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     //----------------------------------------------------------------------------
 
     turb.k_sgs = 0.0;
-    for (size_t i = 0; i < 3 ; i++) turb.k_sgs += (up[i] - u_mean[i])*(up[i] - u_mean[i]);
+    for (size_t i = 0; i < 3 ; i++) turb.k_sgs += (u_p[i] - u_mean[i])*(u_p[i] - u_mean[i]);
     turb.Eps_sgs = turb.k_sgs/l;
     
     //time scales
     double Cu = 2.1; //Kolmogorov constant
     double C0 = 1;
     tau_sgs = turb.k_sgs/turb.Eps_sgs;
-    tau_mol = 0.001;//(l*l)/(rho_p*up[i]);    //l = kernel width (H)
+    tau_mol = 0.001;//(l*l)/(rho_p*u_p[i]);    //l = kernel width (H)
     tau_eq = 1/((1/tau_mol)+(Cu/tau_sgs));
 
     // (0) check continuity
@@ -89,11 +89,16 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
         
     for (size_t i = 0; i < 3 ; i++) 
     {
+        //test velocity! in each direction
+        //du = (u_mean[i] -  u_p[i]); 
+        //vd.template getProp<i_velocity>(p)[i] += (du*dt);
+    }
+    /*
         // drift term
-        du = (u_mean[i] -  up[i]);
+        du = (u_mean[i] -  u_p[i]);
         //solve momentum equation
-        mom_p[i]  = rho_p * up[i];
-        mom_p[i] +=  P_grad[i] * dt + Au_p_alt *du* dt + B * dWien * sqrt(dt);
+        mom_p[i]  = rho_p * u_p[i];
+        mom_p[i] +=  P_grad[i] * dt + Au_p_alt * du * dt + B * dWien * sqrt(dt);
         
         //std::cout << "New momentum = " << mom_p[i] << endl;
         //std::cout << "rho_p = " << rho_p << endl;
@@ -127,5 +132,6 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     //std::cout << "New density = " << vd.template getProp<i_rho>(p) << " old density = "<< rho_p  << endl; 
 
     //std::cout << "--------------------" << endl; 
+    */
 }
 #endif // _updateProps_h

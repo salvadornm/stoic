@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
     std::default_random_engine generator;
 
     //simulation parameters
-    simulation.nparticles = 10000; //1000
+    simulation.nparticles = 1000; //1000
     simulation.nsteps = 100; //100
     simulation.dt = 0.01;
     simulation.frame = 10;
@@ -134,6 +134,8 @@ int main(int argc, char* argv[])
     vd.map();       //distribute particle positions across the processors       
     vd.ghost_get<>();   //syncs the ghost with the newly mapped particles
 
+
+    vd.write_frame("particles_",01);
     cout << " ---------  particles initialized  ------- " << cnt << endl;
 
 
@@ -143,30 +145,43 @@ int main(int argc, char* argv[])
     tsim.start();
     double dt = simulation.dt;
     unsigned long int f = 0;
+    int count = 0;
 
-    auto NN = vd.getCellList(4*H);  //define neighborhoods with radius
     
+    auto NN = vd.getCellList(4*H);  //define neighborhoods with radius (repeated at end of time loop)
+
     // Time loop
     for (size_t i = 0; i < simulation.nsteps ; i++)
     {
-        std::cout << "step: " << i << std::endl;
         auto it3 = vd.getDomainIterator();  //iterator that traverses the particles in the domain 
+        std::cout << "step: " << i << std::endl;
         find_neighbors(vd, NN); //contaions properties of neighbors
-        
-            auto p = it3.get();
-            int place = p.getKey();
-            
-            output_vd(vd,place);
 
         //function to solve for new cylinder geometry
-    
+        count = 0;
+
         // Particle loop...
         while (it3.isNext())
         {
+            count++;
             auto p = it3.get();
             int place = p.getKey();
+
+            //output_vd(vd,place);
             
             //updateEqtnState(vd);    //calc pressure based on local density
+            double a5 = vd.getProp<i_velocity>(p)[0];
+            double a6 = vd.getProp<i_velocity>(p)[1];
+            double a7 = vd.getProp<i_velocity>(p)[2];
+            double b5 = vd.getProp<i_vdmean>(p)[i_velocity];
+            double b6 = vd.getProp<i_vdmean>(p)[i_vely];
+            double b7 = vd.getProp<i_vdmean>(p)[i_velz];
+
+            std::cout << "(vdmean particle) --------" << std::endl;
+            std::cout << " vx = " << b5 << "    vy = " << b6 << "   vz = " << b7 << std::endl;
+            std::cout << count << " og vd particle " << std::endl;
+            std::cout << " vx = " << a5 << "    vy = " << a6 << "   vz = " << a7 << std::endl;
+
 
             updateParticleProperties(vd, place, dt, H, turb);
             //update thermal properties; pressure, total energy
@@ -175,6 +190,8 @@ int main(int argc, char* argv[])
             //advanceNavierStokes
             //cout << "New pressure = " << vd.template getProp<i_pressure>(p) << " new temp = "<< vd.template getProp<i_temperature>(p)  << endl;
             
+            std::cout << "updated vd particle --------" << std::endl;
+            std::cout << " vx = " << vd.getProp<i_velocity>(p)[0] << "      vy = " << vd.getProp<i_velocity>(p)[1] << "     vz = " << vd.getProp<i_velocity>(p)[2] << std::endl;
             moveParticles(vd, place, dt);
             ++it3;
         }
