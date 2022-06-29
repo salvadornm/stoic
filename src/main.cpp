@@ -168,7 +168,8 @@ int main(int argc, char* argv[])
             auto p = it3.get();
             int place = p.getKey();
 
-            //output_vd(vd,place);
+            std::cout << count << " og vd particle " << std::endl;
+            output_vd(vd,place);
             
             //updateEqtnState(vd);    //calc pressure based on local density
             double a5 = vd.getProp<i_velocity>(p)[0];
@@ -178,9 +179,9 @@ int main(int argc, char* argv[])
             double b6 = vd.getProp<i_vdmean>(p)[i_vely];
             double b7 = vd.getProp<i_vdmean>(p)[i_velz];
 
-            std::cout << count << " og vd particle " << std::endl;
-            std::cout << " vx = " << a5 << "    vy = " << a6 << "   vz = " << a7 << std::endl;
-            std::cout << " density = " << vd.getProp<i_rho>(p) << std::endl;
+            //std::cout << count << " og vd particle " << std::endl;
+            //std::cout << " vx = " << a5 << "    vy = " << a6 << "   vz = " << a7 << std::endl;
+            //std::cout << " density = " << vd.getProp<i_rho>(p) << std::endl;
 
             updateParticleProperties(vd, place, dt, H, turb);
             //update thermal properties; pressure, total energy
@@ -189,15 +190,16 @@ int main(int argc, char* argv[])
             //advanceNavierStokes
             //cout << "New pressure = " << vd.template getProp<i_pressure>(p) << " new temp = "<< vd.template getProp<i_temperature>(p)  << endl;
                         
-            moveParticles(vd, place, dt);
-
+            moveParticles(vd, place, dt, eng);
+            
             std::cout << "updated vd particle --------" << std::endl;
             std::cout << " vx = " << vd.getProp<i_velocity>(p)[0] << "      vy = " << vd.getProp<i_velocity>(p)[1] << "     vz = " << vd.getProp<i_velocity>(p)[2] << std::endl;
             std::cout << " density = " << vd.getProp<i_rho>(p) << std::endl;
             
+            /*
             std::cout << "(vdmean particle) --------" << std::endl;
             std::cout << " vx = " << b5 << "    vy = " << b6 << "   vz = " << b7 << std::endl;
-            
+            */
             ++it3;
         }
         

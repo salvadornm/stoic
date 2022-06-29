@@ -78,7 +78,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
                 vd.template getProp<i_dvdmean>(a)[i][i_rho]         += DW.get(i)*vd.getProp<i_rho>(b);
                 vd.template getProp<i_dvdmean>(a)[i][i_pressure]    += DW.get(i)*vd.getProp<i_pressure>(b);
                 vd.template getProp<i_dvdmean>(a)[i][i_temperature] += DW.get(i)*vd.getProp<i_temperature>(b);
-                //vd.template getProp<i_dvdmean>(a)[i][i_momentum]    += DW.get(i)*vd.getProp<i_pressure>(b);
+                vd.template getProp<i_dvdmean>(a)[i][i_momentum]    += DW.get(i)*(vd.getProp<i_velocity>(b)[i]*vd.getProp<i_rho>(b));
                 //vd.template getProp<i_dvdmean>(a)[i][i_energy]      += W*vd.getProp<i_energy>(b);
 
             }

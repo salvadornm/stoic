@@ -20,7 +20,7 @@ constexpr int i_velz     = 6;
 
 // Initialize global vars
 const double pi = 3.14159265358979323846;
-const double H = 0.04;//0.02; //0.0247224318643; //for kernel // sqrt(3.0*dp*dp) support of the kernel
+const double H = 0.808; //0.04; (for 1x1 box) //0.02; //0.0247224318643; //for kernel // sqrt(3.0*dp*dp) support of the kernel
 const double Eta2 = 0.01 * H*H;
 const double R_air = 287; //[J/kg/K]
 const double R_global = .831; //[J/mol/K]
