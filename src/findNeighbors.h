@@ -58,6 +58,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
             Point<3,double> dr = xa - xb;
             double r2 = norm2(dr);
             double r = sqrt(r2);
+            // r/simulation.H
             //cout << "r = " << r << endl;    // r = 0.028 is the cutoff. > = no impact
             
             Point<3,double> DW;
@@ -68,7 +69,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
             vd.template getProp<i_vdmean>(a)[i_temperature] += W*vd.getProp<i_temperature>(b);
             vd.template getProp<i_vdmean>(a)[i_pressure]    += W*vd.getProp<i_pressure>(b);
             vd.template getProp<i_vdmean>(a)[i_energy]      += W*vd.getProp<i_energy>(b);
-            vd.template getProp<i_vdmean>(a)[i_velocity] += W*vd.getProp<i_velocity>(b)[0];
+            vd.template getProp<i_vdmean>(a)[i_velx] += W*vd.getProp<i_velocity>(b)[0];
             vd.template getProp<i_vdmean>(a)[i_vely] += W*vd.getProp<i_velocity>(b)[1];
             vd.template getProp<i_vdmean>(a)[i_velz] += W*vd.getProp<i_velocity>(b)[2];
 

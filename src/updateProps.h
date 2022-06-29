@@ -35,14 +35,14 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     double Pmean = vd.template getProp<i_vdmean>(p)[i_pressure];
     double rho_mean = vd.template getProp<i_vdmean>(p)[i_rho];
     double energy_mean = vd.template getProp<i_vdmean>(p)[i_temperature];
-    vector <double> u_mean {vd.template getProp<i_vdmean>(p)[i_velocity],vd.template getProp<i_vdmean>(p)[i_vely],vd.template getProp<i_vdmean>(p)[i_velz]};
+    vector <double> u_mean {vd.template getProp<i_vdmean>(p)[i_velx],vd.template getProp<i_vdmean>(p)[i_vely],vd.template getProp<i_vdmean>(p)[i_velz]};
     //double vel_mean = sqrt(u_mean[0]*u_mean[0]+u_mean[1]*u_mean[1]+u_mean[2]*u_mean[2]);
     
     //gradient particle properties (dvdmean(p))
     double energy_grad, T_grad;
     vector <double> P_grad {vd.template getProp<i_dvdmean>(p)[0][i_pressure],vd.template getProp<i_dvdmean>(p)[1][i_pressure],vd.template getProp<i_dvdmean>(p)[2][i_pressure]}; 
-    vector <double> mom_grad {vd.template getProp<i_dvdmean>(p)[0][i_rho],vd.template getProp<i_dvdmean>(p)[1][i_rho],vd.template getProp<i_dvdmean>(p)[2][i_rho]};
-    //vector <double> mom_grad {vd.template getProp<i_dvdmean>(p)[0][i_momentum],vd.template getProp<i_dvdmean>(p)[1][i_momentum],vd.template getProp<i_dvdmean>(p)[2][i_momentum]};
+    //vector <double> mom_grad {vd.template getProp<i_dvdmean>(p)[0][i_rho],vd.template getProp<i_dvdmean>(p)[1][i_rho],vd.template getProp<i_dvdmean>(p)[2][i_rho]};
+    vector <double> mom_grad {vd.template getProp<i_dvdmean>(p)[0][i_momentum],vd.template getProp<i_dvdmean>(p)[1][i_momentum],vd.template getProp<i_dvdmean>(p)[2][i_momentum]};
 
     //initialize deltas
     double drho, de, dm, dYk;
@@ -87,7 +87,9 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     Au_p = Au_mol + Au_turb;
     Au_p_alt = (rho_p/(tau_eq+dt));   //confirmed Au_p and Au_p_alt (wo +dt) are equivalent
     B = C0*sqrt(turb.Eps_sgs);        //turbulent diffusion
-        
+
+    Au_p = 0.1/dt;
+    B = 0;    
     //std::cout << "density = " << rho_p << endl;
     for (size_t i = 0; i < 3 ; i++) 
     {    
@@ -95,8 +97,9 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
         //solve momentum of initial particle
         mom_p[i]  = rho_p * u_p[i];
         //solve for updated momentum
-        mom_p[i] +=  P_grad[i] * dt + Au_p * du * dt + B * dWien;
-        
+        //mom_p[i] +=  P_grad[i] * dt + Au_p * du * dt + B * dWien;
+        mom_p[i] +=  Au_p * du * dt + B * dWien;
+
         std::cout << "momentum = " << mom_p[i] << endl;
         
         // (3) update velocity

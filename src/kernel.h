@@ -5,7 +5,7 @@
 #include <math.h>
 #include "global.h"
 
-const double a2 = 1.0/M_PI/H/H/H;
+const double a2 = 1.0; //1/M_PI/H/H/H;
 
 const double c1 = -3.0/M_PI/H/H/H/H;
 const double d1 = 9.0/4.0/M_PI/H/H/H/H;

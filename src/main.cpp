@@ -33,19 +33,28 @@ int main(int argc, char* argv[])
     std::default_random_engine generator;
 
     //simulation parameters
-    simulation.nparticles = 1000; //1000
+    simulation.nparticles = 5000; //1000
     simulation.nsteps = 10; //100
     simulation.dt = 0.01;
     simulation.frame = 1;   //10
     simulation.rad = 2;
     simulation.dp = 1/sqrt(simulation.nparticles);
 
-    //basic engine params
+    //basic engine params --> make simulation dx, dy, dz
     engine eng;
-    eng.bore = 12.065;
+    eng.bore = 12.065/100;
     eng.stroke = 14.0;
+    eng.volumeC = eng.bore*eng.bore*eng.bore;
 
-    //turbulence
+    simulation.ppv = simulation.nparticles/eng.volumeC;
+    simulation.dp = std::cbrt(1/simulation.ppv);
+    simulation.H = 1*simulation.dp;
+    cout << "particle H: " << simulation.H << endl;
+    simulation.lx = eng.bore;
+    simulation.ly = eng.bore;
+    simulation.lz = eng.bore;
+
+    //turbulences
     turbulence turb;
     thermal therm;
     
@@ -62,8 +71,7 @@ int main(int argc, char* argv[])
     std::normal_distribution<double> distribution(0.0, 1.0);//(0.0,1.0);
 
     //Box<3,double> domain({0.0,0.0,0.0},{1.0,1.0,1.0});
-    Box<3,double> domain({0.0,0.0,0.0},{eng.bore,eng.bore,eng.stroke});
-    //Box<3,double> piston({0.0,0.0,0.0},{eng.bore,eng.bore,1.0});
+    Box<3,double> domain({0.0,0.0,0.0},{simulation.lx,simulation.ly,simulation.lz});
     size_t bc[3]={PERIODIC,PERIODIC,PERIODIC};    // boundary conditions: Periodic means the 1 boundary is equal to the 0 boundary
 
     // extended boundary around the domain, and the processor domain
@@ -89,9 +97,9 @@ int main(int argc, char* argv[])
         auto key = it.get();    //contains (i,j,k) index of grid
 
         // we define x, assign a random position between 0.0 and 1.0
-        vd.getPos(key)[0] = (double)rand() / RAND_MAX * eng.bore;  //rand_max just normalizes it to between 0 and 1
-        vd.getPos(key)[1] = (double)rand() / RAND_MAX * eng.bore;
-        vd.getPos(key)[2] = (double)rand() / RAND_MAX * eng.stroke;
+        vd.getPos(key)[0] = ((double)rand() / RAND_MAX) * simulation.lx;  //rand_max just normalizes it to between 0 and 1
+        vd.getPos(key)[1] = ((double)rand() / RAND_MAX) * simulation.ly;
+        vd.getPos(key)[2] = ((double)rand() / RAND_MAX) * simulation.lz;
 
         //set random velocity of the particles
         double numberx = distribution(generator);
@@ -147,7 +155,7 @@ int main(int argc, char* argv[])
     int count = 0;
 
     
-    auto NN = vd.getCellList(4*H);  //define neighborhoods with radius (repeated at end of time loop)
+    auto NN = vd.getCellList(2*simulation.H);  //define neighborhoods with radius (repeated at end of time loop)
 
     vd.write_frame("particles_",0);
 
@@ -214,7 +222,7 @@ int main(int argc, char* argv[])
         // Map particles and re-sync the ghost
         vd.map();
         vd.template ghost_get<>();        
-        NN = vd.getCellList(4*H);
+        NN = vd.getCellList(2*simulation.H);
 
         // collect statistics on the configuration
         //if (i+1 % simulation.frame == 0)
