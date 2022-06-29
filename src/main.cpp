@@ -34,9 +34,9 @@ int main(int argc, char* argv[])
 
     //simulation parameters
     simulation.nparticles = 1000; //1000
-    simulation.nsteps = 100; //100
+    simulation.nsteps = 10; //100
     simulation.dt = 0.01;
-    simulation.frame = 10;
+    simulation.frame = 1;   //10
     simulation.rad = 2;
     simulation.dp = 1/sqrt(simulation.nparticles);
 
@@ -59,10 +59,10 @@ int main(int argc, char* argv[])
     // implements a 1D std:vector like structure to create grid   
     openfpm::vector<double> x;
     openfpm::vector<openfpm::vector<double>> y;
-    std::normal_distribution<double> distribution(0.0,1.0);
+    std::normal_distribution<double> distribution(0.0, 1.0);//(0.0,1.0);
 
-    Box<3,double> domain({0.0,0.0,0.0},{1.0,1.0,1.0});
-    //Box<3,double> domain({0.0,0.0,0.0},{eng.bore,eng.bore,eng.stroke});
+    //Box<3,double> domain({0.0,0.0,0.0},{1.0,1.0,1.0});
+    Box<3,double> domain({0.0,0.0,0.0},{eng.bore,eng.bore,eng.stroke});
     //Box<3,double> piston({0.0,0.0,0.0},{eng.bore,eng.bore,1.0});
     size_t bc[3]={PERIODIC,PERIODIC,PERIODIC};    // boundary conditions: Periodic means the 1 boundary is equal to the 0 boundary
 
@@ -89,9 +89,9 @@ int main(int argc, char* argv[])
         auto key = it.get();    //contains (i,j,k) index of grid
 
         // we define x, assign a random position between 0.0 and 1.0
-        vd.getPos(key)[0] = (double)rand() / RAND_MAX;  //rand_max just normalizes it to between 0 and 1
-        vd.getPos(key)[1] = (double)rand() / RAND_MAX;
-        vd.getPos(key)[2] = (double)rand() / RAND_MAX;
+        vd.getPos(key)[0] = (double)rand() / RAND_MAX * eng.bore;  //rand_max just normalizes it to between 0 and 1
+        vd.getPos(key)[1] = (double)rand() / RAND_MAX * eng.bore;
+        vd.getPos(key)[2] = (double)rand() / RAND_MAX * eng.stroke;
 
         //set random velocity of the particles
         double numberx = distribution(generator);
@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
         vd.template getProp<i_temperature>(key) = 300; //[K]
         vd.template getProp<i_pressure>(key) = 101300;  //[pa] atmospheric pressure
         vd.template getProp<i_energy>(key) = 1; //temporary placeholder
-        vd.template getProp<i_rho>(key) = 1; //temporary placeholder
+        vd.template getProp<i_rho>(key) = .1; //temporary placeholder
         
         //initialize dvdmean particles
         for (size_t j = 0; j < 6.0 ; j++)
@@ -135,7 +135,6 @@ int main(int argc, char* argv[])
     vd.ghost_get<>();   //syncs the ghost with the newly mapped particles
 
 
-    vd.write_frame("particles_",01);
     cout << " ---------  particles initialized  ------- " << cnt << endl;
 
 
@@ -149,6 +148,8 @@ int main(int argc, char* argv[])
 
     
     auto NN = vd.getCellList(4*H);  //define neighborhoods with radius (repeated at end of time loop)
+
+    vd.write_frame("particles_",0);
 
     // Time loop
     for (size_t i = 0; i < simulation.nsteps ; i++)
@@ -177,11 +178,9 @@ int main(int argc, char* argv[])
             double b6 = vd.getProp<i_vdmean>(p)[i_vely];
             double b7 = vd.getProp<i_vdmean>(p)[i_velz];
 
-            std::cout << "(vdmean particle) --------" << std::endl;
-            std::cout << " vx = " << b5 << "    vy = " << b6 << "   vz = " << b7 << std::endl;
             std::cout << count << " og vd particle " << std::endl;
             std::cout << " vx = " << a5 << "    vy = " << a6 << "   vz = " << a7 << std::endl;
-
+            std::cout << " density = " << vd.getProp<i_rho>(p) << std::endl;
 
             updateParticleProperties(vd, place, dt, H, turb);
             //update thermal properties; pressure, total energy
@@ -189,10 +188,16 @@ int main(int argc, char* argv[])
             //updateThermoDynamics
             //advanceNavierStokes
             //cout << "New pressure = " << vd.template getProp<i_pressure>(p) << " new temp = "<< vd.template getProp<i_temperature>(p)  << endl;
-            
+                        
+            moveParticles(vd, place, dt);
+
             std::cout << "updated vd particle --------" << std::endl;
             std::cout << " vx = " << vd.getProp<i_velocity>(p)[0] << "      vy = " << vd.getProp<i_velocity>(p)[1] << "     vz = " << vd.getProp<i_velocity>(p)[2] << std::endl;
-            moveParticles(vd, place, dt);
+            std::cout << " density = " << vd.getProp<i_rho>(p) << std::endl;
+            
+            std::cout << "(vdmean particle) --------" << std::endl;
+            std::cout << " vx = " << b5 << "    vy = " << b6 << "   vz = " << b7 << std::endl;
+            
             ++it3;
         }
         
@@ -210,11 +215,11 @@ int main(int argc, char* argv[])
         NN = vd.getCellList(4*H);
 
         // collect statistics on the configuration
-        if (i % simulation.frame == 0)
-        {
+        //if (i+1 % simulation.frame == 0)
+        //{
             // Write the particle position for visualization (Without ghost)
             vd.deleteGhost();
-            vd.write_frame("particles_",i);
+            vd.write_frame("particles_",i+1);
             
             // resync the ghost
             vd.ghost_get<>();
@@ -223,7 +228,7 @@ int main(int argc, char* argv[])
             auto & v_cl = create_vcluster();
             v_cl.sum(cnt);
             v_cl.execute();
-        }
+        //}
 
         if (i % 10 ==0 )
         {
