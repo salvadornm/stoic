@@ -6,6 +6,38 @@
 #include "calculations.h"
 #include"test.h"
 
+template<typename CellList> int stateOfNeighbors(particleset  & vd, CellList & NN) {
+    auto part = vd.getDomainIterator();
+    while(part.isNext()){
+        auto a = part.get();
+
+        auto Np = NN.template getNNIterator<NO_CHECK>(NN.getCell(vd.getPos(a))); 
+        cout << a.getKey() << " position " << vd.getPos(a)[0] << ", " << vd.getPos(a)[1] << ", "<< vd.getPos(a)[2] << ", " << endl;        
+        cout << "{";
+        while (Np.isNext() == true)
+        {
+            auto b = Np.get();
+
+            Point<3,double> xa = vd.getPos(a);
+            Point<3,double> xb = vd.getPos(b);
+            Point<3,double> dr = xa - xb;
+            double r2 = norm2(dr);
+            double r = sqrt(r2);
+
+            if (r < H) {
+                cout << b << ":";
+                cout << "r = " << r << " , ";                 
+            }
+            // r/simulation.H
+
+            ++Np;
+        }
+        cout << "}" << endl;
+        ++part;
+    }
+    return 0;
+}
+
 template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN)
 {
     int n,ingh,ip;
@@ -13,11 +45,13 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
     
     auto part = vd.getDomainIterator();
     vd.updateCellList(NN);
-
+    //stateOfNeighbors(vd, NN);
     // For each particle ...
     ip=0;   
     //timer tsim;
     //tsim.start();
+
+
     
     while (part.isNext())
     {
@@ -40,56 +74,72 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
         }
 
         // Get an iterator of all the particles neighborhood of p
-        auto Np = NN.template getNNIterator<NO_CHECK>(NN.getCell(vd.getPos(a))); 
+        auto Np = NN.template getNNIterator<NO_CHECK>(NN.getCell(vd.getPos(a)));
+        double tot_W = 0;
         
         // For each neighborhood particle
         ingh =0;
         while (Np.isNext() == true)
         {
-
-            ingh++; 
             auto b = Np.get();
-              
             Point<3,double> xb = vd.getPos(b);  // position xp of the particle
             
             if (a.getKey() == b)    {++Np; continue;};// if (a == b) skip this particle
                 
             // Get the distance between a and b
             Point<3,double> dr = xa - xb;
-            double r2 = norm2(dr);
+            double r2 = norm2(dr);  //l2 norm = sqrt(sum of the squares)
             double r = sqrt(r2);
-            // r/simulation.H
-            //cout << "r = " << r << endl;    // r = 0.028 is the cutoff. > = no impact
-            
-            Point<3,double> DW;
-            double factor = DWab(dr,DW,r,false); // gradient kernel //
-            double W = Wab(r); //kernel
+            //cout << "dr = " << dr[1] << "," << dr[2] << "," << dr[3] << ", r2 = " << r2 << ", r = " << r << endl;
 
-            vd.template getProp<i_vdmean>(a)[i_rho] += W*vd.getProp<i_rho>(b);
-            vd.template getProp<i_vdmean>(a)[i_temperature] += W*vd.getProp<i_temperature>(b);
-            vd.template getProp<i_vdmean>(a)[i_pressure]    += W*vd.getProp<i_pressure>(b);
-            vd.template getProp<i_vdmean>(a)[i_energy]      += W*vd.getProp<i_energy>(b);
-            vd.template getProp<i_vdmean>(a)[i_velx] += W*vd.getProp<i_velocity>(b)[0];
-            vd.template getProp<i_vdmean>(a)[i_vely] += W*vd.getProp<i_velocity>(b)[1];
-            vd.template getProp<i_vdmean>(a)[i_velz] += W*vd.getProp<i_velocity>(b)[2];
+            //if the particles interact...
+            if (r < H) {
+                Point<3,double> DW;
+                double factor = DWab(dr,DW,r,false); // gradient kernel //
+                double W = Wab(r); //kernel
+                tot_W += W;
+                cout << "r= " << r << " : r/H = " << r/H << endl;
+                cout << "dW = " << factor << ", W = " << W << endl;
+                cout << "dWab = " << DW.get(0) << " , " << DW.get(1) << " , " << DW.get(2) << endl;
 
-            for (size_t i = 0; i < 3 ; i++) //loop through x,y,z directions
-            {
-                // grad of particle property at a particle position
-                vd.template getProp<i_dvdmean>(a)[i][i_rho]         += DW.get(i)*vd.getProp<i_rho>(b);
-                vd.template getProp<i_dvdmean>(a)[i][i_pressure]    += DW.get(i)*vd.getProp<i_pressure>(b);
-                vd.template getProp<i_dvdmean>(a)[i][i_temperature] += DW.get(i)*vd.getProp<i_temperature>(b);
-                vd.template getProp<i_dvdmean>(a)[i][i_momentum]    += DW.get(i)*(vd.getProp<i_velocity>(b)[i]*vd.getProp<i_rho>(b));
-                //vd.template getProp<i_dvdmean>(a)[i][i_energy]      += W*vd.getProp<i_energy>(b);
+                vd.template getProp<i_vdmean>(a)[i_rho] += W*vd.getProp<i_rho>(b);
+                vd.template getProp<i_vdmean>(a)[i_temperature] += W*vd.getProp<i_temperature>(b);
+                vd.template getProp<i_vdmean>(a)[i_pressure]    += W*vd.getProp<i_pressure>(b);
+                vd.template getProp<i_vdmean>(a)[i_energy]      += W*vd.getProp<i_energy>(b);
+                vd.template getProp<i_vdmean>(a)[i_velx] += W*vd.getProp<i_velocity>(b)[0];
+                vd.template getProp<i_vdmean>(a)[i_vely] += W*vd.getProp<i_velocity>(b)[1];
+                vd.template getProp<i_vdmean>(a)[i_velz] += W*vd.getProp<i_velocity>(b)[2];
 
+                for (size_t i = 0; i < 3 ; i++) //loop through x,y,z directions
+                {
+                    // grad of particle property at a particle position
+                    vd.template getProp<i_dvdmean>(a)[i][i_rho]         += DW.get(i)*vd.getProp<i_rho>(b);
+                    vd.template getProp<i_dvdmean>(a)[i][i_pressure]    += DW.get(i)*vd.getProp<i_pressure>(b);
+                    vd.template getProp<i_dvdmean>(a)[i][i_temperature] += DW.get(i)*vd.getProp<i_temperature>(b);
+                    vd.template getProp<i_dvdmean>(a)[i][i_momentum]    += DW.get(i)*(vd.getProp<i_velocity>(b)[i]*vd.getProp<i_rho>(b));
+                    //vd.template getProp<i_dvdmean>(a)[i][i_energy]      += W*vd.getProp<i_energy>(b);
+                }
+                ingh++;
             }
+            
             ++Np;
+            // r/simulation.H
+            //cout << "r = " << r << endl;    // r = 0.028 is the cutoff. > = no impact          
+
         }
         
-        //vd.template getProp<i_vdmean>(a)[i_velocity] /= ingh;
-        //vd.template getProp<i_vdmean>(a)[i_vely] /= ingh;
-        //vd.template getProp<i_vdmean>(a)[i_velz] /= ingh;
-        cout << "particle = " << ip << " neigh= "<< ingh  << endl;
+        vd.template getProp<i_vdmean>(a)[i_rho] /= tot_W;
+        vd.template getProp<i_vdmean>(a)[i_temperature] /= tot_W;
+        vd.template getProp<i_vdmean>(a)[i_pressure] /= tot_W;
+        vd.template getProp<i_vdmean>(a)[i_energy] /= tot_W;
+        vd.template getProp<i_vdmean>(a)[i_velx] /= tot_W;
+        vd.template getProp<i_vdmean>(a)[i_vely] /= tot_W;
+        vd.template getProp<i_vdmean>(a)[i_velz] /= tot_W;
+        cout << "---tot_kernel = " << tot_W << endl;
+        
+        cout << "---vdmean: x= " << vd.template getProp<i_vdmean>(a)[i_velx] << ", y= " << vd.template getProp<i_vdmean>(a)[i_vely] << ", z= " << vd.template getProp<i_vdmean>(a)[i_velz] << endl;
+    
+        cout << "---particle = " << ip << " neigh= "<< ingh  << endl;
         iavg += ingh;
         ++part;
     }

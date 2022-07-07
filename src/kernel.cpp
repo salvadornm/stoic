@@ -18,13 +18,17 @@ double Wab(double r)
 double DWab(Point<3,double> & dx, Point<3,double> & DW, double r, bool print)
 {
     const double qq=r/H;
+    //const double qq = r;
     double qq2 = qq * qq;
     double fac1 = (c1*qq + d1*qq2)/r;
     double b1 = (qq < 1.0)?1.0f:0.0f;
+    
     double wqq = (2.0 - qq);
     double fac2 = c2 * wqq * wqq/r;
     double b2 = (qq >= 1.0 && qq < 2.0)?1.0f:0.0f;
-    double factor = (b1*fac1 + b2*fac2);
+    
+    double factor = (b1*fac1 + b2*fac2);// /a2; //normalize (/a2/H)
+    
     DW.get(0) = factor * dx.get(0);
     DW.get(1) = factor * dx.get(1);
     DW.get(2) = factor * dx.get(2);
