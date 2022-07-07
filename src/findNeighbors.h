@@ -60,6 +60,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
 
         // Get all properties of the particle a
         Point<3,double> xa = vd.getPos(a);
+        Point<3,double> va = vd.getProp<i_velocity>(a);
 
        // reset counters        
         for (size_t j = 0; j < 7.0 ; j++)
@@ -83,6 +84,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
         {
             auto b = Np.get();
             Point<3,double> xb = vd.getPos(b);  // position xp of the particle
+            Point<3,double> vb = vd.getProp<i_velocity>(b);
             
             if (a.getKey() == b)    {++Np; continue;};// if (a == b) skip this particle
                 
@@ -107,13 +109,19 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
                 vd.template getProp<i_vdmean>(a)[i_vely] += W*vd.getProp<i_velocity>(b)[1];
                 vd.template getProp<i_vdmean>(a)[i_velz] += W*vd.getProp<i_velocity>(b)[2];
 
+                //gradient of particle property
+                Point<3,double> dv = va - vb;
+                Point<3,double> dP = vd.getProp<i_pressure>(a) - vd.getProp<i_pressure>(b);
+                Point<3,double> dT = vd.getProp<i_temperature>(a)-vd.getProp<i_temperature>(b);
+                vd.template getProp<i_dvdmean>(a)[0][i_momentum] += (dv.get(0)*DW.get(0)+dv.get(1)*DW.get(1)+dv.get(2)*DW.get(2));
+                vd.template getProp<i_dvdmean>(a)[0][i_pressure]    += (dP.get(0)*DW.get(0)+dv.get(1)*DW.get(1)+dv.get(2)*DW.get(2));
+                vd.template getProp<i_dvdmean>(a)[0][i_temperature] += (dT.get(0)*DW.get(0)+dv.get(1)*DW.get(1)+dv.get(2)*DW.get(2));
+
                 for (size_t i = 0; i < 3 ; i++) //loop through x,y,z directions
                 {
                     // grad of particle property at a particle position
-                    vd.template getProp<i_dvdmean>(a)[i][i_rho]         += DW.get(i)*vd.getProp<i_rho>(b);
-                    vd.template getProp<i_dvdmean>(a)[i][i_pressure]    += DW.get(i)*vd.getProp<i_pressure>(b);
-                    vd.template getProp<i_dvdmean>(a)[i][i_temperature] += DW.get(i)*vd.getProp<i_temperature>(b);
-                    vd.template getProp<i_dvdmean>(a)[i][i_momentum]    += DW.get(i)*(vd.getProp<i_velocity>(b)[i]*vd.getProp<i_rho>(b));
+                    //vd.template getProp<i_dvdmean>(a)[i][i_rho]         += DW.get(i)*vd.getProp<i_rho>(b);
+                    //vd.template getProp<i_dvdmean>(a)[i][i_momentum]    += DW.get(i)*(vd.getProp<i_velocity>(b)[i]*vd.getProp<i_rho>(b));
                     //vd.template getProp<i_dvdmean>(a)[i][i_energy]      += W*vd.getProp<i_energy>(b);
                 }
                 ingh++;

@@ -26,7 +26,6 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     vector <double> mom_p {0.0,0.0,0.0};
     double energy_p = vd.template getProp<i_energy>(p);
     vector <double> u_p {vd.template getProp<i_velocity>(p)[0],vd.template getProp<i_velocity>(p)[1],vd.template getProp<i_velocity>(p)[2]};
-    double vel_p = sqrt(u_p[0]*u_p[0]+u_p[1]*u_p[1]+u_p[2]*u_p[2]);
     double mass_p, edensity_p;
 
 
@@ -36,13 +35,12 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     double rho_mean = vd.template getProp<i_vdmean>(p)[i_rho];
     double energy_mean = vd.template getProp<i_vdmean>(p)[i_temperature];
     vector <double> u_mean {vd.template getProp<i_vdmean>(p)[i_velx],vd.template getProp<i_vdmean>(p)[i_vely],vd.template getProp<i_vdmean>(p)[i_velz]};
-    //double vel_mean = sqrt(u_mean[0]*u_mean[0]+u_mean[1]*u_mean[1]+u_mean[2]*u_mean[2]);
-    
+        
     //gradient particle properties (dvdmean(p))
-    double energy_grad, T_grad;
-    vector <double> P_grad {vd.template getProp<i_dvdmean>(p)[0][i_pressure],vd.template getProp<i_dvdmean>(p)[1][i_pressure],vd.template getProp<i_dvdmean>(p)[2][i_pressure]}; 
-    //vector <double> mom_grad {vd.template getProp<i_dvdmean>(p)[0][i_rho],vd.template getProp<i_dvdmean>(p)[1][i_rho],vd.template getProp<i_dvdmean>(p)[2][i_rho]};
-    vector <double> mom_grad {vd.template getProp<i_dvdmean>(p)[0][i_momentum],vd.template getProp<i_dvdmean>(p)[1][i_momentum],vd.template getProp<i_dvdmean>(p)[2][i_momentum]};
+    double energy_grad;
+    double T_grad = vd.template getProp<i_dvdmean>(p)[0][i_temperature]; 
+    double P_grad = vd.template getProp<i_dvdmean>(p)[0][i_pressure]; 
+    double mom_grad = vd.template getProp<i_dvdmean>(p)[0][i_momentum];
 
     //initialize deltas
     double drho, de, dm, dYk;
@@ -76,9 +74,9 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     // (0) check continuity
 
     // (1) update density ---------------------------------
-    drho = - (mom_grad[0] + mom_grad[1] + mom_grad[2])*dt;
-    rho_new = rho_p; // + drho;
-    //std::cout << "drho = " << drho << " rho_new = " << rho_new << endl;
+    drho = - mom_grad*dt;
+    rho_new = rho_p + drho;
+    std::cout << "drho = " << drho << " rho_new = " << rho_new << endl;
     vd.template getProp<i_rho>(p) =  rho_new;
 
     // (2) update momentum ---------------------
@@ -103,8 +101,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
         //std::cout << "momentum = " << mom_p[i] << endl;
         
         // (3) update velocity
-        vd.template getProp<i_velocity>(p)[i] = u_mean[i];
-        //vd.template getProp<i_velocity>(p)[i] = mom_p[i] / rho_new;
+        vd.template getProp<i_velocity>(p)[i] = mom_p[i] / rho_new;
         //std::cout << "New u velocity = " << vd.template getProp<i_velocity>(p)[i] << endl;
     }
 

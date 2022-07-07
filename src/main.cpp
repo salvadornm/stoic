@@ -102,9 +102,9 @@ int main(int argc, char* argv[])
         vd.getPos(key)[2] = ((double)rand() / RAND_MAX) * simulation.lz;
 
         //set random velocity of the particles
-        double numberx = 1; //distribution(generator);
-        double numbery = 1; //distribution(generator);
-        double numberz = 1; //distribution(generator);
+        double numberx = distribution(generator);
+        double numbery = distribution(generator);
+        double numberz = distribution(generator);
 
         //set the property of the particles : eventually velocity will be initialized from turbulence files
         vd.template getProp<i_velocity>(key)[0] = numberx;
