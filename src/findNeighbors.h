@@ -62,7 +62,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
         Point<3,double> xa = vd.getPos(a);
 
        // reset counters        
-        for (size_t j = 0; j < 6.0 ; j++)
+        for (size_t j = 0; j < 7.0 ; j++)
         { vd.template getProp<i_vdmean>(a)[j] = 0.0; }
         for (size_t j = 0; j < 3.0 ; j++)
         { 
@@ -88,20 +88,17 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
                 
             // Get the distance between a and b
             Point<3,double> dr = xa - xb;
-            double r2 = norm2(dr);  //l2 norm = sqrt(sum of the squares)
+            double r2 = norm2(dr);  //norm2 = (sum of the squares)
             double r = sqrt(r2);
-            //cout << "dr = " << dr[1] << "," << dr[2] << "," << dr[3] << ", r2 = " << r2 << ", r = " << r << endl;
-
+            //cout << "dr = " << dr[0] << "," << dr[1] << "," << dr[2] << ", r2 = " << r2 << ", r = " << r << endl;
+                        
             //if the particles interact...
             if (r < H) {
                 Point<3,double> DW;
                 double factor = DWab(dr,DW,r,false); // gradient kernel //
                 double W = Wab(r); //kernel
-                tot_W += W;
-                cout << "r= " << r << " : r/H = " << r/H << endl;
-                cout << "dW = " << factor << ", W = " << W << endl;
-                cout << "dWab = " << DW.get(0) << " , " << DW.get(1) << " , " << DW.get(2) << endl;
-
+                tot_W += W;            
+                
                 vd.template getProp<i_vdmean>(a)[i_rho] += W*vd.getProp<i_rho>(b);
                 vd.template getProp<i_vdmean>(a)[i_temperature] += W*vd.getProp<i_temperature>(b);
                 vd.template getProp<i_vdmean>(a)[i_pressure]    += W*vd.getProp<i_pressure>(b);
@@ -128,6 +125,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
 
         }
         
+        //divide by total kernel weight to get mean
         vd.template getProp<i_vdmean>(a)[i_rho] /= tot_W;
         vd.template getProp<i_vdmean>(a)[i_temperature] /= tot_W;
         vd.template getProp<i_vdmean>(a)[i_pressure] /= tot_W;
@@ -135,11 +133,12 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
         vd.template getProp<i_vdmean>(a)[i_velx] /= tot_W;
         vd.template getProp<i_vdmean>(a)[i_vely] /= tot_W;
         vd.template getProp<i_vdmean>(a)[i_velz] /= tot_W;
-        cout << "---tot_kernel = " << tot_W << endl;
         
-        cout << "---vdmean: x= " << vd.template getProp<i_vdmean>(a)[i_velx] << ", y= " << vd.template getProp<i_vdmean>(a)[i_vely] << ", z= " << vd.template getProp<i_vdmean>(a)[i_velz] << endl;
+        //cout << "---tot_kernel = " << tot_W << endl;
+        
+        //cout << "---vdmean: x= " << vd.template getProp<i_vdmean>(a)[i_velx] << ", y= " << vd.template getProp<i_vdmean>(a)[i_vely] << ", z= " << vd.template getProp<i_vdmean>(a)[i_velz] << endl;
     
-        cout << "---particle = " << ip << " neigh= "<< ingh  << endl;
+        cout << "particle = " << ip << " neigh= "<< ingh  << endl;
         iavg += ingh;
         ++part;
     }

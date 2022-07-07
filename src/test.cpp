@@ -39,7 +39,7 @@ void output_vd(particleset  & vd, int p)
     double b2 = vd.getProp<i_vdmean>(p)[i_temperature]; 
     double b3 = vd.getProp<i_vdmean>(p)[i_pressure];
     double b4 = vd.getProp<i_vdmean>(p)[i_energy];
-    double b5 = vd.getProp<i_vdmean>(p)[i_velocity];
+    double b5 = vd.getProp<i_vdmean>(p)[i_velx];
     double b6 = vd.getProp<i_vdmean>(p)[i_vely];
     double b7 = vd.getProp<i_vdmean>(p)[i_velz];
 
@@ -59,25 +59,25 @@ void output_vd(particleset  & vd, int p)
     double c4z = vd.getProp<i_dvdmean>(p)[2][i_energy];
 
     //print
-    std::cout << "(vd parcticle) --------" << std::endl;
+    std::cout << "(vd particle) --------" << std::endl;
     std::cout << " temp = " << a2 << " p = " << a3 << std::endl;
     std::cout << "density = " << a1 << " energy = " << a4 << std::endl;
     std::cout << " vx = " << a5 << " vy = " << a6 << " vz = " << a7 << std::endl;
 
-    std::cout << "(vdmean parcticle) --------" << std::endl;
+    std::cout << "(vdmean particle) --------" << std::endl;
     std::cout << " temp = " << b2 << " p = " << b3 << std::endl;
     std::cout << "density = " << b1 << " energy = " << b4 << std::endl;
     std::cout << " vx = " << b5 << " vy = " << b6 << " vz = " << b7 << std::endl;
 
-    std::cout << "(dvdmean_x parcticle) --------" << std::endl;
+    std::cout << "(dvdmean_x particle) --------" << std::endl;
     std::cout << " temp = " << c2x << " p = " << c3x << std::endl;
     std::cout << "density = " << c1x << " energy = " << c4x << std::endl;
 
-    std::cout << "(dvdmean_y parcticle) --------" << std::endl;
+    std::cout << "(dvdmean_y particle) --------" << std::endl;
     std::cout << " temp = " << c2y << " p = " << c3y << std::endl;
     std::cout << "density = " << c1y << " energy = " << c4y << std::endl;
 
-    std::cout << "(dvdmean_z parcticle) --------" << std::endl;
+    std::cout << "(dvdmean_z particle) --------" << std::endl;
     std::cout << " temp = " << c2z << " p = " << c3z << std::endl;
     std::cout << "density = " << c1z << " energy = " << c4z << std::endl;
 }

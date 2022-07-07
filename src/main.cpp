@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
 
     //simulation parameters
     simulation.nparticles = 1000; //1000
-    simulation.nsteps = 100; //100
+    simulation.nsteps = 10; //100
     simulation.dt = 0.01;
     simulation.frame = 1;   //10
     simulation.rad = 2;
@@ -102,9 +102,9 @@ int main(int argc, char* argv[])
         vd.getPos(key)[2] = ((double)rand() / RAND_MAX) * simulation.lz;
 
         //set random velocity of the particles
-        double numberx = distribution(generator);
-        double numbery = distribution(generator);
-        double numberz = distribution(generator);
+        double numberx = 1; //distribution(generator);
+        double numbery = 1; //distribution(generator);
+        double numberz = 1; //distribution(generator);
 
         //set the property of the particles : eventually velocity will be initialized from turbulence files
         vd.template getProp<i_velocity>(key)[0] = numberx;
@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
         vd.template getProp<i_rho>(key) = .1; //temporary placeholder
         
         //initialize dvdmean particles
-        for (size_t j = 0; j < 6.0 ; j++)
+        for (size_t j = 0; j < 7.0 ; j++)
         { vd.template getProp<i_vdmean>(key)[j] = 0.0; }
         for (size_t j = 0; j < 3.0 ; j++)
         { vd.template getProp<i_dvdmean>(key)[j][i_momentum]  = 0.0;
@@ -176,14 +176,14 @@ int main(int argc, char* argv[])
             auto p = it3.get();
             int place = p.getKey();
 
-            //std::cout << count << " og vd particle " << std::endl;
-            //output_vd(vd,place);
+            std::cout << count << " og vd particle " << std::endl;
+            output_vd(vd,place);
             
             //updateEqtnState(vd);    //calc pressure based on local density
             double a5 = vd.getProp<i_velocity>(p)[0];
             double a6 = vd.getProp<i_velocity>(p)[1];
             double a7 = vd.getProp<i_velocity>(p)[2];
-            double b5 = vd.getProp<i_vdmean>(p)[i_velocity];
+            double b5 = vd.getProp<i_vdmean>(p)[i_velx];
             double b6 = vd.getProp<i_vdmean>(p)[i_vely];
             double b7 = vd.getProp<i_vdmean>(p)[i_velz];
 
@@ -228,7 +228,7 @@ int main(int argc, char* argv[])
         NN = vd.getCellList(r_cut);
 
         // collect statistics on the configuration
-        if (i+1 % simulation.frame == 0)
+        //if (i+1 % simulation.frame == 0)
         {
             // Write the particle position for visualization (Without ghost)
             vd.deleteGhost();
