@@ -33,8 +33,8 @@ int main(int argc, char* argv[])
     std::default_random_engine generator;
 
     //simulation parameters
-    simulation.nparticles = 5000; //1000
-    simulation.nsteps = 10; //100
+    simulation.nparticles = 1000; //1000
+    simulation.nsteps = 100; //100
     simulation.dt = 0.01;
     simulation.frame = 1;   //10
     simulation.rad = 2;
@@ -44,15 +44,15 @@ int main(int argc, char* argv[])
     engine eng;
     eng.bore = 12.065/100;
     eng.stroke = 14.0;
-    eng.volumeC = eng.bore*eng.bore*eng.bore;
+    eng.volumeC = 1; //eng.bore*eng.bore*eng.bore;
 
     simulation.ppv = simulation.nparticles/eng.volumeC;
     simulation.dp = std::cbrt(1/simulation.ppv);
-    simulation.H = 1*simulation.dp;
-    cout << "particle H: " << simulation.H << endl;
-    simulation.lx = eng.bore;
-    simulation.ly = eng.bore;
-    simulation.lz = eng.bore;
+    simulation.H = 3*simulation.dp;
+    cout << "simulation.H: " << simulation.H << endl;
+    simulation.lx = 1;  //eng.bore;
+    simulation.ly = 1;  //eng.bore;
+    simulation.lz = 1;  //eng.bore;
 
     //turbulences
     turbulence turb;
@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
     size_t bc[3]={PERIODIC,PERIODIC,PERIODIC};    // boundary conditions: Periodic means the 1 boundary is equal to the 0 boundary
 
     // extended boundary around the domain, and the processor domain
-    Ghost<3,double> g(2*H); //why using g(2*H)??
+    Ghost<3,double> g(0.1); //g(2*H); //why using g(2*H)??
 
     // initialize particlesets
     particleset vd(0,domain,bc,g,DEC_GRAN(512));  
@@ -139,7 +139,8 @@ int main(int argc, char* argv[])
     }
 
     //-- Map Particles to grid --/
-    vd.map();       //distribute particle positions across the processors       
+    vd.map();       //distribute particle positions across the processors
+    vd.write_frame("particles_",0);       
     vd.ghost_get<>();   //syncs the ghost with the newly mapped particles
 
 
@@ -155,9 +156,8 @@ int main(int argc, char* argv[])
     int count = 0;
 
     
-    auto NN = vd.getCellList(2*simulation.H);  //define neighborhoods with radius (repeated at end of time loop)
-
-    vd.write_frame("particles_",0);
+    auto NN = vd.getCellList(r_cut);  //define neighborhoods with radius (repeated at end of time loop)
+    // x = NN.getNNIteratorRadius();
 
     // Time loop
     for (size_t i = 0; i < simulation.nsteps ; i++)
@@ -176,8 +176,8 @@ int main(int argc, char* argv[])
             auto p = it3.get();
             int place = p.getKey();
 
-            std::cout << count << " og vd particle " << std::endl;
-            output_vd(vd,place);
+            //std::cout << count << " og vd particle " << std::endl;
+            //output_vd(vd,place);
             
             //updateEqtnState(vd);    //calc pressure based on local density
             double a5 = vd.getProp<i_velocity>(p)[0];
@@ -209,7 +209,10 @@ int main(int argc, char* argv[])
             std::cout << " vx = " << b5 << "    vy = " << b6 << "   vz = " << b7 << std::endl;
             */
             ++it3;
+
         }
+        //cout << "post move" << endl;
+        //stateOfNeighbors(vd, NN);
         
         //moveParticles(vd, place, dt);
         //applyBC(vd,place,dt);
@@ -222,11 +225,11 @@ int main(int argc, char* argv[])
         // Map particles and re-sync the ghost
         vd.map();
         vd.template ghost_get<>();        
-        NN = vd.getCellList(2*simulation.H);
+        NN = vd.getCellList(r_cut);
 
         // collect statistics on the configuration
-        //if (i+1 % simulation.frame == 0)
-        //{
+        if (i+1 % simulation.frame == 0)
+        {
             // Write the particle position for visualization (Without ghost)
             vd.deleteGhost();
             vd.write_frame("particles_",i+1);
@@ -238,7 +241,7 @@ int main(int argc, char* argv[])
             auto & v_cl = create_vcluster();
             v_cl.sum(cnt);
             v_cl.execute();
-        //}
+        }
 
         if (i % 10 ==0 )
         {
