@@ -1,12 +1,27 @@
 #include "test.h"
 
-void kernel_test( double H)
+void kernel_test( double H, Point<3,double> dr)
 {
     // test kernel function
     std::cout << " kernel(0.0 H)  " << Wab(0.0) << std::endl;
     std::cout << " kernel(0.99 H) " << Wab(0.99*H)<< std::endl;
     std::cout << " kernel(1.01 H) " << Wab(1.01*H)<< std::endl;
     std::cout << " kernel(1.9 H)  " << Wab(1.9*H) << std::endl;
+
+    double r = -0.1;
+                Point<3,double> DW;
+                double factor = DWab(dr,DW,r,false); // gradient kernel //
+                double W = Wab(r); //kernel
+    while (r < 2)
+    {
+        r += 0.1;
+        W = Wab(r*H); //kernel
+        //cout << " W = " << W << endl;
+        factor = DWab(dr,DW,r*H,false);
+        cout << "r= " << r << endl;
+        cout << "dW = " << factor << ", W/a = " << W << endl;
+        cout << "dWab = " << DW.get(0) << " , " << DW.get(1) << " , " << DW.get(2) << endl;
+    }
 }
 
 void output_vd(particleset  & vd, int p)

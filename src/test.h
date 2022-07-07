@@ -7,7 +7,9 @@
 #include "kernel.h"
 #include "calculations.h"
 
-void kernel_test(double H);
+using namespace std;
+
+void kernel_test(double H, Point<3,double> dr);
 void output_kernel(double r, double h);
 void output_vd(particleset  & vd, int p);
     
