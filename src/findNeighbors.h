@@ -113,12 +113,12 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
                 Point<3,double> dv = va - vb;
                 Point<3,double> dP = vd.getProp<i_pressure>(a) - vd.getProp<i_pressure>(b);
                 Point<3,double> dT = vd.getProp<i_temperature>(a)-vd.getProp<i_temperature>(b);
-                vd.template getProp<i_dvdmean>(a)[0][i_momentum] += (dv.get(0)*DW.get(0)+dv.get(1)*DW.get(1)+dv.get(2)*DW.get(2));
-                vd.template getProp<i_dvdmean>(a)[0][i_pressure]    += (dP.get(0)*DW.get(0)+dv.get(1)*DW.get(1)+dv.get(2)*DW.get(2));
-                vd.template getProp<i_dvdmean>(a)[0][i_temperature] += (dT.get(0)*DW.get(0)+dv.get(1)*DW.get(1)+dv.get(2)*DW.get(2));
 
                 for (size_t i = 0; i < 3 ; i++) //loop through x,y,z directions
                 {
+                    vd.template getProp<i_dvdmean>(i)[i][i_momentum] += (dv.get(i)*DW.get(i));
+                    vd.template getProp<i_dvdmean>(i)[0][i_pressure]    += (dP.get(i)*DW.get(i));
+                    vd.template getProp<i_dvdmean>(i)[0][i_temperature] += (dT.get(i)*DW.get(i));
                     // grad of particle property at a particle position
                     //vd.template getProp<i_dvdmean>(a)[i][i_rho]         += DW.get(i)*vd.getProp<i_rho>(b);
                     //vd.template getProp<i_dvdmean>(a)[i][i_momentum]    += DW.get(i)*(vd.getProp<i_velocity>(b)[i]*vd.getProp<i_rho>(b));
