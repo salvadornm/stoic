@@ -23,6 +23,8 @@ void moveParticles(particleset  & vd, int p, double dt, engine eng)
     //if 1 < p < 0 then the position of the particle is out of the box
     if (pos_x < 0 || pos_x > eng.bore)
         vel_x = -vd.template getProp<i_velocity>(p)[0];
+    else
+        vel_x = vd.template getProp<i_velocity>(p)[0];
         // reflect position over the boundary
         
 
