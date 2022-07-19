@@ -15,7 +15,6 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     // stoic    
     std::random_device rd;
     std::default_random_engine generator(rd());
-    //std::default_random_engine generator;
     std::normal_distribution<double> distribution(0.0,1.0);
     double time_turb = 0.1;
     double eps_turb = 0.1;
@@ -65,9 +64,6 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     turb.k_sgs = 0.0;
     for (size_t i = 0; i < 3 ; i++) turb.k_sgs += .5*(u_p[i] - u_mean[i])*(u_p[i] - u_mean[i]);
     turb.Eps_sgs = turb.k_sgs/l;
-
-    double cfl = dt*u_p[1]/l;
-    std::cout << "cfl: " << cfl << endl;
     
     //time scales
     double Cu = 2.1; //Kolmogorov constant
@@ -81,35 +77,24 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
 
     // (1) update density ---------------------------------
     rho_new = rho_p + drho;
-    std::cout << "drho = " << drho << " rho_new = " << rho_new << endl;
     vd.template getProp<i_rho>(p) =  rho_new;
 
     // (2) update momentum ---------------------
     Au_turb = ((rho_p*Cu)/tau_sgs);
     Au_mol = (rho_p/tau_mol);
     Au_p = Au_mol + Au_turb;
-    std::cout << "Au_p: " << Au_p << endl;
     Au_p_alt = (rho_p/(tau_eq+dt));   //confirmed Au_p and Au_p_alt (wo +dt) are equivalent
     B = C0*sqrt(turb.Eps_sgs);        //turbulent diffusion
 
-    //Au_p = 0.1/dt;
-    //B = 0;    
-    //std::cout << "density = " << rho_p << endl;
     for (size_t i = 0; i < 3 ; i++) 
     {    
         du = (u_mean[i] -  u_p[i]);
-        //solve momentum of initial particle
+        //solve momentum 
         mom_p[i]  = rho_p * u_p[i];
-        //solve for updated momentum
         mom_p[i] +=  P_grad[i] * dt + Au_p * du * dt + B * dWien[i] * sqrt(dt);
-        std::cout << "dwien: " << dWien[i] << endl;
-        //mom_p[i] +=  Au_p * du * dt + B * dWien;
-
-        std::cout << "momentum = " << mom_p[i] << endl;
-        
+                
         // (3) update velocity
         vd.template getProp<i_velocity>(p)[i] = mom_p[i] / rho_new;
-        //std::cout << "New u velocity = " << vd.template getProp<i_velocity>(p)[i] << endl;
     }
 
 /*

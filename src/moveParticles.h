@@ -7,10 +7,6 @@
 
 void moveParticles(particleset  & vd, int p, double dt, engine eng)
 {
-    //vd.getPos(p)[0] += vd.template getProp<i_velocity>(p)[0]*dt;
-    //vd.getPos(p)[1] += vd.template getProp<i_velocity>(p)[1]*dt;
-    //vd.getPos(p)[2] += vd.template getProp<i_velocity>(p)[2]*dt;
-
     double pos_x, pos_y, pos_z;
     double vel_x, vel_y, vel_z;
 
@@ -26,10 +22,7 @@ void moveParticles(particleset  & vd, int p, double dt, engine eng)
     else
         vel_x = vd.template getProp<i_velocity>(p)[0];
         // reflect position over the boundary
-        
-
-
-
+    
     //update to new particle position
     vd.getPos(p)[0] = pos_x;
     vd.getPos(p)[1] = pos_y;

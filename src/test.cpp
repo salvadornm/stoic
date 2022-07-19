@@ -82,3 +82,24 @@ void output_vd(particleset  & vd, int p)
     std::cout << "density = " << c1z << " energy = " << c4z << std::endl;
     
 }
+
+void output_properties(double mom_p, double drho, double rho_new, double Au_p, double dWien)
+{
+    std::cout << "momentum = " << mom_p << endl;
+    std::cout << "drho = " << drho << " rho_new = " << rho_new << endl;
+    std::cout << "Au_p: " << Au_p << endl;
+    std::cout << "dwien: " << dWien << endl;
+    //std::cout << "New u velocity = " << vd.template getProp<i_velocity>(p)[i] << endl
+}
+
+void vary_initialization(particleset &vd, Cfd simulation, int key)
+{  
+    //update the inputs as desired      
+    if (vd.getPos(key)[0] < (0.8*simulation.lx) && vd.getPos(key)[1] < (0.8*simulation.ly) && vd.getPos(key)[2] < (0.8*simulation.lz))
+    {
+        vd.template getProp<i_velocity>(key)[0] = 0.1;
+        vd.template getProp<i_velocity>(key)[1] = 0.1;
+        vd.template getProp<i_velocity>(key)[2] = 0.1;
+        vd.template getProp<i_rho>(key) = .9; 
+    }
+}

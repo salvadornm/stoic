@@ -70,12 +70,11 @@ int main(int argc, char* argv[])
     openfpm::vector<openfpm::vector<double>> y;
     std::normal_distribution<double> distribution(0.0, 1.0);//(0.0,1.0);
 
-    //Box<3,double> domain({0.0,0.0,0.0},{1.0,1.0,1.0});
     Box<3,double> domain({0.0,0.0,0.0},{simulation.lx,simulation.ly,simulation.lz});
     size_t bc[3]={PERIODIC,PERIODIC,PERIODIC};    // boundary conditions: Periodic means the 1 boundary is equal to the 0 boundary
 
     // extended boundary around the domain, and the processor domain
-    Ghost<3,double> g(0.1); //g(2*H); //why using g(2*H)??
+    Ghost<3,double> g(0.1); //g(2*H);
 
     // initialize particlesets
     particleset vd(0,domain,bc,g,DEC_GRAN(512));  
@@ -95,6 +94,7 @@ int main(int argc, char* argv[])
     {
         vd.add();
         auto key = it.get();    //contains (i,j,k) index of grid
+        int key1 = key.getKey();
 
         // we define x, assign a random position between 0.0 and 1.0
         vd.getPos(key)[0] = ((double)rand() / RAND_MAX) * simulation.lx;  //rand_max just normalizes it to between 0 and 1
@@ -117,18 +117,8 @@ int main(int argc, char* argv[])
         vd.template getProp<i_energy>(key) = 1; //temporary placeholder
         vd.template getProp<i_rho>(key) = .1; //temporary placeholder
         
-        
-        //check to vary initial pressure/other property
-        /*
-        if (vd.getPos(key)[0] < (0.8*simulation.lx) && vd.getPos(key)[1] < (0.8*simulation.ly) && vd.getPos(key)[2] < (0.8*simulation.lz))
-        {
-            vd.template getProp<i_velocity>(key)[0] = 0.1;
-            vd.template getProp<i_velocity>(key)[1] = 0.1;
-            vd.template getProp<i_velocity>(key)[2] = 0.1;
-            vd.template getProp<i_rho>(key) = .9; //temporary placeholder
-        }
-        */
-
+        //vary initial pressure/density (fx in test.cpp)
+        //vary_initialization(vd, simulation, key1);
         
         //initialize dvdmean particles
         for (size_t j = 0; j < 7.0 ; j++)
@@ -156,7 +146,6 @@ int main(int argc, char* argv[])
     vd.write_frame("particles_",0);       
     vd.ghost_get<>();   //syncs the ghost with the newly mapped particles
 
-
     cout << " ---------  particles initialized  ------- " << cnt << endl;
 
 
@@ -168,16 +157,14 @@ int main(int argc, char* argv[])
     unsigned long int f = 0;
     int count = 0;
     double cfl = 0;
-
     
     auto NN = vd.getCellList(r_cut);  //define neighborhoods with radius (repeated at end of time loop)
-    // x = NN.getNNIteratorRadius();
 
     // Time loop
     for (size_t i = 0; i < simulation.nsteps ; i++)
     {
         auto it3 = vd.getDomainIterator();  //iterator that traverses the particles in the domain 
-        std::cout << "step: " << i << std::endl;
+        std::cout << "--------step: " << i << " ------" << std::endl;
         find_neighbors(vd, NN); //contaions properties of neighbors
 
         //function to solve for new cylinder geometry
@@ -190,56 +177,26 @@ int main(int argc, char* argv[])
             auto p = it3.get();
             int place = p.getKey();
 
-            std::cout << count << " og vd particle " << std::endl;
-            output_vd(vd,place);
+            std::cout << count << " particle " << std::endl;
+            output_vd(vd,place);    //output particle properties
             
-            //updateEqtnState(vd);    //calc pressure based on local density
-            double a5 = vd.getProp<i_velocity>(p)[0];
-            double a6 = vd.getProp<i_velocity>(p)[1];
-            double a7 = vd.getProp<i_velocity>(p)[2];
-            double b5 = vd.getProp<i_vdmean>(p)[i_velx];
-            double b6 = vd.getProp<i_vdmean>(p)[i_vely];
-            double b7 = vd.getProp<i_vdmean>(p)[i_velz];
-
-            //std::cout << count << " og vd particle " << std::endl;
-            //std::cout << " vx = " << a5 << "    vy = " << a6 << "   vz = " << a7 << std::endl;
-            //std::cout << " density = " << vd.getProp<i_rho>(p) << std::endl;
+            //updateEqtnState(vd);    //calc pressure based on local density <-- UNCOMMENT THIS
 
             updateParticleProperties(vd, place, dt, H, turb);
-            cfl += (dt*a5)/H;
-
-            //update thermal properties; pressure, total energy
-            //updateThermalProperties2(vd, vdmean, place);
-            //updateThermoDynamics
-            //advanceNavierStokes
-            //cout << "New pressure = " << vd.template getProp<i_pressure>(p) << " new temp = "<< vd.template getProp<i_temperature>(p)  << endl;
-                        
+            double cfl_temp = (dt/H) * (vd.template getProp<i_velocity>(p)[0]+vd.template getProp<i_velocity>(p)[1]+vd.template getProp<i_velocity>(p)[2]);
+            cfl = std::max(abs(cfl_temp),cfl);       //look for max not average. needs to be absolute.  should hold
+       
             moveParticles(vd, place, dt, eng);
+            //applyBC(vd,place,dt);
             
-            std::cout << "updated vd particle --------" << std::endl;
-            std::cout << " vx = " << vd.getProp<i_velocity>(p)[0] << "      vy = " << vd.getProp<i_velocity>(p)[1] << "     vz = " << vd.getProp<i_velocity>(p)[2] << std::endl;
-            std::cout << " density = " << vd.getProp<i_rho>(p) << std::endl;
-            
-            /*
-            std::cout << "(vdmean particle) --------" << std::endl;
-            std::cout << " vx = " << b5 << "    vy = " << b6 << "   vz = " << b7 << std::endl;
-            */
             ++it3;
-
         }
 
-        std::cout << "cfl: " << cfl << endl;
-        cfl = cfl/count;
-        std::cout << "average cfl: " << cfl << endl;
-        cfl = 0;
-
-        //cout << "post move" << endl;
-        //stateOfNeighbors(vd, NN);
-        
-        //moveParticles(vd, place, dt);
-        //applyBC(vd,place,dt);
         //updateThermalProperties
-        //continuityEquation
+        //update pressure/temperature equation of state
+
+        std::cout << "cfl: " << cfl << endl;
+        cfl = 0;
 
         //MOVE BOUNDARY/UPDATE PISTON LOCATION
         //moveCrank(eng);
@@ -267,7 +224,7 @@ int main(int argc, char* argv[])
 
         if (i % 10 ==0 )
         {
-          cout << " --------- STEP   i="  << i  << std::endl;  
+          cout << " Step "  << i  << std::endl;  
         }  
          
     } 

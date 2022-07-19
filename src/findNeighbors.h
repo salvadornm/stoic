@@ -6,53 +6,19 @@
 #include "calculations.h"
 #include"test.h"
 
-template<typename CellList> int stateOfNeighbors(particleset  & vd, CellList & NN) {
-    auto part = vd.getDomainIterator();
-    while(part.isNext()){
-        auto a = part.get();
-
-        auto Np = NN.template getNNIterator<NO_CHECK>(NN.getCell(vd.getPos(a))); 
-        cout << a.getKey() << " position " << vd.getPos(a)[0] << ", " << vd.getPos(a)[1] << ", "<< vd.getPos(a)[2] << ", " << endl;        
-        cout << "{";
-        while (Np.isNext() == true)
-        {
-            auto b = Np.get();
-
-            Point<3,double> xa = vd.getPos(a);
-            Point<3,double> xb = vd.getPos(b);
-            Point<3,double> dr = xa - xb;
-            double r2 = norm2(dr);
-            double r = sqrt(r2);
-
-            if (r < H) {
-                cout << b << ":";
-                cout << "r = " << r << " , ";                 
-            }
-            // r/simulation.H
-
-            ++Np;
-        }
-        cout << "}" << endl;
-        ++part;
-    }
-    return 0;
-}
-
-template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN)
-{
+template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN){
     int n,ingh,ip;
     float iavg=0;
     
     auto part = vd.getDomainIterator();
     vd.updateCellList(NN);
     //stateOfNeighbors(vd, NN);
+
     // For each particle ...
     ip=0;   
     //timer tsim;
     //tsim.start();
-
-
-    
+  
     while (part.isNext())
     {
         auto a = part.get();
@@ -92,7 +58,6 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
             Point<3,double> dr = xa - xb;
             double r2 = norm2(dr);  //norm2 = (sum of the squares)
             double r = sqrt(r2);
-            //cout << "dr = " << dr[0] << "," << dr[1] << "," << dr[2] << ", r2 = " << r2 << ", r = " << r << endl;
                         
             //if the particles interact...
             if (r < H) {
@@ -119,17 +84,12 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
                 {
                     // grad of particle property at a particle position
                     vd.template getProp<i_dvdmean>(a)[i][i_momentum] += (drho.get(i)*DW.get(i));
-                    //cout << "nn momentum: " << vd.template getProp<i_dvdmean>(a)[i][i_momentum] << endl;
                     vd.template getProp<i_dvdmean>(a)[i][i_pressure]    += (dP.get(i)*DW.get(i));
                     vd.template getProp<i_dvdmean>(a)[i][i_temperature] += (dT.get(i)*DW.get(i));
                 }
                 ingh++;
             }
-            
             ++Np;
-            // r/simulation.H
-            //cout << "r = " << r << endl;    // r = 0.028 is the cutoff. > = no impact          
-
         }
         
         //divide by total kernel weight to get mean
@@ -141,16 +101,13 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
         vd.template getProp<i_vdmean>(a)[i_vely] /= tot_W;
         vd.template getProp<i_vdmean>(a)[i_velz] /= tot_W;
         
-        //cout << "---tot_kernel = " << tot_W << endl;
-        
-        //cout << "---vdmean: x= " << vd.template getProp<i_vdmean>(a)[i_velx] << ", y= " << vd.template getProp<i_vdmean>(a)[i_vely] << ", z= " << vd.template getProp<i_vdmean>(a)[i_velz] << endl;
-    
-        cout << "particle = " << ip << " neigh= "<< ingh  << endl;
+        //cout << "particle = " << ip << " neigh= "<< ingh  << endl;
         iavg += ingh;
         ++part;
     }
 
     cout << " Avg number of neighbours=" << iavg/ip << endl;
+
     //tsim.stop();
     //std::cout << "Time: " << tsim.getwct() << std::endl;
 }

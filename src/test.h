@@ -12,5 +12,41 @@ using namespace std;
 void kernel_test(double H, Point<3,double> dr);
 void output_kernel(double r, double h);
 void output_vd(particleset  & vd, int p);
+void output_properties(double mom_p, double drho, double rho_new, double Au_p, double dWien);
+void vary_initialization(particleset &vd, Cfd simulation, int key);
+
+template<typename CellList> int stateOfNeighbors(particleset  & vd, CellList & NN)
+{    auto part = vd.getDomainIterator();
+
+    while(part.isNext())
+    {
+        auto a = part.get();
+
+        auto Np = NN.template getNNIterator<NO_CHECK>(NN.getCell(vd.getPos(a))); 
+        cout << a.getKey() << " position " << vd.getPos(a)[0] << ", " << vd.getPos(a)[1] << ", "<< vd.getPos(a)[2] << ", " << endl;   
+
+        while (Np.isNext() == true)
+        {
+            auto b = Np.get();
+
+            Point<3,double> xa = vd.getPos(a);
+            Point<3,double> xb = vd.getPos(b);
+            Point<3,double> dr = xa - xb;
+            double r2 = norm2(dr);
+            double r = sqrt(r2);
+
+            if (r < H) {
+                cout << b << ":";
+                cout << "r = " << r << " , ";                 
+            }
+            // r/simulation.H
+
+            ++Np;
+        }
+        cout << "}" << endl;
+        ++part;
+    }
+    return 0;
+}
     
 #endif
