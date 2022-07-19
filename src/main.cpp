@@ -33,10 +33,10 @@ int main(int argc, char* argv[])
     std::default_random_engine generator;
 
     //simulation parameters
-    simulation.nparticles = 1000; //1000
+    simulation.nparticles = 1000; //if you change this change the H value!
     simulation.nsteps = 10; //100
     simulation.dt = 0.01;
-    simulation.frame = 1;   //10
+    simulation.frame = 10;   //10
     simulation.rad = 2;
     simulation.dp = 1/sqrt(simulation.nparticles);
 
@@ -117,6 +117,18 @@ int main(int argc, char* argv[])
         vd.template getProp<i_energy>(key) = 1; //temporary placeholder
         vd.template getProp<i_rho>(key) = .1; //temporary placeholder
         
+        
+        //check to vary initial pressure/other property
+        if (vd.getPos(key)[0] < (0.8*simulation.lx) && vd.getPos(key)[1] < (0.8*simulation.ly) && vd.getPos(key)[2] < (0.8*simulation.lz))
+        {
+            vd.template getProp<i_velocity>(key)[0] = 0.1;
+            vd.template getProp<i_velocity>(key)[1] = 0.1;
+            vd.template getProp<i_velocity>(key)[2] = 0.1;
+            vd.template getProp<i_rho>(key) = .9; //temporary placeholder
+        }
+        
+
+        
         //initialize dvdmean particles
         for (size_t j = 0; j < 7.0 ; j++)
         { vd.template getProp<i_vdmean>(key)[j] = 0.0; }
@@ -154,6 +166,7 @@ int main(int argc, char* argv[])
     double dt = simulation.dt;
     unsigned long int f = 0;
     int count = 0;
+    double cfl = 0;
 
     
     auto NN = vd.getCellList(r_cut);  //define neighborhoods with radius (repeated at end of time loop)
@@ -192,6 +205,8 @@ int main(int argc, char* argv[])
             //std::cout << " density = " << vd.getProp<i_rho>(p) << std::endl;
 
             updateParticleProperties(vd, place, dt, H, turb);
+            cfl += (dt*a5)/H;
+
             //update thermal properties; pressure, total energy
             //updateThermalProperties2(vd, vdmean, place);
             //updateThermoDynamics
@@ -211,6 +226,7 @@ int main(int argc, char* argv[])
             ++it3;
 
         }
+
         //cout << "post move" << endl;
         //stateOfNeighbors(vd, NN);
         
@@ -228,7 +244,7 @@ int main(int argc, char* argv[])
         NN = vd.getCellList(r_cut);
 
         // collect statistics on the configuration
-        //if (i+1 % simulation.frame == 0)
+        if ((i+1) % simulation.frame == 0)
         {
             // Write the particle position for visualization (Without ghost)
             vd.deleteGhost();
