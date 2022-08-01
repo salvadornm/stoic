@@ -15,8 +15,10 @@ using namespace std;
 #include "findNeighbors.h"
 #include "calculations.h"
 #include "updateProps.h"
+#include "boundaryConditions.h"
 #include "moveParticles.h"
 #include "test.h"
+
 
 //selections for run setup ------------------------------------
 #define BOUNDARY 0 // A constant to indicate boundary particles
@@ -43,16 +45,16 @@ int main(int argc, char* argv[])
     //basic engine params --> make simulation dx, dy, dz
     engine eng;
     eng.bore = 12.065/100;
-    eng.stroke = 14.0;
-    eng.volumeC = 1; //eng.bore*eng.bore*eng.bore;
+    eng.stroke = 14.0/100;
+    eng.volumeC = (pi/4)*eng.bore*eng.bore*eng.stroke;
 
     simulation.ppv = simulation.nparticles/eng.volumeC;
     simulation.dp = std::cbrt(1/simulation.ppv);
     simulation.H = 3*simulation.dp;
     cout << "simulation.H: " << simulation.H << endl;
-    simulation.lx = 1;  //eng.bore;
-    simulation.ly = 1;  //eng.bore;
-    simulation.lz = 1;  //eng.bore;
+    simulation.lx = 1 * eng.bore;
+    simulation.ly = 1 * eng.bore;
+    simulation.lz = 1 * eng.stroke;
 
     //turbulences
     turbulence turb;
@@ -101,6 +103,8 @@ int main(int argc, char* argv[])
         vd.getPos(key)[1] = ((double)rand() / RAND_MAX) * simulation.ly;
         vd.getPos(key)[2] = ((double)rand() / RAND_MAX) * simulation.lz;
 
+        initialBoundary(vd.getPos(key)[0], vd.getPos(key)[1], eng, simulation);
+
         //set random velocity of the particles
         double numberx = distribution(generator);
         double numbery = distribution(generator);
@@ -111,6 +115,7 @@ int main(int argc, char* argv[])
         vd.template getProp<i_velocity>(key)[1] = numbery;
         vd.template getProp<i_velocity>(key)[2] = numberz;
 
+
         //initialize remaining properties (placeholder values for now)
         vd.template getProp<i_temperature>(key) = 300; //[K]
         vd.template getProp<i_pressure>(key) = 101300;  //[pa] atmospheric pressure
@@ -118,7 +123,7 @@ int main(int argc, char* argv[])
         vd.template getProp<i_rho>(key) = .1; //temporary placeholder
         
         updateDensity(vd, key1);    //equation of state
-        cout << "initial energy: " << vd.template getProp<i_energy>(key) << " density: " << vd.template getProp<i_rho>(key) << endl;
+        //cout << "initial energy: " << vd.template getProp<i_energy>(key) << " density: " << vd.template getProp<i_rho>(key) << endl;
 
         //vary initial pressure/density (fx in test.cpp)
         //vary_initialization(vd, simulation, key1);
