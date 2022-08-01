@@ -117,6 +117,9 @@ int main(int argc, char* argv[])
         vd.template getProp<i_energy>(key) = 1; //temporary placeholder
         vd.template getProp<i_rho>(key) = .1; //temporary placeholder
         
+        updateDensity(vd, key1);    //equation of state
+        cout << "initial energy: " << vd.template getProp<i_energy>(key) << " density: " << vd.template getProp<i_rho>(key) << endl;
+
         //vary initial pressure/density (fx in test.cpp)
         //vary_initialization(vd, simulation, key1);
         
@@ -189,12 +192,12 @@ int main(int argc, char* argv[])
             moveParticles(vd, place, dt, eng);
             //applyBC(vd,place,dt);
             
+            //updateThermalProperties1(cd, place);   //update pressure/temperature equation of state
+
             ++it3;
         }
 
-        //updateThermalProperties
-        //update pressure/temperature equation of state
-
+        
         std::cout << "cfl: " << cfl << endl;
         cfl = 0;
 

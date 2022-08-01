@@ -42,9 +42,10 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     vector <double> T_grad {vd.template getProp<i_dvdmean>(p)[0][i_temperature],vd.template getProp<i_dvdmean>(p)[1][i_temperature],vd.template getProp<i_dvdmean>(p)[2][i_temperature]}; 
     vector <double> P_grad {vd.template getProp<i_dvdmean>(p)[0][i_pressure],vd.template getProp<i_dvdmean>(p)[1][i_pressure],vd.template getProp<i_dvdmean>(p)[2][i_pressure]}; 
     vector <double> mom_grad {vd.template getProp<i_dvdmean>(p)[0][i_momentum],vd.template getProp<i_dvdmean>(p)[1][i_momentum],vd.template getProp<i_dvdmean>(p)[2][i_momentum]};
+    vector <double> visc_grad {vd.template getProp<i_dvdmean>(p)[0][i_visc],vd.template getProp<i_dvdmean>(p)[1][i_visc],vd.template getProp<i_dvdmean>(p)[2][i_visc]};
 
     //initialize deltas
-    double drho, de, dm, dYk;
+    double drho, de, dm, dYk, dvisc;
     double du, dh; //drift term
     
     //intialize timescales
@@ -55,7 +56,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     double Ae_p, h_p, h_mean, D_therm;
 
     // initialize new particles
-    double edensiy_new, energy_new, u_new, m_new;
+    double edensity_new, energy_new, u_new, m_new;
     double rho_new; 
 
     //----------------------------------------------------------------------------
@@ -68,9 +69,12 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     //time scales
     double Cu = 2.1; //Kolmogorov constant
     double C0 = 1;
+    double k = .025;    //[W/m K] thermal conductivity
+    D_therm = k/(rho_p*cp_global);    //placeholder for thermal diffusivity (dependent on equivalence ratio)
     tau_sgs = turb.k_sgs/turb.Eps_sgs;
     for (size_t i = 0; i < 3 ; i++) tau_mol += (l*l)/(rho_p*u_p[i]);    //l = kernel width (H)
-    tau_eq = 1/((1/tau_mol)+(Cu/tau_sgs));
+    tau_eq = 1/((1/tau_mol)+(Cu/tau_sgs));    
+    tau_eq_energy = 1/((D_therm/(l*l))+(Cu/tau_sgs));
 
     // (0) check continuity
     drho = - (mom_grad[0] + mom_grad[1] + mom_grad[2])*dt;
@@ -93,35 +97,35 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
         mom_p[i]  = rho_p * u_p[i];
         mom_p[i] +=  P_grad[i] * dt + Au_p * du * dt + B * dWien[i] * sqrt(dt);
                 
-        // (3) update velocity
+        // (3) update velocity ---------------------
         vd.template getProp<i_velocity>(p)[i] = mom_p[i] / rho_new;
     }
 
-/*
-    // (4) solve energy density
-    // (5) find specific enthalpy
+    // (4) find specific enthalpy ---------------------
     h_p =  energy_p      + (Pp / rho_p);
-    h_mean = energy_mean - (Pmean / rho_mean);
+    h_mean = energy_mean + (Pmean / rho_mean);
     dh = h_mean - h_p;
 
-    D_therm = (1);    //placeholder for thermal diffusivity (dependent on equivalence ratio)
-
-    tau_eq_energy = 1/((D_therm/(l*l))+(Cu/tau_sgs));
+    // (5) solve energy density ---------------------
     Ae_p = (rho_p/(tau_eq_energy + dt))*dh;
 
-    //energy density equation
     edensity_p = rho_p * energy_p;
-    //  edensity_p += - (P_grad * u_grad[i] * dt) + (Ae_p * dt) + (B * dWien);
+    dvisc = (visc_grad[0] + visc_grad[1] + visc_grad[2])*dt;
 
-    // vd.template getProp<i_energy>(p)= edensity_p/rho_new;
+    edensity_new = edensity_p - (dvisc) + (Ae_p * dt);    //check viscosity term
+    energy_new = edensity_p/rho_new;    //specific total energy
 
-    //check continuity again?
+    vd.template getProp<i_energy>(p)= energy_new - turb.k_sgs; //internal energy
+    cout << "dh: " << dh << " dvisc: " << dvisc << endl;
+    cout << "edensity_p: " << edensity_p << " edensity_new: " << edensity_new << endl;
+    cout << "energy: " << energy_new << " internal energy: " << vd.template getProp<i_energy>(p) << endl;
+    
+    // (6) check continuity again - update temperature and pressure
+    updateThermalProperties1(vd, p);
+    cout << "New temp: " << vd.template getProp<i_temperature>(p);
+    cout << " New pressure: " << vd.template getProp<i_pressure>(p) << endl;
 
     //UPDATE OVERALL PROPERTIES
-    //std::cout << "New specific energy = " << vd.template getProp<i_energy>(p) << " old energy = "<< energy_p  << endl;
-    //std::cout << "New density = " << vd.template getProp<i_rho>(p) << " old density = "<< rho_p  << endl; 
 
-    //std::cout << "--------------------" << endl; 
-    */
 }
 #endif // _updateProps_h
