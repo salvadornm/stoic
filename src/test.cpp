@@ -43,17 +43,17 @@ void output_vd(particleset  & vd, int p)
     double b6 = vd.getProp<i_vdmean>(p)[i_vely];
     double b7 = vd.getProp<i_vdmean>(p)[i_velz];
 
-    double c1x = vd.getProp<i_dvdmean>(p)[0][i_rho];
+    double c1x = vd.getProp<i_dvdmean>(p)[0][i_momentum];
     double c2x = vd.getProp<i_dvdmean>(p)[0][i_temperature]; 
     double c3x = vd.getProp<i_dvdmean>(p)[0][i_pressure];
     double c4x = vd.getProp<i_dvdmean>(p)[0][i_energy];
 
-    double c1y = vd.getProp<i_dvdmean>(p)[1][i_rho];
+    double c1y = vd.getProp<i_dvdmean>(p)[1][i_momentum];
     double c2y = vd.getProp<i_dvdmean>(p)[1][i_temperature]; 
     double c3y = vd.getProp<i_dvdmean>(p)[1][i_pressure];
     double c4y = vd.getProp<i_dvdmean>(p)[1][i_energy];
 
-    double c1z = vd.getProp<i_dvdmean>(p)[2][i_rho];
+    double c1z = vd.getProp<i_dvdmean>(p)[2][i_momentum];
     double c2z = vd.getProp<i_dvdmean>(p)[2][i_temperature]; 
     double c3z = vd.getProp<i_dvdmean>(p)[2][i_pressure];
     double c4z = vd.getProp<i_dvdmean>(p)[2][i_energy];
@@ -71,15 +71,15 @@ void output_vd(particleset  & vd, int p)
 
     std::cout << "(dvdmean particle) --------" << std::endl;
     std::cout << " temp = " << c2x << " p = " << c3x << std::endl;
-    std::cout << "density = " << c1x << " energy = " << c4x << std::endl;
+    std::cout << " mom = " << c1x << " visc*P = " << c4x << std::endl;
 
     std::cout << "(dvdmean_y particle) --------" << std::endl;
     std::cout << " temp = " << c2y << " p = " << c3y << std::endl;
-    std::cout << "density = " << c1y << " energy = " << c4y << std::endl;
+    std::cout << " mom = " << c1y << " visc*P = " << c4y << std::endl;
 
     std::cout << "(dvdmean_z particle) --------" << std::endl;
     std::cout << " temp = " << c2z << " p = " << c3z << std::endl;
-    std::cout << "density = " << c1z << " energy = " << c4z << std::endl;
+    std::cout << " mom = " << c1z << " visc*P = " << c4z << std::endl;
     
 }
 

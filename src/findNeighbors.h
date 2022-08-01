@@ -80,6 +80,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
                 Point<3,double> dT = vd.getProp<i_temperature>(a)-vd.getProp<i_temperature>(b);
                 Point<3,double> drho =  vd.getProp<i_rho>(a)*va-vd.getProp<i_rho>(b)*vb; //0.1*(va - vb);
                 double visc = viscous(dr, r2, dv,vd.getProp<i_rho>(a), vd.getProp<i_rho>(b), 1, 0);
+                Point<3,double> dviscP =  visc*(vd.getProp<i_pressure>(a) - vd.getProp<i_pressure>(b));
 
                 for (size_t i = 0; i < 3 ; i++) //loop through x,y,z directions
                 {
@@ -87,7 +88,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
                     vd.template getProp<i_dvdmean>(a)[i][i_momentum] += (drho.get(i)*DW.get(i));
                     vd.template getProp<i_dvdmean>(a)[i][i_pressure]    += (dP.get(i)*DW.get(i));
                     vd.template getProp<i_dvdmean>(a)[i][i_temperature] += (dT.get(i)*DW.get(i));
-                    vd.template getProp<i_dvdmean>(a)[i][i_visc] += (visc*DW.get(i));
+                    vd.template getProp<i_dvdmean>(a)[i][i_visc] += (dviscP.get(i)*DW.get(i));
                 }
                 ingh++;
             }

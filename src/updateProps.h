@@ -116,7 +116,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     energy_new = edensity_p/rho_new;    //specific total energy
 
     vd.template getProp<i_energy>(p)= energy_new - turb.k_sgs; //internal energy
-    cout << "dh: " << dh << " dvisc: " << dvisc << endl;
+    cout << "dh: " << dh << " dviscP: " << dvisc << endl;
     cout << "edensity_p: " << edensity_p << " edensity_new: " << edensity_new << endl;
     cout << "energy: " << energy_new << " internal energy: " << vd.template getProp<i_energy>(p) << endl;
     
