@@ -19,18 +19,14 @@ void updateEqtnState(particleset & vd)
 }
 
 //solve for density and energy from Pressure and Temperature
-// rho = (M*P)/(R*T)
-void updateDensity(particleset & vd)
+// rho = (P)/(R*T)
+void updateDensity(particleset & vd, int a)
 {
-    auto it = vd.getDomainIterator();
-    while (it.isNext())
-    {
-        auto a = it.get();
-        double P = vd.template getProp<i_pressure>(a);
-        double T = vd.template getProp<i_temperature>(a);
-        vd.template getProp<i_rho>(a) = P/(R_air*T);        //ideal gas law: assume dry air for now
-        ++it;
-    }
+    double P = vd.template getProp<i_pressure>(a);
+    double T = vd.template getProp<i_temperature>(a);
+
+    vd.template getProp<i_rho>(a) = P/(R_air*T);        //ideal gas law: assume dry air for now
+    vd.template getProp<i_energy>(a) = T*cv_global;
 }
 
 //solve for Pressure and Temperature from density and energy 
@@ -38,9 +34,11 @@ void updateDensity(particleset & vd)
 void updateThermalProperties1(particleset & vd, int a)
 {
     double rho = vd.template getProp<i_rho>(a);
-    //k = vd.template getProp<i_species>(a);
-    double k = 1;   //temporary
-    vd.template getProp<i_temperature>(a) = vd.template getProp<i_vdmean>(a)[i_temperature] - k * vd.template getProp<i_energy>(a);
+    double e_int = vd.template getProp<i_energy>(a);
+    double k = R_air/cp_global;
+
+    //vd.template getProp<i_temperature>(a) = vd.template getProp<i_vdmean>(a)[i_temperature] - k * vd.template getProp<i_energy>(a);
+    vd.template getProp<i_temperature>(a) = e_int/cv_global;
     vd.template getProp<i_pressure>(a) = rho*(R_air*vd.template getProp<i_temperature>(a));        //assume dry air for now
 }
 
@@ -48,7 +46,7 @@ double cbar = 20.0 * sqrt(9.81*1.0); //cbar in formula //coeff_sound * sqrt(grav
 const double visco = 0.1; // alpha in the formula
 
 //implements the viscous term
-double viscous(const Point<3,double> & dr, double rr2, Point<3,double> & dv, double rhoa, double rhob, double massb, double & visc)
+double viscous(const Point<3,double> & dr, double rr2, Point<3,double> & dv, double rhoa, double rhob, double massb, double visc) //double & visc)
 {
     const double dot = dr.get(0)*dv.get(0) + dr.get(1)*dv.get(1) + dr.get(2)*dv.get(2);
     const double dot_rr2 = dot/(rr2+Eta2);
