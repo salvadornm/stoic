@@ -39,7 +39,7 @@ int inCylinder(double posx, double posy, double posz, int p, engine eng, double 
 void initialBoundary(double & posx, double & posy, engine eng, Cfd sim)
 {  // Get the distance between a and b
     double r_cyl = eng.bore/2;
-    double r = r_cyl * sqrt(((double)rand() / RAND_MAX)* sim.lx);
+    double r = r_cyl * sqrt(((double)rand() / RAND_MAX));
     double theta = ((double)rand()/ RAND_MAX) * 2 * pi;
 
     posx = r_cyl + r * cos(theta);

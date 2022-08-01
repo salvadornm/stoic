@@ -98,9 +98,7 @@ int main(int argc, char* argv[])
         auto key = it.get();    //contains (i,j,k) index of grid
         int key1 = key.getKey();
 
-        // we define x, assign a random position between 0.0 and 1.0
-        vd.getPos(key)[0] = ((double)rand() / RAND_MAX) * simulation.lx;  //rand_max just normalizes it to between 0 and 1
-        vd.getPos(key)[1] = ((double)rand() / RAND_MAX) * simulation.ly;
+        // Assign a random position within engine cylinder
         vd.getPos(key)[2] = ((double)rand() / RAND_MAX) * simulation.lz;
 
         initialBoundary(vd.getPos(key)[0], vd.getPos(key)[1], eng, simulation);
