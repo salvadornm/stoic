@@ -14,6 +14,7 @@ void output_kernel(double r, double h);
 void output_vd(particleset  & vd, int p);
 void output_properties(double mom_p, double drho, double rho_new, double Au_p, double dWien);
 void vary_initialization(particleset &vd, Cfd simulation, int key);
+void limit_velocity(particleset &vd, int key, int i);
 
 template<typename CellList> int stateOfNeighbors(particleset  & vd, CellList & NN)
 {    auto part = vd.getDomainIterator();

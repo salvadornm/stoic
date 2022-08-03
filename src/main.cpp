@@ -52,9 +52,9 @@ int main(int argc, char* argv[])
     simulation.dp = std::cbrt(1/simulation.ppv);
     simulation.H = 3*simulation.dp;
     cout << "simulation.H: " << simulation.H << endl;
-    simulation.lx = 1 * eng.bore;
-    simulation.ly = 1 * eng.bore;
-    simulation.lz = 1 * eng.stroke;
+    simulation.lx = 2 * eng.bore;
+    simulation.ly = 2 * eng.bore;
+    simulation.lz = 2 * eng.stroke;
 
     //turbulences
     turbulence turb;
@@ -70,10 +70,10 @@ int main(int argc, char* argv[])
     // implements a 1D std:vector like structure to create grid   
     openfpm::vector<double> x;
     openfpm::vector<openfpm::vector<double>> y;
-    std::normal_distribution<double> distribution(0.0, 1.0);//(0.0,1.0);
+    std::normal_distribution<double> distribution(0.0, simulation.lx);//(0.0,1.0);
 
     Box<3,double> domain({0.0,0.0,0.0},{simulation.lx,simulation.ly,simulation.lz});
-    size_t bc[3]={PERIODIC,PERIODIC,PERIODIC};    // boundary conditions: Periodic means the 1 boundary is equal to the 0 boundary
+    size_t bc[3]={NON_PERIODIC,NON_PERIODIC,NON_PERIODIC};    // boundary conditions: Periodic means the 1 boundary is equal to the 0 boundary
 
     // extended boundary around the domain, and the processor domain
     Ghost<3,double> g(0.1); //g(2*H);
@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
         int key1 = key.getKey();
 
         // Assign a random position within engine cylinder
-        vd.getPos(key)[2] = ((double)rand() / RAND_MAX) * simulation.lz;
+        vd.getPos(key)[2] = ((double)rand() / RAND_MAX) * eng.stroke;
 
         initialBoundary(vd.getPos(key)[0], vd.getPos(key)[1], eng, simulation);
 
@@ -184,11 +184,11 @@ int main(int argc, char* argv[])
             int place = p.getKey();
 
             std::cout << count << " particle " << std::endl;
-            output_vd(vd,place);    //output particle properties
+            //output_vd(vd,place);    //output particle properties
             
             //updateEqtnState(vd);    //calc pressure based on local density <-- UNCOMMENT THIS
 
-            updateParticleProperties(vd, place, dt, H, turb);
+            updateParticleProperties(vd, place, dt, H, turb, simulation);
             double cfl_temp = (dt/H) * (vd.template getProp<i_velocity>(p)[0]+vd.template getProp<i_velocity>(p)[1]+vd.template getProp<i_velocity>(p)[2]);
             cfl = std::max(abs(cfl_temp),cfl);       //look for max not average. needs to be absolute.  should hold
        

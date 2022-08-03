@@ -10,12 +10,12 @@
 
 
 const double Rideal = 8.3144621;
-void updateParticleProperties(particleset  & vd, int p, double dt, double l, turbulence turb)
+void updateParticleProperties(particleset  & vd, int p, double dt, double l, turbulence turb, Cfd sim )
 {
     // stoic    
     std::random_device rd;
     std::default_random_engine generator(rd());
-    std::normal_distribution<double> distribution(0.0,1.0);
+    std::normal_distribution<double> distribution(0.0,sim.lx);
     double time_turb = 0.1;
     double eps_turb = 0.1;
     vector <double> dWien {distribution(generator)*sqrt(dt),distribution(generator)*sqrt(dt),distribution(generator)*sqrt(dt)}; // eps_turb*distribution(generator)*sqrt(dt);
@@ -99,6 +99,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
                 
         // (3) update velocity ---------------------
         vd.template getProp<i_velocity>(p)[i] = mom_p[i] / rho_new;
+        limit_velocity(vd, p, i);
     }
 
     // (4) find specific enthalpy ---------------------
