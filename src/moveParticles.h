@@ -27,7 +27,13 @@ void moveParticles(particleset  & vd, int p, double dt, engine eng)
     }
 
     while (bc_flag == 0){
+
+        topBound(pos_new, vel, eng);
+        pistonBound(pos_new, vel, eng);
+        sideBC(vd, pos_zero, pos_new, vel, p, eng, dt);
+
         //need to determine which side it hits first... use psi...
+        /*
         if (psi[0] > psi[2] || psi[1] > psi[2]){
             sideBC(vd, pos_zero, pos_new, vel, p, eng, dt);
             topBound(pos_new, vel, eng);
@@ -38,6 +44,7 @@ void moveParticles(particleset  & vd, int p, double dt, engine eng)
             pistonBound(pos_new, vel, eng);
             sideBC(vd, pos_zero, pos_new, vel, p, eng, dt);
         }
+        */
 
         bc_flag = inCylinder(vd, pos_zero, pos_new, p, eng, psi);
         if (bc_flag == 1){

@@ -132,6 +132,7 @@ void sideBC(particleset vd, Point <3,double> & pos_zero, Point <3,double> & pos_
     cout << "sideBC- vel x: " << vel[0] << " vel y: " << vel[1] << " vel z: " << vel[2] << endl;
     cout << "sideBC- pos x: " << pos_wall[0] << " pos y: " << pos_wall[1] << " pos z: " << pos_wall[2] << endl;
 
+/*
     // projection of v onto n
     double factor = 2 * ((pos_wall[0]*vel[0] + pos_wall[1]*vel[1])/(r_cyl*r_cyl));    
     
@@ -143,25 +144,24 @@ void sideBC(particleset vd, Point <3,double> & pos_zero, Point <3,double> & pos_
     pos_new[1] = pos_new[2] + vel[1]*dt;
     //bounce doesnt impact height
 
-/*
+*/
     //if out of bounds in x plane:
     double Ui, Vi, Vr, Ur;
-    if (abs(xb[0]) < abs(posx)){
-    Ui = vel_y;
-    Vi = vel_x;
+    if (abs(pos_wall[0]) < abs(pos_new[0])){
+    Ui = vel[1];
+    Vi = vel[0];
     Vr = -Vi;
     Ur = Ui - abs(Vi);   // Ui - alpha*Vi
 
-    vel_x = Vr;
-    posx += vel_x*dt;
+    vel[0] = Vr;
+    pos_wall[0] += vel[0]*dt;
     }
 
-    if (abs(xb[1]) < abs(posy)){
-        Vi = vel_y;
-        vel_y = -vel_y;
-        posy += vel_y*dt;
+    if (abs(pos_wall[1]) < abs(pos_new[1])){
+        Vi = vel[1];
+        vel[1] = -Vi;
+        pos_wall[1] += vel[1]*dt;
     }
-*/
 
     cout << "update- vel x: " << vel[0] << " vel y: " << vel[1] << endl;
     cout << "update- pos x: " << pos_wall[0] << " pos y: " << pos_wall[1] << endl;
