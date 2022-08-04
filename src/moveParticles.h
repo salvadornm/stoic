@@ -7,50 +7,49 @@
 
 void moveParticles(particleset  & vd, int p, double dt, engine eng)
 {
-    double pos_x, pos_y, pos_z;
-    double vel_x, vel_y, vel_z;
-    vector <double> psi {0.0,0.0,0.0};  //distance out of bounds
+    Point <3,double> psi {0.0,0.0,0.0};  //distance out of bounds
 
     // update temporary particle position
-    pos_x = vd.getPos(p)[0] + vd.template getProp<i_velocity>(p)[0]*dt;
-    pos_y = vd.getPos(p)[1] + vd.template getProp<i_velocity>(p)[1]*dt;
-    pos_z = vd.getPos(p)[2] + vd.template getProp<i_velocity>(p)[2]*dt;
-    vector <double> pos {pos_x,pos_y,pos_z};
-    vel_x = vd.template getProp<i_velocity>(p)[0];
-    vel_y = vd.template getProp<i_velocity>(p)[1];
-    vel_z = vd.template getProp<i_velocity>(p)[2];
-    vector <double> vel {vel_x,vel_y,vel_z};
+    Point <3,double> pos_zero {vd.getPos(p)[0],vd.getPos(p)[1],vd.getPos(p)[2]};
+    Point <3,double> pos_new {pos_zero[0] + vd.template getProp<i_velocity>(p)[0]*dt, pos_zero[1] + vd.template getProp<i_velocity>(p)[1]*dt, pos_zero[2] + vd.template getProp<i_velocity>(p)[2]*dt};
+    vector <double> vel {vd.template getProp<i_velocity>(p)[0],vd.template getProp<i_velocity>(p)[1],vd.template getProp<i_velocity>(p)[2]};
 
     //check boundary conditions
-    int bc_flag = inCylinder(vd, pos_x, pos_y, pos_z, p, eng, psi);
+    int bc_flag = inCylinder(vd, pos_zero, pos_new, p, eng, psi);
     
     //update to new particle position
     if (bc_flag == 1){
-        vd.getPos(p)[0] = pos_x;
-        vd.getPos(p)[1] = pos_y;
-        vd.getPos(p)[2] = pos_z;
+        vd.getPos(p)[0] = pos_new[0];
+        vd.getPos(p)[1] = pos_new[1];
+        vd.getPos(p)[2] = pos_new[2];
         cout << "IN BOUNDS!" << endl;
         return;
     }
 
-    cout << "Vel_z: " << vel_z;
     while (bc_flag == 0){
-        topBound(vd, vel_z, pos_z, p, eng);
-        pistonBound(vd, vel_z, pos_z, p, eng);
-        cout << " updated vel_z: " << vel_z << endl;
-        sideBC(vd, vel_x, vel_y, pos_x, pos_y, p, eng, dt);
+        //need to determine which side it hits first... use psi...
+        if (psi[0] > psi[2] || psi[1] > psi[2]){
+            sideBC(vd, pos_zero, pos_new, vel, p, eng, dt);
+            topBound(pos_new, vel, eng);
+            pistonBound(pos_new, vel, eng);
+        }
+        else{
+            topBound(pos_new, vel, eng);
+            pistonBound(pos_new, vel, eng);
+            sideBC(vd, pos_zero, pos_new, vel, p, eng, dt);
+        }
 
-        bc_flag = inCylinder(vd, pos_x, pos_y, pos_z, p, eng, psi);
+        bc_flag = inCylinder(vd, pos_zero, pos_new, p, eng, psi);
         if (bc_flag == 1){
-            vd.getPos(p)[0] = pos_x;
-            vd.getPos(p)[1] = pos_y;
-            vd.getPos(p)[2] = pos_z;
-            vd.template getProp<i_velocity>(p)[0] = vel_x;
-            vd.template getProp<i_velocity>(p)[1] = vel_y;
-            vd.template getProp<i_velocity>(p)[2] = vel_z;
             cout << "IN BOUNDS!" << endl;
-        return;
         }
     }
+    
+    vd.getPos(p)[0] = pos_new[0];
+    vd.getPos(p)[1] = pos_new[1];
+    vd.getPos(p)[2] = pos_new[2];
+    vd.template getProp<i_velocity>(p)[0] = vel[0];
+    vd.template getProp<i_velocity>(p)[1] = vel[1];
+    vd.template getProp<i_velocity>(p)[2] = vel[2];   
 }
 #endif // _moveParticles_h

@@ -6,54 +6,144 @@
 #include "global.h"
 #include <math.h>
 
+
 //determine if point p is inside the cylinder
-void topBound(particleset vd, double & vel_z, double & posz, int p, engine eng)
+//return 0 if outside cylinder, 1 if inside cylinder
+void initialBoundary(double & posx, double & posy, engine eng, Cfd sim)
+{  // Get the distance between a and b
+    double r_cyl = eng.bore/2;
+    double r = r_cyl * sqrt(((double)rand() / RAND_MAX));
+    double theta = ((double)rand()/ RAND_MAX) * 2 * pi;
+
+    posx = r_cyl + r * cos(theta);
+    posy = r_cyl + r * sin(theta);
+}
+
+Point<3,double> wallIntersect(Point <3,double> pos, Point <3,double> pos_new, Point <3,double> center, double r_cyl)
+{
+    double dx = pos_new[0] - pos[0];
+    double dy = pos_new[1] - pos[1];
+    double dz = pos_new[2] - pos[2];
+    double dxc = pos[0]-center[0];
+    double dyc = pos[1]-center[1];
+    
+    //first find intersection on xy plane
+    double a = dx*dx + dy*dy;
+    double b = 2*dx*dxc+ 2*dy*dyc;
+    double c = dxc*dxc + dyc*dyc - r_cyl*r_cyl;
+
+    double disc = b*b - 4*a*c;
+    //double t = (2*c)/(-b + sqrt(disc));
+    //double t1 = (-b - sqrt(disc))/(2*a);
+    double t2 = (-b + sqrt(disc))/(2*a);
+
+    double x = dx*t2 + pos[0];
+    double y = dy*t2 + pos[1];
+
+    //then find at what height the line is at that xy position
+    double z = dz*t2 + pos[2];
+    Point<3,double> pos_wall{x,y,z};
+    return pos_wall;
+}
+
+//return 0 if outside cylinder, 1 if inside cylinder
+int inCylinder(particleset vd, Point <3,double> pos, Point <3,double> pos_new, int p, engine eng, Point<3,double> & psi)
+{  
+    int flag = 1;
+    psi = {0.0,0.0,0.0};
+
+    // set up geometries
+    double r_cyl = eng.bore/2;
+    Point<3,double> cyl_center {r_cyl, r_cyl, pos_new[2]};
+    double r_pos = sqrt(norm2(pos_new - cyl_center));
+
+    Point<3,double> pos_wall {0,0,0};
+
+    //is the particle within the z(height) boundaries...
+    //assume piston @ BDC and not moving (if moving: vd.getpos(p)[2] < eng.stroke - y) , where y is instantaneous distance from TDC  
+    if (pos_new[2] < 0 || pos_new[2] - eng.stroke > 0){
+        flag = 0;   //out of bounds
+        cout << "height boundary" << endl;
+    }        
+    
+    //is particle within xy plane boundaries....
+    if (r_cyl - r_pos < 0) {
+        flag = 0;   //out of bounds
+        cout << "radial boundary" << endl;
+        //get point at which particle hits wall
+        pos_wall = wallIntersect(pos, pos_new, cyl_center, r_cyl);
+    }
+
+    psi = pos_new - pos_wall;
+
+    //output for testing
+    cout << "point: " << pos_new[0] << ", " << pos_new[1] << ", " << pos_new[2] << endl;
+    cout << "wall p: " << pos_wall[0] << ", " << pos_wall[1] << ", " << pos_wall[2] << endl;
+    cout << "psi: " << psi[0] << ", " << psi[1] << ", " << psi[2] << endl;
+    cout << "r_cyl: " << r_cyl << " R_point: " << r_pos << endl;
+    return flag;
+}
+
+//determine if point p is inside the cylinder <-- looks like this is working!
+void topBound(Point <3,double> & pos_new, vector <double> &vel, engine eng)
 {   
     //(1) Top Wall @ stroke, 
-    if (posz - eng.stroke > 0){
+    if (pos_new[2] - eng.stroke > 0){
     
     //find distance out of bound
-    double dz = posz - eng.stroke;
-    cout << endl << "top bound posz_1: " << posz;
-    posz = eng.stroke - dz;
-    cout << " posz_update = " << posz << endl;
+    double dz = pos_new[2] - eng.stroke;
+    cout << endl << "top bound posz_1: " << pos_new[2];
+    pos_new[2] = eng.stroke - dz;
+    cout << " posz_update = " << pos_new[2] << endl;
 
     //update velocities
-    vel_z = -vel_z;   
+    vel[2] = -vel[2];   
     }
 }
-void pistonBound(particleset vd, double & vel_z, double & posz, int p, engine eng)
-{   //is the particle within the z(height) boundaries...
-    //assume piston @ BDC and not moving (if moving: vd.getpos(p)[2] < eng.stroke - y) , where y is instantaneous distance from TDC  
+
+
+void pistonBound(Point <3,double> & pos_new, vector <double> &vel, engine eng)
+{   //assume piston @ BDC and not moving (if moving: vd.getpos(p)[2] < eng.stroke - y) , where y is instantaneous distance from TDC  
     
     //(1) Bottom Wall @ stroke, 
-    if (posz < 0){
+    if (pos_new[2] < 0){
     //find distance out of bound
-    double dz = abs(posz);
-    cout << endl << "bottom bound posz_1: " << posz;
-    posz = dz;
-    cout << " posz_update = " << posz << endl;
+    double dz = abs(pos_new[2]);
+    cout << endl << "bottom bound posz_1: " << pos_new[2];
+    pos_new[2] = dz;
+    cout << " posz_update = " << pos_new[2] << endl;
 
     //update velocities
-    vel_z = -vel_z;  
+    vel[2] = -vel[2];  
     }
 }
-void sideBC(particleset vd, double & vel_x, double & vel_y, double & posx, double & posy, int p, engine eng, double dt)
+
+
+void sideBC(particleset vd, Point <3,double> & pos_zero, Point <3,double> & pos_new, vector <double> &vel, int p, engine eng, double dt)
 {   
-    // Get the distance from cylinder wall
+    // set up geometries
     double r_cyl = eng.bore/2;
-    Point<2,double> xa {posx,posy};
-    Point<2,double> center {r_cyl, r_cyl};
-    double r_pos = sqrt(norm2(xa-center));
-    double dr_outbound = r_pos - r_cyl;
+    Point<3,double> cyl_center {r_cyl, r_cyl, pos_new[2]};
+    double r_pos = sqrt(norm2(pos_new - cyl_center));
 
-    // find where the particle hits boundary
-    Point<2,double> xb {(posx + vd.getPos(p)[0])/2, (posy + vd.getPos(p)[1])/2}; //position vector of movement
-    xb = xb * (r_cyl/sqrt(norm2(xb)));  //scale to radius
+    // Get the distance from cylinder wall
+    Point<3,double> pos_wall = wallIntersect(pos_zero, pos_new, cyl_center, r_cyl);
 
-    cout << "sideBC- vel x: " << vel_x << " vel y: " << vel_y << endl;
-    cout << "sideBC- pos x: " << posx << " pos y: " << posy << endl;
+    cout << "sideBC- vel x: " << vel[0] << " vel y: " << vel[1] << " vel z: " << vel[2] << endl;
+    cout << "sideBC- pos x: " << pos_wall[0] << " pos y: " << pos_wall[1] << " pos z: " << pos_wall[2] << endl;
 
+    // projection of v onto n
+    double factor = 2 * ((pos_wall[0]*vel[0] + pos_wall[1]*vel[1])/(r_cyl*r_cyl));    
+    
+    //update velocities
+    vel[0] = vel[0] - factor*pos_wall[0];
+    vel[1] = vel[1] - factor*pos_wall[1];
+
+    pos_new[0] = pos_new[0] + vel[0]*dt;    //DONT THINK THIS IS RIGHT
+    pos_new[1] = pos_new[2] + vel[1]*dt;
+    //bounce doesnt impact height
+
+/*
     //if out of bounds in x plane:
     double Ui, Vi, Vr, Ur;
     if (abs(xb[0]) < abs(posx)){
@@ -71,76 +161,10 @@ void sideBC(particleset vd, double & vel_x, double & vel_y, double & posx, doubl
         vel_y = -vel_y;
         posy += vel_y*dt;
     }
+*/
 
-    cout << "update- vel x: " << vel_x << " vel y: " << vel_y << endl;
-    cout << "update- pos x: " << posx << " pos y: " << posy << endl;
-/*
-    double factor = 2 * ((xb[0]*vel_x + xb[1]*vel_y)/(r_cyl*r_cyl));    
-    
-    //update velocities
-    vel_x = vel_x - factor*xb[0];
-    vel_y = vel_y - factor*xb[1];
-
-    posx = posx + vel_x*(dr_outbound/r_pos);
-    posy = posy + vel_y*(dr_outbound/r_pos);
-    */
+    cout << "update- vel x: " << vel[0] << " vel y: " << vel[1] << endl;
+    cout << "update- pos x: " << pos_wall[0] << " pos y: " << pos_wall[1] << endl;
 }
 
-//return 0 if outside cylinder, 1 if inside cylinder
-int inCylinder(particleset vd, double posx, double posy, double posz, int p, engine eng, vector<double> & psi)
-{  
-    int flag = 1;
-    psi = {0.0,0.0,0.0};
-    // Get the distance between a and b
-    double r_cyl = eng.bore/2;
-    Point<2,double> xa {posx,posy};
-    Point<2,double> center {r_cyl, r_cyl};
-
-    Point<2,double> dr = xa - center;
-    double r2 = norm2(dr);  //norm2 = (sum of the squares)
-    double R = sqrt(r2);
-
-    //is the particle within the z(height) boundaries...
-    //assume piston @ BDC and not moving (if moving: vd.getpos(p)[2] < eng.stroke - y) , where y is instantaneous distance from TDC  
-    if (posz < 0 || posz - eng.stroke > 0){
-        flag = 0;   //out of bounds
-        cout << "height boundary" << endl;
-    }    
-
-    //get point at which particle hits wall
-    Point<2,double> xb {(posx + vd.getPos(p)[0])/2, (posy + vd.getPos(p)[1])/2}; //position vector of movement
-    xb = xb * (r_cyl/sqrt(norm2(xb)));  //scale to radius
-    
-    double dz = posz-eng.stroke;
-    if (posz < 0){dz = posz;}
-    
-    psi = {abs(posx)-abs(xb[0]),abs(posy)-abs(xb[1]),dz};
-
-    //is particle within xy plane boundaries....
-    if (r_cyl - R < 0) {
-        flag = 0;   //out of bounds
-        cout << "radial boundary" << endl;
-    }
-    else{   // if (r_cyl - R > 0)
-        flag = 1;   //in bounds
-    }
-
-    cout << "point: " << posx << ", " << posy << ", " << posz << endl;
-    cout << "wall p: " << xb[0] << ", " << xb[1] << ", " << posz << endl;
-    cout << "psi: " << psi[0] << ", " << psi[1] << ", " << psi[2] << endl;
-    cout << "r_cyl: " << r_cyl << " R_point: " << R << endl;
-    return flag;
-}
-
-//determine if point p is inside the cylinder
-//return 0 if outside cylinder, 1 if inside cylinder
-void initialBoundary(double & posx, double & posy, engine eng, Cfd sim)
-{  // Get the distance between a and b
-    double r_cyl = eng.bore/2;
-    double r = r_cyl * sqrt(((double)rand() / RAND_MAX));
-    double theta = ((double)rand()/ RAND_MAX) * 2 * pi;
-
-    posx = r_cyl + r * cos(theta);
-    posy = r_cyl + r * sin(theta);
-}
 #endif // _boundaryConditions_h
