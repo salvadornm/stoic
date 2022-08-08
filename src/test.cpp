@@ -105,32 +105,14 @@ void vary_initialization(particleset &vd, Cfd simulation, int key)
 }
 void limit_velocity(particleset &vd, int key, int i)
 {  
-    double maxVelComp = 3.0;
+    double maxVelComp = 10.0;
     //update the inputs as desired      
     if (vd.template getProp<i_velocity>(key)[i] > maxVelComp) 
     {
         vd.template getProp<i_velocity>(key)[i] = maxVelComp;
-        cout << "velocity limited to 3m/s" << endl;
+        cout << "velocity limited to 10m/s" << endl;
     } else if (vd.template getProp<i_velocity>(key)[i] < -maxVelComp) {
       vd.template getProp<i_velocity>(key)[i] = -maxVelComp;
-        cout << "velocity limited to -3m/s" << endl;
+        cout << "velocity limited to -10m/s" << endl;
     }
-
-    /*
-    if (vd.template getProp<i_velocity>(key)[1] > maxVelComp) {
-      vd.template getProp<i_velocity>(key)[1] = maxVelComp;
-        cout << "y velocity limited to 3m/s" << endl;
-    } else if (vd.template getProp<i_velocity>(key)[1] < -maxVelComp) {
-      vd.template getProp<i_velocity>(key)[1] = -maxVelComp;
-        cout << "y velocity limited to 3m/s" << endl;
-    }
-
-    if (vd.template getProp<i_velocity>(key)[2] > maxVelComp) {
-      vd.template getProp<i_velocity>(key)[2] = maxVelComp;
-        cout << "z velocity limited to 3m/s" << endl;
-    } else if (vd.template getProp<i_velocity>(key)[2] < -maxVelComp) {
-      vd.template getProp<i_velocity>(key)[2] = -maxVelComp;
-        cout << "z velocity limited to 3m/s" << endl;
-    }
-    */
 }

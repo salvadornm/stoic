@@ -12,6 +12,7 @@ using namespace std;
 
 //include functions
 #include "global.h"
+#include "vector_math.h"
 #include "findNeighbors.h"
 #include "calculations.h"
 #include "updateProps.h"

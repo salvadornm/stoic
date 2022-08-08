@@ -4,6 +4,7 @@
 #include "Vector/vector_dist.hpp"
 #include <iostream>
 #include "global.h"
+#include "vector_math.h"
 
 void moveParticles(particleset  & vd, int p, double dt, engine eng)
 {
@@ -11,7 +12,9 @@ void moveParticles(particleset  & vd, int p, double dt, engine eng)
 
     // update temporary particle position
     Point <3,double> pos_zero {vd.getPos(p)[0],vd.getPos(p)[1],vd.getPos(p)[2]};
+    vector<double> p0 {pos_zero[0], pos_zero[1], pos_zero[2]};
     Point <3,double> pos_new {pos_zero[0] + vd.template getProp<i_velocity>(p)[0]*dt, pos_zero[1] + vd.template getProp<i_velocity>(p)[1]*dt, pos_zero[2] + vd.template getProp<i_velocity>(p)[2]*dt};
+    vector<double> pnew {pos_new[0], pos_new[1], pos_new[2]};
     vector <double> vel {vd.template getProp<i_velocity>(p)[0],vd.template getProp<i_velocity>(p)[1],vd.template getProp<i_velocity>(p)[2]};
 
     //check boundary conditions
@@ -25,6 +28,12 @@ void moveParticles(particleset  & vd, int p, double dt, engine eng)
         cout << "IN BOUNDS!" << endl;
         return;
     }
+    
+    vector<double> product {0,0,0};
+    double dot = dot_product(p0,pnew);
+    cout << "p0: " << p0[0] << ", " << p0[1] << ", " << p0[2] << endl;
+    cout << "pnew: " << pnew[0] << ", " << pnew[1] << ", " << pnew[2] << endl;
+    cout << "dot: " << dot << endl;
 
     while (bc_flag == 0){
 

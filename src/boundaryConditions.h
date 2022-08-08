@@ -101,7 +101,6 @@ void topBound(Point <3,double> & pos_new, vector <double> &vel, engine eng)
     }
 }
 
-
 void pistonBound(Point <3,double> & pos_new, vector <double> &vel, engine eng)
 {   //assume piston @ BDC and not moving (if moving: vd.getpos(p)[2] < eng.stroke - y) , where y is instantaneous distance from TDC  
     
@@ -125,46 +124,47 @@ void sideBC(particleset vd, Point <3,double> & pos_zero, Point <3,double> & pos_
     double r_cyl = eng.bore/2;
     Point<3,double> cyl_center {r_cyl, r_cyl, pos_new[2]};
     double r_pos = sqrt(norm2(pos_new - cyl_center));
-
+    
+    if (r_pos > r_cyl){
+        
     // Get the distance from cylinder wall
     Point<3,double> pos_wall = wallIntersect(pos_zero, pos_new, cyl_center, r_cyl);
 
     cout << "sideBC- vel x: " << vel[0] << " vel y: " << vel[1] << " vel z: " << vel[2] << endl;
-    cout << "sideBC- pos x: " << pos_wall[0] << " pos y: " << pos_wall[1] << " pos z: " << pos_wall[2] << endl;
+    cout << "sideBC- pos x: " << pos_new[0] << " pos y: " << pos_new[1] << " pos z: " << pos_new[2] << endl;
+    cout << "sideBC - wall x: " << pos_wall[0] << " pos y: " << pos_wall[1] << " pos z: " << pos_wall[2] << endl;
 
-/*
+    //make changing from x,y,z to norm, tan1, tan2 coordinate systems a function
     // projection of v onto n
-    double factor = 2 * ((pos_wall[0]*vel[0] + pos_wall[1]*vel[1])/(r_cyl*r_cyl));    
-    
-    //update velocities
-    vel[0] = vel[0] - factor*pos_wall[0];
-    vel[1] = vel[1] - factor*pos_wall[1];
+    Point<3,double> newV = pos_new - pos_wall;
+    Point<3,double> radialV = pos_wall - cyl_center;
 
-    pos_new[0] = pos_new[0] + vel[0]*dt;    //DONT THINK THIS IS RIGHT
-    pos_new[1] = pos_new[2] + vel[1]*dt;
+    Point<3,double> uVi = radialV / radialV.norm();   //unit normal vector
+    Point<3,double> uUi {-uVi.get(1), uVi.get(0)};
+    Point<3,double> Vi = (dot_product(newV, uVi))*uVi;  //proj of v onto r
+    //cout << "Vi with uVi: " << Vi[0] << " vel y: " << Vi[1] << " vel z: " << Vi[2] << endl;
+    Point<3,double> Ui = (dot_product(newV, uUi))*uVi;  //proj of v onto r
+
+    double factor = 2 * ((radialV[0]*vel[0] + radialV[1]*vel[1])/(r_cyl*r_cyl));  //dot product  
+    Point<3,double> Ur = Ui - factor * Vi.norm();
+    Point<3,double> Vr = Vi;
+
+    //update velocities
+    vel[0] = vel[0] - factor*radialV[0];
+    vel[1] = vel[1] - factor*radialV[1];
+
+    //update position (using different velocities)
+    double factorP = 2 * ((radialV[0]*newV[0] + radialV[1]*newV[1])/(r_cyl*r_cyl));  //dot product  
+    newV[0] = newV[0] - factorP*radialV[0];
+    newV[1] = newV[1] - factorP*radialV[1];
+    pos_new[0] = pos_wall[0] + newV[0]*dt;   
+    pos_new[1] = pos_wall[1] + newV[1]*dt;
+
     //bounce doesnt impact height
 
-*/
-    //if out of bounds in x plane:
-    double Ui, Vi, Vr, Ur;
-    if (abs(pos_wall[0]) < abs(pos_new[0])){
-    Ui = vel[1];
-    Vi = vel[0];
-    Vr = -Vi;
-    Ur = Ui - abs(Vi);   // Ui - alpha*Vi
-
-    vel[0] = Vr;
-    pos_wall[0] += vel[0]*dt;
+    cout << "update- pos x: " << pos_new[0] << " pos y: " << pos_new[1] << endl;
+    cout << "update- vel x: " << vel[0] << " vel y: " << vel[1] << " vel z: " << vel[2] << endl;
     }
-
-    if (abs(pos_wall[1]) < abs(pos_new[1])){
-        Vi = vel[1];
-        vel[1] = -Vi;
-        pos_wall[1] += vel[1]*dt;
-    }
-
-    cout << "update- vel x: " << vel[0] << " vel y: " << vel[1] << endl;
-    cout << "update- pos x: " << pos_wall[0] << " pos y: " << pos_wall[1] << endl;
 }
 
 #endif // _boundaryConditions_h
