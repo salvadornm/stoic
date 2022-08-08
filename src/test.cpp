@@ -105,14 +105,14 @@ void vary_initialization(particleset &vd, Cfd simulation, int key)
 }
 void limit_velocity(particleset &vd, int key, int i)
 {  
-    double maxVelComp = 10.0;
+    double maxVelComp = 1.0;
     //update the inputs as desired      
     if (vd.template getProp<i_velocity>(key)[i] > maxVelComp) 
     {
         vd.template getProp<i_velocity>(key)[i] = maxVelComp;
-        cout << "velocity limited to 10m/s" << endl;
+        cout << "velocity limited to 1m/s" << endl;
     } else if (vd.template getProp<i_velocity>(key)[i] < -maxVelComp) {
       vd.template getProp<i_velocity>(key)[i] = -maxVelComp;
-        cout << "velocity limited to -10m/s" << endl;
+        cout << "velocity limited to -1m/s" << endl;
     }
 }

@@ -46,8 +46,18 @@ Point<3,double> wallIntersect(Point <3,double> pos, Point <3,double> pos_new, Po
     return pos_wall;
 }
 
+void hitFirst(vector<double> vel, Point <3,double> pos_zero, Point <3,double> pos_wall, Point<3,double> & psi)
+{
+    double deltaT;
+    for (size_t i = 0; i < 3 ; i++) 
+    {  
+        deltaT = (pos_wall[i] - pos_zero[i])/vel[i];
+        psi[i] = deltaT;
+    }
+}
+
 //return 0 if outside cylinder, 1 if inside cylinder
-int inCylinder(particleset vd, Point <3,double> pos, Point <3,double> pos_new, int p, engine eng, Point<3,double> & psi)
+int inCylinder(vector<double> vel, Point <3,double> pos, Point <3,double> pos_new, engine eng, Point<3,double> & psi)
 {  
     int flag = 1;
     psi = {0.0,0.0,0.0};
@@ -58,26 +68,34 @@ int inCylinder(particleset vd, Point <3,double> pos, Point <3,double> pos_new, i
     double r_pos = sqrt(norm2(pos_new - cyl_center));
 
     Point<3,double> pos_wall {0,0,0};
+    pos_wall = wallIntersect(pos, pos_new, cyl_center, r_cyl);
 
-    //is the particle within the z(height) boundaries...
-    //assume piston @ BDC and not moving (if moving: vd.getpos(p)[2] < eng.stroke - y) , where y is instantaneous distance from TDC  
-    if (pos_new[2] < 0 || pos_new[2] - eng.stroke > 0){
-        flag = 0;   //out of bounds
-        cout << "height boundary" << endl;
-    }        
-    
     //is particle within xy plane boundaries....
     if (r_cyl - r_pos < 0) {
         flag = 0;   //out of bounds
         cout << "radial boundary" << endl;
-        //get point at which particle hits wall
-        pos_wall = wallIntersect(pos, pos_new, cyl_center, r_cyl);
     }
 
-    psi = pos_new - pos_wall;
+    //is the particle within the z(height) boundaries...
+    //assume piston @ BDC and not moving (if moving: vd.getpos(p)[2] < eng.stroke - y) , where y is instantaneous distance from TDC  
+    if (pos_new[2] < 0){
+        flag = 0;   //out of bounds
+        cout << "height low boundary" << endl;
+    }    
+    else if(pos_new[2] - eng.stroke > 0){
+        flag = 0;   //out of bounds
+        
+        cout << "height high boundary" << endl;
+    }
+
+    if (vel[2] > 0){pos_wall[2] = eng.stroke; }
+    else {pos_wall[2] = 0; }
+
+    hitFirst(vel, pos, pos_wall, psi);
 
     //output for testing
-    cout << "point: " << pos_new[0] << ", " << pos_new[1] << ", " << pos_new[2] << endl;
+    cout << "point og: " << pos[0] << ", " << pos[1] << ", " << pos[2] << endl;
+    cout << "point new: " << pos_new[0] << ", " << pos_new[1] << ", " << pos_new[2] << endl;
     cout << "wall p: " << pos_wall[0] << ", " << pos_wall[1] << ", " << pos_wall[2] << endl;
     cout << "psi: " << psi[0] << ", " << psi[1] << ", " << psi[2] << endl;
     cout << "r_cyl: " << r_cyl << " R_point: " << r_pos << endl;
@@ -139,15 +157,7 @@ void sideBC(particleset vd, Point <3,double> & pos_zero, Point <3,double> & pos_
     Point<3,double> newV = pos_new - pos_wall;
     Point<3,double> radialV = pos_wall - cyl_center;
 
-    Point<3,double> uVi = radialV / radialV.norm();   //unit normal vector
-    Point<3,double> uUi {-uVi.get(1), uVi.get(0)};
-    Point<3,double> Vi = (dot_product(newV, uVi))*uVi;  //proj of v onto r
-    //cout << "Vi with uVi: " << Vi[0] << " vel y: " << Vi[1] << " vel z: " << Vi[2] << endl;
-    Point<3,double> Ui = (dot_product(newV, uUi))*uVi;  //proj of v onto r
-
-    double factor = 2 * ((radialV[0]*vel[0] + radialV[1]*vel[1])/(r_cyl*r_cyl));  //dot product  
-    Point<3,double> Ur = Ui - factor * Vi.norm();
-    Point<3,double> Vr = Vi;
+    double factor = 2 * ((radialV[0]*vel[0] + radialV[1]*vel[1])/(r_cyl*r_cyl));
 
     //update velocities
     vel[0] = vel[0] - factor*radialV[0];
