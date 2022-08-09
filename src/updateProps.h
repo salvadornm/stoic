@@ -106,13 +106,17 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
         // (3) update velocity ---------------------
         vel_i = mom_p[i] / rho_new;
 
+        // clipping 
+        vel_i = min(vel_i,50.0);
+        vel_i = max(vel_i,-50.0);
+
         // snm
         // mom_p[i]  = rho_p * u_p[i] + 0.1 * du * dt;
         // vel_i  = mom_p[i] / rho_p;
 
         kinetic_energy += 0.5*vel_i*vel_i;
         vd.template getProp<i_velocity>(p)[i] = vel_i;
-      //  limit_velocity(vd, p, i);
+        // limit_velocity(vd, p, i);
         
     }
 
@@ -129,11 +133,10 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
 
     edensity_new = edensity_p - (dvisc) + (Ae_p * dt);    //check viscosity term
     
-    
-    energy_new = edensity_p/rho_new;    //specific total energy
+    energy_new = edensity_new/rho_new;    //specific total energy
 
     // SNM: total energy not updated 
-    energy_new = energy_p;
+   // energy_new = energy_p;
 
     // SNM:  U = Etotal - Ekin
     vd.template getProp<i_energy>(p)= energy_new - kinetic_energy; 

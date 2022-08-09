@@ -23,7 +23,7 @@ void moveParticles(particleset  & vd, int p, double dt, engine eng)
         vd.getPos(p)[0] = pos_new[0];
         vd.getPos(p)[1] = pos_new[1];
         vd.getPos(p)[2] = pos_new[2];
-        cout << "IN BOUNDS!" << endl;
+      //  cout << "IN BOUNDS!" << endl;
         return;
     }
     
@@ -43,9 +43,9 @@ void moveParticles(particleset  & vd, int p, double dt, engine eng)
         }
   
         bc_flag = inCylinder(vel, pos_zero, pos_new, eng, psi);
-        if (bc_flag == 1){
-            cout << "IN BOUNDS!" << endl;
-        }
+        // if (bc_flag == 1){
+        //     cout << "IN BOUNDS!" << endl;
+        // }
     }
     
     vd.getPos(p)[0] = pos_new[0];

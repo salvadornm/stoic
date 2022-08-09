@@ -162,10 +162,8 @@ int main(int argc, char* argv[])
             int place = p.getKey();
 
             std::cout << count << " particle " << std::endl;
-            output_vd(vd,place);    //output particle properties
+           // output_vd(vd,place);    //output particle properties
             
-            //updateEqtnState(vd);    //calc pressure based on local density <-- UNCOMMENT THIS
-
             updateParticleProperties(vd, place, dt, H, turb, simulation);
             double cfl_temp = (dt/H) * (vd.template getProp<i_velocity>(p)[0]+vd.template getProp<i_velocity>(p)[1]+vd.template getProp<i_velocity>(p)[2]);
             cfl = std::max(abs(cfl_temp),cfl);       //look for max not average. needs to be absolute.  should hold
