@@ -13,6 +13,7 @@ using namespace std;
 //include functions
 #include "global.h"
 #include "vector_math.h"
+#include "inputParams.h"
 #include "findNeighbors.h"
 #include "calculations.h"
 #include "updateProps.h"
@@ -31,39 +32,17 @@ int main(int argc, char* argv[])
     cout << "H = " << H << endl;
     
     //-- VARIABLES --// ------------------------------------
-    // to do: create separate input parameter function/file
+
     Cfd simulation;
-    std::default_random_engine generator;
-
-    //simulation parameters
-    simulation.nparticles = 1000; //if you change this change the H value!
-    simulation.nsteps = 10; //100
-    simulation.dt = 0.01;   //0.01
-    simulation.frame = 10;   //10
-    simulation.rad = 2;
-    simulation.dp = 1/sqrt(simulation.nparticles);
-
-    //basic engine params --> make simulation dx, dy, dz
     engine eng;
-    eng.bore = 12.065/100;
-    eng.stroke = 14.0/100;
-    eng.volumeC = (pi/4)*eng.bore*eng.bore*eng.stroke;
-
-    simulation.ppv = simulation.nparticles/eng.volumeC;
-    simulation.dp = std::cbrt(1/simulation.ppv);
-    simulation.H = 3*simulation.dp;
-    cout << "simulation.H: " << simulation.H << endl;
-    simulation.lx = 2 * eng.bore;
-    simulation.ly = 2 * eng.bore;
-    simulation.lz = 2 * eng.stroke;
+    std::default_random_engine generator;
 
     //turbulences
     turbulence turb;
     thermal therm;
-    
-    //time step variables
-    double Vol = 1; //[m3]
-    double mass_mix, mass_p; 
+
+    //-- initialize user inputs --//
+    inputUserParams(simulation,eng);
 
     //-- initialize openfpm --//
     openfpm_init(&argc,&argv);
@@ -87,8 +66,6 @@ int main(int argc, char* argv[])
     vd.setPropNames(names);
     
     size_t cnt = 0; //used later  
-    //auto obstacle_box = DrawParticles::DrawSkin(vd,bc,domain,piston);
-
     
     //--ADD PARTICLES--//  ------------------------------------
     auto it = vd.getDomainIterator();
@@ -185,7 +162,7 @@ int main(int argc, char* argv[])
             int place = p.getKey();
 
             std::cout << count << " particle " << std::endl;
-            //output_vd(vd,place);    //output particle properties
+            output_vd(vd,place);    //output particle properties
             
             //updateEqtnState(vd);    //calc pressure based on local density <-- UNCOMMENT THIS
 
@@ -194,7 +171,6 @@ int main(int argc, char* argv[])
             cfl = std::max(abs(cfl_temp),cfl);       //look for max not average. needs to be absolute.  should hold
        
             moveParticles(vd, place, dt, eng);
-            //applyBC(vd,place,dt);
             
             //updateThermalProperties1(cd, place);   //update pressure/temperature equation of state
 
