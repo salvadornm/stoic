@@ -92,6 +92,14 @@ void output_properties(double mom_p, double drho, double rho_new, double Au_p, d
     //std::cout << "New u velocity = " << vd.template getProp<i_velocity>(p)[i] << endl
 }
 
+void output_bc_props(vector<double> vel, Point <3,double> pos, Point <3,double> pos_new, Point <3,double> pos_wall, engine eng, Point<3,double> & psi){
+    cout << "point og: " << pos[0] << ", " << pos[1] << ", " << pos[2] << endl;
+    cout << "point new: " << pos_new[0] << ", " << pos_new[1] << ", " << pos_new[2] << endl;
+    cout << "wall p: " << pos_wall[0] << ", " << pos_wall[1] << ", " << pos_wall[2] << endl;
+    cout << "psi: " << psi[0] << ", " << psi[1] << ", " << psi[2] << endl;
+    cout << "sideBC- vel x: " << vel[0] << " vel y: " << vel[1] << " vel z: " << vel[2] << endl;       
+}
+
 void vary_initialization(particleset &vd, Cfd simulation, int key)
 {  
     //update the inputs as desired      
@@ -105,14 +113,14 @@ void vary_initialization(particleset &vd, Cfd simulation, int key)
 }
 void limit_velocity(particleset &vd, int key, int i)
 {  
-    double maxVelComp = 1.0;
+    double maxVelComp = 0.2;
     //update the inputs as desired      
     if (vd.template getProp<i_velocity>(key)[i] > maxVelComp) 
     {
         vd.template getProp<i_velocity>(key)[i] = maxVelComp;
-        cout << "velocity limited to 1m/s" << endl;
+        cout << "velocity limited to 0.5m/s" << endl;
     } else if (vd.template getProp<i_velocity>(key)[i] < -maxVelComp) {
       vd.template getProp<i_velocity>(key)[i] = -maxVelComp;
-        cout << "velocity limited to -1m/s" << endl;
+        cout << "velocity limited to -0.5m/s" << endl;
     }
 }

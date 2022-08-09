@@ -33,7 +33,6 @@ Point<3,double> wallIntersect(Point <3,double> pos, Point <3,double> pos_new, Po
     double c = dxc*dxc + dyc*dyc - r_cyl*r_cyl;
 
     double disc = b*b - 4*a*c;
-    //double t = (2*c)/(-b + sqrt(disc));
     //double t1 = (-b - sqrt(disc))/(2*a);
     double t2 = (-b + sqrt(disc))/(2*a);
 
@@ -84,7 +83,6 @@ int inCylinder(vector<double> vel, Point <3,double> pos, Point <3,double> pos_ne
     }    
     else if(pos_new[2] - eng.stroke > 0){
         flag = 0;   //out of bounds
-        
         cout << "height high boundary" << endl;
     }
 
@@ -94,11 +92,10 @@ int inCylinder(vector<double> vel, Point <3,double> pos, Point <3,double> pos_ne
     hitFirst(vel, pos, pos_wall, psi);
 
     //output for testing
-    cout << "point og: " << pos[0] << ", " << pos[1] << ", " << pos[2] << endl;
-    cout << "point new: " << pos_new[0] << ", " << pos_new[1] << ", " << pos_new[2] << endl;
-    cout << "wall p: " << pos_wall[0] << ", " << pos_wall[1] << ", " << pos_wall[2] << endl;
-    cout << "psi: " << psi[0] << ", " << psi[1] << ", " << psi[2] << endl;
+    output_bc_props(vel, pos, pos_new, pos_wall, eng, psi);
+    
     cout << "r_cyl: " << r_cyl << " R_point: " << r_pos << endl;
+    
     return flag;
 }
 
@@ -110,9 +107,7 @@ void topBound(Point <3,double> & pos_new, vector <double> &vel, engine eng)
     
     //find distance out of bound
     double dz = pos_new[2] - eng.stroke;
-    cout << endl << "top bound posz_1: " << pos_new[2];
     pos_new[2] = eng.stroke - dz;
-    cout << " posz_update = " << pos_new[2] << endl;
 
     //update velocities
     vel[2] = -vel[2];   
@@ -126,9 +121,7 @@ void pistonBound(Point <3,double> & pos_new, vector <double> &vel, engine eng)
     if (pos_new[2] < 0){
     //find distance out of bound
     double dz = abs(pos_new[2]);
-    cout << endl << "bottom bound posz_1: " << pos_new[2];
     pos_new[2] = dz;
-    cout << " posz_update = " << pos_new[2] << endl;
 
     //update velocities
     vel[2] = -vel[2];  
@@ -147,10 +140,6 @@ void sideBC(particleset vd, Point <3,double> & pos_zero, Point <3,double> & pos_
         
     // Get the distance from cylinder wall
     Point<3,double> pos_wall = wallIntersect(pos_zero, pos_new, cyl_center, r_cyl);
-
-    cout << "sideBC- vel x: " << vel[0] << " vel y: " << vel[1] << " vel z: " << vel[2] << endl;
-    cout << "sideBC- pos x: " << pos_new[0] << " pos y: " << pos_new[1] << " pos z: " << pos_new[2] << endl;
-    cout << "sideBC - wall x: " << pos_wall[0] << " pos y: " << pos_wall[1] << " pos z: " << pos_wall[2] << endl;
 
     //make changing from x,y,z to norm, tan1, tan2 coordinate systems a function
     // projection of v onto n
@@ -172,8 +161,8 @@ void sideBC(particleset vd, Point <3,double> & pos_zero, Point <3,double> & pos_
 
     //bounce doesnt impact height
 
-    cout << "update- pos x: " << pos_new[0] << " pos y: " << pos_new[1] << endl;
-    cout << "update- vel x: " << vel[0] << " vel y: " << vel[1] << " vel z: " << vel[2] << endl;
+    //cout << "update- pos x: " << pos_new[0] << " pos y: " << pos_new[1] << endl;
+    //cout << "update- vel x: " << vel[0] << " vel y: " << vel[1] << " vel z: " << vel[2] << endl;
     }
 }
 
