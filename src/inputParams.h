@@ -10,7 +10,7 @@
 void inputUserParams(Cfd &simulation, engine &eng )
 {
     //simulation parameters
-    simulation.nparticles = 1000; //if you change this change the H value!
+    simulation.nparticles = 5000; //if you change this change the H value!
     simulation.nsteps = 10; //100
     simulation.dt = 0.01;   //0.01
     simulation.frame = 10;   //10
@@ -26,6 +26,9 @@ void inputUserParams(Cfd &simulation, engine &eng )
     simulation.ppv = simulation.nparticles/eng.volumeC;
     simulation.dp = std::cbrt(1/simulation.ppv);
     simulation.H = 3*simulation.dp;
+    //SNM
+    simulation.H = 0.005;
+    
     std::cout << "simulation.H: " << simulation.H << std::endl;
     simulation.lx = 2 * eng.bore;
     simulation.ly = 2 * eng.bore;

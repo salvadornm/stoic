@@ -59,6 +59,9 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     double edensity_new, energy_new, u_new, m_new;
     double rho_new; 
 
+    // aux
+    double vel_i,kinetic_energy;
+
     //----------------------------------------------------------------------------
     //----------------------------------------------------------------------------
 
@@ -84,22 +87,33 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     vd.template getProp<i_rho>(p) =  rho_new;
 
     // (2) update momentum ---------------------
-    Au_turb = ((rho_p*Cu)/tau_sgs);
-    Au_mol = (rho_p/tau_mol);
+    Au_turb = (rho_p*Cu)/tau_sgs;
+    Au_mol =  rho_p/tau_mol;
     Au_p = Au_mol + Au_turb;
-    Au_p_alt = (rho_p/(tau_eq+dt));   //confirmed Au_p and Au_p_alt (wo +dt) are equivalent
+    Au_p_alt = rho_p/(tau_eq+dt);   //confirmed Au_p and Au_p_alt (wo +dt) are equivalent
     B = C0*sqrt(turb.Eps_sgs);        //turbulent diffusion
+   // B = 0.0;
+   // SNM
+    Au_p = 0.1;
 
     for (size_t i = 0; i < 3 ; i++) 
     {    
-        du = (u_mean[i] -  u_p[i]);
+        du = u_mean[i] -  u_p[i];
         //solve momentum 
         mom_p[i]  = rho_p * u_p[i];
         mom_p[i] +=  P_grad[i] * dt + Au_p * du * dt + B * dWien[i] * sqrt(dt);
                 
         // (3) update velocity ---------------------
-        vd.template getProp<i_velocity>(p)[i] = mom_p[i] / rho_new;
-        limit_velocity(vd, p, i);
+        vel_i = mom_p[i] / rho_new;
+
+        // snm
+        // mom_p[i]  = rho_p * u_p[i] + 0.1 * du * dt;
+        // vel_i  = mom_p[i] / rho_p;
+
+        kinetic_energy += 0.5*vel_i*vel_i;
+        vd.template getProp<i_velocity>(p)[i] = vel_i;
+      //  limit_velocity(vd, p, i);
+        
     }
 
     // (4) find specific enthalpy ---------------------
@@ -114,17 +128,26 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     dvisc = (visc_grad[0] + visc_grad[1] + visc_grad[2])*dt;
 
     edensity_new = edensity_p - (dvisc) + (Ae_p * dt);    //check viscosity term
+    
+    
     energy_new = edensity_p/rho_new;    //specific total energy
 
-    vd.template getProp<i_energy>(p)= energy_new - turb.k_sgs; //internal energy
-    cout << "dh: " << dh << " dviscP: " << dvisc << endl;
-    cout << "edensity_p: " << edensity_p << " edensity_new: " << edensity_new << endl;
-    cout << "energy: " << energy_new << " internal energy: " << vd.template getProp<i_energy>(p) << endl;
+    // SNM: total energy not updated 
+    energy_new = energy_p;
+
+    // SNM:  U = Etotal - Ekin
+    vd.template getProp<i_energy>(p)= energy_new - kinetic_energy; 
+
+    // cout << "dh: " << dh << " dviscP: " << dvisc << endl;
+    // cout << "edensity_p: " << edensity_p << " edensity_new: " << edensity_new << endl;
+    // cout << "energy: " << energy_new << " internal energy: " << vd.template getProp<i_energy>(p) << endl;
     
-    // (6) check continuity again - update temperature and pressure
+     //---------------------------
+
+    // (6): update temperature and pressure
     updateThermalProperties1(vd, p);
-    cout << "New temp: " << vd.template getProp<i_temperature>(p);
-    cout << " New pressure: " << vd.template getProp<i_pressure>(p) << endl;
+    // cout << "New temp: " << vd.template getProp<i_temperature>(p);
+    // cout << " New pressure: " << vd.template getProp<i_pressure>(p) << endl;
 
     //UPDATE OVERALL PROPERTIES
 
