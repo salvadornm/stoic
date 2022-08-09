@@ -72,18 +72,18 @@ int inCylinder(vector<double> vel, Point <3,double> pos, Point <3,double> pos_ne
     //is particle within xy plane boundaries....
     if (r_cyl - r_pos < 0) {
         flag = 0;   //out of bounds
-        cout << "radial boundary" << endl;
+     //   cout << "radial boundary" << endl;
     }
 
     //is the particle within the z(height) boundaries...
     //assume piston @ BDC and not moving (if moving: vd.getpos(p)[2] < eng.stroke - y) , where y is instantaneous distance from TDC  
     if (pos_new[2] < 0){
         flag = 0;   //out of bounds
-        cout << "height low boundary" << endl;
+      //  cout << "height low boundary" << endl;
     }    
     else if(pos_new[2] - eng.stroke > 0){
         flag = 0;   //out of bounds
-        cout << "height high boundary" << endl;
+     //   cout << "height high boundary" << endl;
     }
 
     if (vel[2] > 0){pos_wall[2] = eng.stroke; }
@@ -92,9 +92,9 @@ int inCylinder(vector<double> vel, Point <3,double> pos, Point <3,double> pos_ne
     hitFirst(vel, pos, pos_wall, psi);
 
     //output for testing
-    output_bc_props(vel, pos, pos_new, pos_wall, eng, psi);
+   // output_bc_props(vel, pos, pos_new, pos_wall, eng, psi);
     
-    cout << "r_cyl: " << r_cyl << " R_point: " << r_pos << endl;
+   // cout << "r_cyl: " << r_cyl << " R_point: " << r_pos << endl;
     
     return flag;
 }

@@ -107,8 +107,8 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
         vel_i = mom_p[i] / rho_new;
 
         // clipping 
-        vel_i = min(vel_i,50.0);
-        vel_i = max(vel_i,-50.0);
+        vel_i = min(vel_i,10.0);
+        vel_i = max(vel_i,-10.0);
 
         // snm
         // mom_p[i]  = rho_p * u_p[i] + 0.1 * du * dt;
@@ -126,12 +126,13 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     dh = h_mean - h_p;
 
     // (5) solve energy density ---------------------
-    Ae_p = (rho_p/(tau_eq_energy + dt))*dh;
+    Ae_p = rho_p/(tau_eq_energy + dt);
+    Ae_p = 0.1;
 
     edensity_p = rho_p * energy_p;
     dvisc = (visc_grad[0] + visc_grad[1] + visc_grad[2])*dt;
 
-    edensity_new = edensity_p - (dvisc) + (Ae_p * dt);    //check viscosity term
+    edensity_new = edensity_p - (dvisc) + Ae_p * dh* dt;    //check viscosity term
     
     energy_new = edensity_new/rho_new;    //specific total energy
 
@@ -151,6 +152,8 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     updateThermalProperties1(vd, p);
     // cout << "New temp: " << vd.template getProp<i_temperature>(p);
     // cout << " New pressure: " << vd.template getProp<i_pressure>(p) << endl;
+
+
 
     //UPDATE OVERALL PROPERTIES
 

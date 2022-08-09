@@ -13,7 +13,7 @@ void inputUserParams(Cfd &simulation, engine &eng )
     simulation.nparticles = 5000; //if you change this change the H value!
     simulation.nsteps = 100; //100
     simulation.dt = 0.003;   //0.01
-    simulation.frame = 10;   //10
+    simulation.frame = 2;   //10
     simulation.rad = 2;
     simulation.dp = 1/sqrt(simulation.nparticles);
 
