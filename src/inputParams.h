@@ -7,10 +7,10 @@
 #include "global.h"
 
 
-void inputUserParams(Cfd &simulation, engine &eng )
+void inputUserParams(Cfd &simulation, engine &eng)
 {
     //simulation parameters
-    simulation.nparticles = 5000; //if you change this change the H value!
+    simulation.nparticles = 5000; //if you change this change the H value in global.h!
     simulation.nsteps = 100; //100
     simulation.dt = 0.003;   //0.01
     simulation.frame = 2;   //10
@@ -27,7 +27,8 @@ void inputUserParams(Cfd &simulation, engine &eng )
     simulation.dp = std::cbrt(1/simulation.ppv);
     simulation.H = 3*simulation.dp;
     //SNM
-    simulation.H = 0.005;
+    //simulation.H = 0.005;   //0.01  //changed in global.h, simulation.H does nothing right now...
+    
     
     std::cout << "simulation.H: " << simulation.H << std::endl;
     simulation.lx = 2 * eng.bore;
