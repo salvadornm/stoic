@@ -78,12 +78,12 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     tau_sgs = 1.0/freq_sgs;
     
     
-    // std::cout << "turb.k_sgs= " << turb.k_sgs <<  std::endl;
-    // for (size_t i = 0; i < 3 ; i++) {
-    // std::cout << "u_mean[i]= " << u_mean[i] <<  std::endl;
-    // std::cout << "u_p[i]= " << u_p[i] <<  std::endl;
-    // }
-    // std::cout << "tau_sgs = " << tau_sgs <<  std::endl;
+    std::cout << "turb.k_sgs= " << turb.k_sgs <<  std::endl;
+    for (size_t i = 0; i < 3 ; i++) {
+    std::cout << "u_mean[i]= " << u_mean[i] <<  std::endl;
+    std::cout << "u_p[i]= " << u_p[i] <<  std::endl;
+    }
+    std::cout << "tau_sgs = " << tau_sgs <<  std::endl;
 
 
     // compute velocity partcile (absolute value)
@@ -124,15 +124,16 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     // std::cout << "B = " << B <<  std::endl;
     // std::cout << "Esgs= " << turb.Eps_sgs <<  std::endl;
  
-     //Au_p = 0.1;
-    //B = 0;
+    // Au_p = 0.0;
+    // B = 0;
 
     for (size_t i = 0; i < 3 ; i++) 
     {    
         du = u_mean[i] -  u_p[i];
         //solve momentum 
         mom_p[i]  = rho_p * u_p[i];
-        mom_p[i] +=  P_grad[i] * dt + Au_p * du * dt + B * dWien[i];
+        // mom_p[i] +=  P_grad[i] * dt + Au_p * du * dt + B * dWien[i];
+        mom_p[i] +=   + Au_p * du * dt + B * dWien[i];
                 
         // (3) update velocity ---------------------
         vel_i = mom_p[i] / rho_new;
@@ -141,15 +142,21 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
         vel_i = min(vel_i,10.0);
         vel_i = max(vel_i,-10.0);
 
-        // snm
-        // mom_p[i]  = rho_p * u_p[i] + 0.1 * du * dt;
-        // vel_i  = mom_p[i] / rho_p;
 
         kinetic_energy += 0.5*vel_i*vel_i;
         vd.template getProp<i_velocity>(p)[i] = vel_i;
         // limit_velocity(vd, p, i);
         
     }
+
+    // for (size_t i = 0; i < 3 ; i++) {
+    //  std::cout << "mom_p[i] " << mom_p[i] << std::endl;
+    //  std::cout << "gradp[i] " <<  P_grad[i] << std::endl;
+    // std::cout << "v after update " << vd.template getProp<i_velocity>(p)[i] <<  std::endl;
+    // } 
+    // std::cout << "rhonew " << rho_new <<  std::endl;
+
+
 
     // (4) find specific enthalpy ---------------------
     h_p =  energy_p      + (Pp / rho_p);
@@ -158,6 +165,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
 
     // (5) solve energy density ---------------------
     Ae_p = rho_p/tau_eq_energy;
+   // Ae_p = 0.0;
 
     edensity_p = rho_p * energy_p;
     dvisc = (visc_grad[0] + visc_grad[1] + visc_grad[2])*dt; //CHECK

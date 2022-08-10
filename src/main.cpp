@@ -171,6 +171,14 @@ int main(int argc, char* argv[])
             double cfl_temp = (dt/H) * (vd.template getProp<i_velocity>(p)[0]+vd.template getProp<i_velocity>(p)[1]+vd.template getProp<i_velocity>(p)[2]);
             cfl = std::max(abs(cfl_temp),cfl);       //look for max not average. needs to be absolute.  should hold
        
+        //  cout << " cfl "<< cfl_temp  << endl;
+        //  cout << " vel0 "<< vd.template getProp<i_velocity>(p)[0]  << endl;
+        //  cout << " vel1 "<< vd.template getProp<i_velocity>(p)[1]  << endl;
+        //  cout << " vel2 "<< vd.template getProp<i_velocity>(p)[2]  << endl;
+         
+       
+
+
             moveParticles(vd, place, dt, eng);
             
             //updateThermalProperties1(cd, place);   //update pressure/temperature equation of state
