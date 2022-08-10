@@ -91,7 +91,6 @@ int main(int argc, char* argv[])
         vd.template getProp<i_velocity>(key)[1] = numbery;
         vd.template getProp<i_velocity>(key)[2] = numberz;
 
-
         //initialize remaining properties (placeholder values for now)
         vd.template getProp<i_temperature>(key) = 300; //[K]
         vd.template getProp<i_pressure>(key) = 101300;  //[pa] atmospheric pressure
@@ -162,7 +161,7 @@ int main(int argc, char* argv[])
             int place = p.getKey();
 
             std::cout << count << " particle " << std::endl;
-            output_vd(vd,place);    //output particle properties
+            //output_vd(vd,place);    //output particle properties
             
             //updateEqtnState(vd);    //calc pressure based on local density <-- UNCOMMENT THIS
 

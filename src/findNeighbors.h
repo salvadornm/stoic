@@ -12,7 +12,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
     
     auto part = vd.getDomainIterator();
     vd.updateCellList(NN);
-    //stateOfNeighbors(vd, NN);
+    //stateOfNeighbors(vd, NN);     //output
 
     // For each particle ...
     ip=0;   

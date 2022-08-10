@@ -16,7 +16,6 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     std::random_device rd;
     std::default_random_engine generator(rd());
     std::normal_distribution<double> distribution(0.0,sim.lx);
-    double time_turb = 0.1;
     double eps_turb = 0.1;
     vector <double> dWien {distribution(generator)*sqrt(dt),distribution(generator)*sqrt(dt),distribution(generator)*sqrt(dt)}; // eps_turb*distribution(generator)*sqrt(dt);
     
@@ -117,14 +116,11 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     energy_new = edensity_p/rho_new;    //specific total energy
 
     vd.template getProp<i_energy>(p)= energy_new - turb.k_sgs; //internal energy
-    cout << "dh: " << dh << " dviscP: " << dvisc << endl;
-    cout << "edensity_p: " << edensity_p << " edensity_new: " << edensity_new << endl;
-    cout << "energy: " << energy_new << " internal energy: " << vd.template getProp<i_energy>(p) << endl;
     
     // (6) check continuity again - update temperature and pressure
     updateThermalProperties1(vd, p);
-    cout << "New temp: " << vd.template getProp<i_temperature>(p);
-    cout << " New pressure: " << vd.template getProp<i_pressure>(p) << endl;
+    
+    //output_energy_props(vd, p, dh, dvisc, edensity_p, edensity_new, energy_new);
 
     //UPDATE OVERALL PROPERTIES
 

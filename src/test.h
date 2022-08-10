@@ -14,6 +14,7 @@ void output_kernel(double r, double h);
 void output_vd(particleset  & vd, int p);
 void output_properties(double mom_p, double drho, double rho_new, double Au_p, double dWien);
 void output_bc_props(vector<double> vel, Point <3,double> pos, Point <3,double> pos_new, Point <3,double> pos_wall, engine eng, Point<3,double> & psi);
+void output_energy_props(particleset &vd, int p, double dh, double dvisc, double edensity_p, double edensity_new, double energy_new);
 void vary_initialization(particleset &vd, Cfd simulation, int key);
 void limit_velocity(particleset &vd, int key, int i);
 

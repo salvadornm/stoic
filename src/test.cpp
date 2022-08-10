@@ -63,6 +63,8 @@ void output_vd(particleset  & vd, int p)
     std::cout << " temp = " << a2 << " p = " << a3 << std::endl;
     std::cout << "density = " << a1 << " energy = " << a4 << std::endl;
     std::cout << " vx = " << a5 << " vy = " << a6 << " vz = " << a7 << std::endl;
+    std::cout << " px = " << vd.getPos(p)[0] << " py = " << vd.getPos(p)[1] << " pz = " << vd.getPos(p)[2] << std::endl;
+    
 
     std::cout << "(vdmean particle) --------" << std::endl;
     std::cout << " temp = " << b2 << " p = " << b3 << std::endl;
@@ -93,12 +95,22 @@ void output_properties(double mom_p, double drho, double rho_new, double Au_p, d
 }
 
 void output_bc_props(vector<double> vel, Point <3,double> pos, Point <3,double> pos_new, Point <3,double> pos_wall, engine eng, Point<3,double> & psi){
+    std::cout << "(bc / movement) --------" << std::endl;
     cout << "point og: " << pos[0] << ", " << pos[1] << ", " << pos[2] << endl;
     cout << "point new: " << pos_new[0] << ", " << pos_new[1] << ", " << pos_new[2] << endl;
     cout << "wall p: " << pos_wall[0] << ", " << pos_wall[1] << ", " << pos_wall[2] << endl;
     cout << "psi: " << psi[0] << ", " << psi[1] << ", " << psi[2] << endl;
-    cout << "sideBC- vel x: " << vel[0] << " vel y: " << vel[1] << " vel z: " << vel[2] << endl;       
+    cout << "vel x: " << vel[0] << " vel y: " << vel[1] << " vel z: " << vel[2] << endl;       
 }
+
+void output_energy_props(particleset &vd, int p, double dh, double dvisc, double edensity_p, double edensity_new, double energy_new){
+    cout << "dh: " << dh << " dviscP: " << dvisc << endl;
+    cout << "edensity_p: " << edensity_p << " edensity_new: " << edensity_new << endl;
+    cout << "energy: " << energy_new << " internal energy: " << vd.template getProp<i_energy>(p) << endl;
+    cout << "New temp: " << vd.template getProp<i_temperature>(p);
+    cout << " New pressure: " << vd.template getProp<i_pressure>(p) << endl;
+}
+
 
 void vary_initialization(particleset &vd, Cfd simulation, int key)
 {  
@@ -113,7 +125,7 @@ void vary_initialization(particleset &vd, Cfd simulation, int key)
 }
 void limit_velocity(particleset &vd, int key, int i)
 {  
-    double maxVelComp = 0.2;
+    double maxVelComp = 1.0;
     //update the inputs as desired      
     if (vd.template getProp<i_velocity>(key)[i] > maxVelComp) 
     {
