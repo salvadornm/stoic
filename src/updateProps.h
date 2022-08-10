@@ -56,7 +56,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
 
     // initialize new particles
     double edensity_new, energy_new, u_new, m_new;
-    double rho_new; 
+    double rho_new, vel_new; 
 
     //----------------------------------------------------------------------------
     //----------------------------------------------------------------------------
@@ -89,16 +89,26 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     Au_p_alt = (rho_p/(tau_eq+dt));   //confirmed Au_p and Au_p_alt (wo +dt) are equivalent
     B = C0*sqrt(turb.Eps_sgs);        //turbulent diffusion
 
+    //SNM
+    Au_p = 0.1;
+    turb.k_sgs = 0;
+
     for (size_t i = 0; i < 3 ; i++) 
     {    
         du = (u_mean[i] -  u_p[i]);
         //solve momentum 
         mom_p[i]  = rho_p * u_p[i];
         mom_p[i] +=  P_grad[i] * dt + Au_p * du * dt + B * dWien[i] * sqrt(dt);
-                
+        
+        vel_new =  mom_p[i] / rho_new;
+        // clipping 
+        vel_new = min(vel_new,50.0);
+        vel_new = max(vel_new,-50.0);
+
         // (3) update velocity ---------------------
-        vd.template getProp<i_velocity>(p)[i] = mom_p[i] / rho_new;
-        limit_velocity(vd, p, i);
+        vd.template getProp<i_velocity>(p)[i] = vel_new;
+
+        turb.k_sgs += .5*(vel_new*vel_new);
     }
 
     // (4) find specific enthalpy ---------------------
@@ -107,14 +117,16 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     dh = h_mean - h_p;
 
     // (5) solve energy density ---------------------
-    Ae_p = (rho_p/(tau_eq_energy + dt))*dh;
+    Ae_p = rho_p/(tau_eq_energy + dt);
+    Ae_p = 0.1; //SNM
 
     edensity_p = rho_p * energy_p;
     dvisc = (visc_grad[0] + visc_grad[1] + visc_grad[2])*dt;
 
-    edensity_new = edensity_p - (dvisc) + (Ae_p * dt);    //check viscosity term
-    energy_new = edensity_p/rho_new;    //specific total energy
+    edensity_new = edensity_p - (dvisc) + (Ae_p * dt * dh);    //check viscosity term
+    energy_new = edensity_new/rho_new;    //specific total energy
 
+    //SNM: U = Etotal - Ekin
     vd.template getProp<i_energy>(p)= energy_new - turb.k_sgs; //internal energy
     
     // (6) check continuity again - update temperature and pressure
