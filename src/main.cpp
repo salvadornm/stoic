@@ -161,7 +161,7 @@ int main(int argc, char* argv[])
             auto p = it3.get();
             int place = p.getKey();
 
-            std::cout << count << " particle " << std::endl;
+           // std::cout << count << " particle " << std::endl;
            // output_vd(vd,place);    //output particle properties
             
             updateParticleProperties(vd, place, dt, H, turb, simulation);

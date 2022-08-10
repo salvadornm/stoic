@@ -42,7 +42,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
 
         // Get an iterator of all the particles neighborhood of p
         auto Np = NN.template getNNIterator<NO_CHECK>(NN.getCell(vd.getPos(a)));
-        double tot_W = 0;
+        double tot_W = 1e-8;
         
         // For each neighborhood particle
         ingh =0;
@@ -103,6 +103,9 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
         vd.template getProp<i_vdmean>(a)[i_velx] /= tot_W;
         vd.template getProp<i_vdmean>(a)[i_vely] /= tot_W;
         vd.template getProp<i_vdmean>(a)[i_velz] /= tot_W;
+
+
+       // cout << "particle = " << ip << " uxmean "<< vd.template getProp<i_vdmean>(a)[i_velx]  << endl;
         
         //cout << "particle = " << ip << " neigh= "<< ingh  << endl;
         iavg += ingh;

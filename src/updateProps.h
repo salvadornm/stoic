@@ -60,24 +60,54 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     double rho_new; 
 
     // aux
-    double vel_i,kinetic_energy;
+    double vel_i,kinetic_energy,freq_l,freq_sgs,freq_mol,freq_eq;
+    double viscp= 1.3e-5;
+    double k = .025;    //[W/m K] thermal conductivity
 
-    //----------------------------------------------------------------------------
-    //----------------------------------------------------------------------------
-
-    turb.k_sgs = 0.0;
-    for (size_t i = 0; i < 3 ; i++) turb.k_sgs += .5*(u_p[i] - u_mean[i])*(u_p[i] - u_mean[i]);
-    turb.Eps_sgs = turb.k_sgs/l;
-    
-    //time scales
     double Cu = 2.1; //Kolmogorov constant
     double C0 = 1;
-    double k = .025;    //[W/m K] thermal conductivity
-    D_therm = k/(rho_p*cp_global);    //placeholder for thermal diffusivity (dependent on equivalence ratio)
-    tau_sgs = turb.k_sgs/turb.Eps_sgs;
-    for (size_t i = 0; i < 3 ; i++) tau_mol += (l*l)/(rho_p*u_p[i]);    //l = kernel width (H)
-    tau_eq = 1/((1/tau_mol)+(Cu/tau_sgs));    
+
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+
+    // calculate  tubulence kinetic energy
+    turb.k_sgs = 1.e-8;
+    for (size_t i = 0; i < 3 ; i++) turb.k_sgs += .5*(u_p[i] - u_mean[i])*(u_p[i] - u_mean[i]);
+    turb.Eps_sgs = pow(turb.k_sgs,1.5)/l; //energy dissipation
+    freq_sgs = turb.Eps_sgs/turb.k_sgs; 
+    tau_sgs = 1.0/freq_sgs;
+    
+    
+    // std::cout << "turb.k_sgs= " << turb.k_sgs <<  std::endl;
+    // for (size_t i = 0; i < 3 ; i++) {
+    // std::cout << "u_mean[i]= " << u_mean[i] <<  std::endl;
+    // std::cout << "u_p[i]= " << u_p[i] <<  std::endl;
+    // }
+    // std::cout << "tau_sgs = " << tau_sgs <<  std::endl;
+
+
+    // compute velocity partcile (absolute value)
+    vel_i = 0.0;
+    for (size_t i = 0; i < 3 ; i++) vel_i += u_p[i]*u_p[i]; 
+    vel_i = sqrt(vel_i);
+    freq_l = vel_i/l; // unit [1/s]
+    // moleculart frequency and time scale
+    freq_mol = viscp/(rho_p*l*l);
+    tau_mol = 1.0/freq_mol;
+    
+    //std::cout << "tau_mol = " << tau_mol <<  std::endl;
+
+
+    //time scales
+    freq_eq = Cu*freq_sgs + freq_mol;
+    tau_eq = dt + 1.0/freq_eq;    // dt added for stability
     tau_eq_energy = 1/((D_therm/(l*l))+(Cu/tau_sgs));
+    tau_eq_energy = tau_eq ;
+    
+    D_therm = k/(rho_p*cp_global);    //placeholder for thermal diffusivity (dependent on equivalence ratio)
+
+   // std::cout << "tau_eq = " << tau_eq <<  std::endl;
+
 
     // (0) check continuity
     drho = - (mom_grad[0] + mom_grad[1] + mom_grad[2])*dt;
@@ -87,21 +117,22 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     vd.template getProp<i_rho>(p) =  rho_new;
 
     // (2) update momentum ---------------------
-    Au_turb = (rho_p*Cu)/tau_sgs;
-    Au_mol =  rho_p/tau_mol;
-    Au_p = Au_mol + Au_turb;
-    Au_p_alt = rho_p/(tau_eq+dt);   //confirmed Au_p and Au_p_alt (wo +dt) are equivalent
-    B = C0*sqrt(turb.Eps_sgs);        //turbulent diffusion
-   // B = 0.0;
-   // SNM
-    Au_p = 0.1;
+    Au_p = (0.5 + 0.75*Cu)*rho_p/tau_eq;      // Au > 0 
+    B = C0*sqrt(turb.Eps_sgs)* sqrt(dt);   //turbulent diffusion
+    
+    // std::cout << "Au = " << Au_p <<  std::endl;
+    // std::cout << "B = " << B <<  std::endl;
+    // std::cout << "Esgs= " << turb.Eps_sgs <<  std::endl;
+ 
+     //Au_p = 0.1;
+    //B = 0;
 
     for (size_t i = 0; i < 3 ; i++) 
     {    
         du = u_mean[i] -  u_p[i];
         //solve momentum 
         mom_p[i]  = rho_p * u_p[i];
-        mom_p[i] +=  P_grad[i] * dt + Au_p * du * dt + B * dWien[i] * sqrt(dt);
+        mom_p[i] +=  P_grad[i] * dt + Au_p * du * dt + B * dWien[i];
                 
         // (3) update velocity ---------------------
         vel_i = mom_p[i] / rho_new;
@@ -126,11 +157,10 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     dh = h_mean - h_p;
 
     // (5) solve energy density ---------------------
-    Ae_p = rho_p/(tau_eq_energy + dt);
-    Ae_p = 0.1;
+    Ae_p = rho_p/tau_eq_energy;
 
     edensity_p = rho_p * energy_p;
-    dvisc = (visc_grad[0] + visc_grad[1] + visc_grad[2])*dt;
+    dvisc = (visc_grad[0] + visc_grad[1] + visc_grad[2])*dt; //CHECK
 
     edensity_new = edensity_p - (dvisc) + Ae_p * dh* dt;    //check viscosity term
     
