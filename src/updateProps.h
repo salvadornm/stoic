@@ -61,10 +61,10 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     //----------------------------------------------------------------------------
     //----------------------------------------------------------------------------
 
-    turb.k_sgs = 0.0;
+    turb.k_sgs = 1e-8;
     for (size_t i = 0; i < 3 ; i++) turb.k_sgs += .5*(u_p[i]*u_p[i]);//.5*(u_p[i] - u_mean[i])*(u_p[i] - u_mean[i]);
-    turb.Eps_sgs = sqrt(turb.k_sgs*turb.k_sgs*turb.k_sgs)/l;
-    cout << "k_sgs: " << turb.k_sgs << " eps_sgs: " << turb.Eps_sgs << endl;
+    turb.Eps_sgs = sqrt(turb.k_sgs*turb.k_sgs*turb.k_sgs)/l; //<-taking a sqrt of a negative but how is turb.k_sgs nefative
+    //cout << "k_sgs: " << turb.k_sgs << " eps_sgs: " << turb.Eps_sgs << endl;
     
     //time scales
     double Cu = 2.1; //Kolmogorov constant
@@ -74,6 +74,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     D_therm = k/(rho_p*cp_global);    //placeholder for thermal diffusivity (dependent on equivalence ratio)
     tau_sgs = turb.k_sgs/turb.Eps_sgs;
     for (size_t i = 0; i < 3 ; i++) tau_mol += (l*l)/(rho_p*u_p[i]);    //l = kernel width (H)
+    tau_mol = abs(tau_mol);
     tau_eq = 1/((1/tau_mol)+(Cu/tau_sgs));    
     tau_eq_energy = 1/((D_therm/(l*l))+(Cu/tau_sgs));
 
@@ -91,9 +92,9 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     Au_mol = (rho_p/tau_mol);
     Au_p = Au_mol + Au_turb;
     Au_p_alt = (rho_p/(tau_eq+dt));   //confirmed Au_p and Au_p_alt (wo +dt) are equivalent
-    B = C0*sqrt(turb.Eps_sgs);        //turbulent diffusion
+    B = C0*sqrt(turb.Eps_sgs) * sqrt(dt);        //turbulent diffusion
 
-    cout << "Au_P solved: " << Au_p_alt << " tau_mol: " << tau_mol <<  " tau_sgs: " << tau_sgs << " tau_eq: " << tau_eq << endl;
+    //cout << "Au_P solved: " << Au_p_alt << " tau_mol: " << tau_mol <<  " tau_sgs: " << tau_sgs << " tau_eq: " << tau_eq << endl;
 
 
     //SNM
@@ -105,7 +106,8 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
         du = (u_mean[i] -  u_p[i]);
         //solve momentum 
         mom_p[i]  = rho_p * u_p[i];
-        mom_p[i] +=  P_grad[i] * dt + Au_p_alt * du * dt + B * dWien[i] * sqrt(dt);
+        mom_p[i] +=  P_grad[i] * dt + Au_p_alt * du * dt + B * dWien[i];
+        //mom_p[i] +=  Au_p_alt * du * dt + B * dWien[i];
         
         vel_new =  mom_p[i] / rho_new;
         // clipping 
@@ -114,6 +116,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
 
         // (3) update velocity ---------------------
         vd.template getProp<i_velocity>(p)[i] = vel_new;
+        //cout << " vel_new " << vel_new ;
 
         turb.k_sgs += .5*(vel_new*vel_new);
     }
@@ -126,7 +129,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     // (5) solve energy density ---------------------
     Ae_p = rho_p/(tau_eq_energy + dt);
 
-    cout << "Ae_P solved: " << Ae_p << " tau_eq_energy: " << tau_eq_energy << endl;
+    //cout << endl << "Ae_P solved: " << Ae_p << " tau_eq_energy: " << tau_eq_energy << endl;
 
     //Ae_p = 0.1; //SNM
 

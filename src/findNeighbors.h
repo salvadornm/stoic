@@ -42,7 +42,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
 
         // Get an iterator of all the particles neighborhood of p
         auto Np = NN.template getNNIterator<NO_CHECK>(NN.getCell(vd.getPos(a)));
-        double tot_W = 0;
+        double tot_W = 1e-8;
         
         // For each neighborhood particle
         ingh =0;
@@ -52,7 +52,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
             Point<3,double> xb = vd.getPos(b);  // position xp of the particle
             Point<3,double> vb = vd.getProp<i_velocity>(b);
             
-            if (a.getKey() == b)    {++Np; continue;};// if (a == b) skip this particle
+            //if (a.getKey() == b)    {++Np; continue;};// if (a == b) skip this particle
                 
             // Get the distance between a and b
             Point<3,double> dr = xa - xb;
@@ -64,7 +64,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
                 Point<3,double> DW;
                 double factor = DWab(dr,DW,r,false); // gradient kernel //
                 double W = Wab(r); //kernel
-                tot_W += W;            
+                tot_W += W;          
                 
                 vd.template getProp<i_vdmean>(a)[i_rho] += W*vd.getProp<i_rho>(b);
                 vd.template getProp<i_vdmean>(a)[i_temperature] += W*vd.getProp<i_temperature>(b);
