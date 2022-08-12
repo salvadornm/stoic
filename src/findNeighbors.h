@@ -42,7 +42,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
 
         // Get an iterator of all the particles neighborhood of p
         auto Np = NN.template getNNIterator<NO_CHECK>(NN.getCell(vd.getPos(a)));
-        double tot_W = 1e-8;
+        double tot_W = 0;
         
         // For each neighborhood particle
         ingh =0;
@@ -81,6 +81,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
                 Point<3,double> drho =  vd.getProp<i_rho>(a)*va-vd.getProp<i_rho>(b)*vb; //0.1*(va - vb);
                 double visc = viscous(dr, r2, dv,vd.getProp<i_rho>(a), vd.getProp<i_rho>(b), 1, 0);
                 Point<3,double> dviscP =  visc*(vd.getProp<i_pressure>(a) - vd.getProp<i_pressure>(b));
+                //Point<3,double> dviscP =  va*vd.getProp<i_pressure>(a) - vb*vd.getProp<i_pressure>(b);
 
                 for (size_t i = 0; i < 3 ; i++) //loop through x,y,z directions
                 {
@@ -96,6 +97,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
         }
         
         //divide by total kernel weight to get mean
+        tot_W = max(tot_W,1.0);
         vd.template getProp<i_vdmean>(a)[i_rho] /= tot_W;
         vd.template getProp<i_vdmean>(a)[i_temperature] /= tot_W;
         vd.template getProp<i_vdmean>(a)[i_pressure] /= tot_W;

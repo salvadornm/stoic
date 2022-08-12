@@ -104,9 +104,9 @@ int main(int argc, char* argv[])
         //vary_initialization(vd, simulation, key1);
         
         //initialize dvdmean particles
-        for (size_t j = 0; j < 7.0 ; j++)
+        for (size_t j = 0; j < 7 ; j++)
         { vd.template getProp<i_vdmean>(key)[j] = 0.0; }
-        for (size_t j = 0; j < 3.0 ; j++)
+        for (size_t j = 0; j < 3 ; j++)
         { vd.template getProp<i_dvdmean>(key)[j][i_momentum]  = 0.0;
         vd.template getProp<i_dvdmean>(key)[j][i_rho]  = 0.0;
         vd.template getProp<i_dvdmean>(key)[j][i_energy]  = 0.0;
@@ -160,8 +160,8 @@ int main(int argc, char* argv[])
             auto p = it3.get();
             int place = p.getKey();
 
-            std::cout << count << " particle " << std::endl;
-            //output_vd(vd,place);    //output particle properties
+            //std::cout << count << " particle " << std::endl;
+            output_vd(vd,place);    //output particle properties
             
             updateParticleProperties(vd, place, dt, H, turb, simulation);
 
