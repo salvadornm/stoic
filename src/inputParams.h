@@ -11,16 +11,19 @@ void inputUserParams(Cfd &simulation, engine &eng )
 {
     //simulation parameters
     simulation.nparticles = 10000; //if you change this change the H value in global.h!
-    simulation.nsteps = 150; //100
+    simulation.nsteps = 50; //100
     simulation.dt = 0.003;   //0.01
     simulation.frame = 2;   //10
     simulation.rad = 2;
     simulation.dp = 1/sqrt(simulation.nparticles);
 
-    //engine geometery parameters
-    eng.bore = 12.065/100;
-    eng.stroke = 14.0/100;
-    eng.volumeC = (pi/4)*eng.bore*eng.bore*eng.stroke;
+    //engine geometery parameters (for the volvo td100)
+    eng.bore = 12.065/100;  //[m]
+    eng.stroke = 14.0/100;  //[m]
+    eng.conRod = 26.0/100;  //[m]
+    eng.Rcomp = 15;
+    eng.Nrpm = 1500;   //[rpm]
+    eng.ca_init = 180.0;  //start at BDC
 
     //calculations
     simulation.ppv = simulation.nparticles/eng.volumeC;
@@ -31,6 +34,23 @@ void inputUserParams(Cfd &simulation, engine &eng )
     simulation.ly = 2 * eng.bore;
     simulation.lz = 2 * eng.stroke;
 
+}
+
+void initialize_vel(particleset &vd, double key, double lx)
+{
+    std::random_device rd;
+    std::default_random_engine generator(rd());
+    std::normal_distribution<double> distribution(0.0, lx);
+
+    //set random velocity of the particles
+    double numberx = distribution(generator);
+    double numbery = distribution(generator);
+    double numberz = distribution(generator);
+
+    //set the property of the particles : eventually velocity will be initialized from turbulence files
+    vd.template getProp<i_velocity>(key)[0] = numberx;
+    vd.template getProp<i_velocity>(key)[1] = numbery;
+    vd.template getProp<i_velocity>(key)[2] = numberz;
 }
 
 void initialize_temp(particleset &vd, Cfd &simulation, double key, engine eng)
@@ -48,5 +68,6 @@ void initialize_temp(particleset &vd, Cfd &simulation, double key, engine eng)
         vd.template getProp<i_temperature>(key) = 700.0;    //cool reactant temperature
     }
 }
+
 
 #endif // _inputParams_h

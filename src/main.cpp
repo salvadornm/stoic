@@ -19,6 +19,7 @@ using namespace std;
 #include "updateProps.h"
 #include "boundaryConditions.h"
 #include "moveParticles.h"
+#include "engineKinematics.h"
 #include "test.h"
 
 
@@ -43,6 +44,7 @@ int main(int argc, char* argv[])
 
     //-- initialize user inputs --//
     inputUserParams(simulation,eng);
+    initialize_geometry(eng);
 
     //-- initialize openfpm --//
     openfpm_init(&argc,&argv);
@@ -78,33 +80,22 @@ int main(int argc, char* argv[])
 
         // Assign a random position within engine cylinder
         vd.getPos(key)[2] = ((double)rand() / RAND_MAX) * eng.stroke;
-
         initialBoundary(vd.getPos(key)[0], vd.getPos(key)[1], eng, simulation);
 
-        //set random velocity of the particles
-        double numberx = distribution(generator);
-        double numbery = distribution(generator);
-        double numberz = distribution(generator);
-
-        //set the property of the particles : eventually velocity will be initialized from turbulence files
-        vd.template getProp<i_velocity>(key)[0] = numberx;
-        vd.template getProp<i_velocity>(key)[1] = numbery;
-        vd.template getProp<i_velocity>(key)[2] = numberz;
+        //initialize properties (functions in inputParams.h)
+        initialize_vel(vd, key1, simulation.lx);
+        initialize_temp(vd,simulation,key1,eng);
 
         //initialize remaining properties (placeholder values for now)
-        vd.template getProp<i_temperature>(key) = 300; //[K]
         vd.template getProp<i_pressure>(key) = 101300;  //[pa] atmospheric pressure
         vd.template getProp<i_energy>(key) = 1; //temporary placeholder
         vd.template getProp<i_rho>(key) = .1; //temporary placeholder
-        
-        //vary initial pressure/density (fx in test.cpp)
-        //vary_initialization(vd, simulation, key1);
-        initialize_temp(vd,simulation,key1,eng);
+
+        //vary_initialization(vd, simulation, key1); (fx in test.cpp)
         
         updateDensity(vd, key1);    //equation of state
         //cout << "initial energy: " << vd.template getProp<i_energy>(key) << " density: " << vd.template getProp<i_rho>(key) << endl;
 
-        
         //initialize dvdmean particles
         for (size_t j = 0; j < 7 ; j++)
         { vd.template getProp<i_vdmean>(key)[j] = 0.0; }
@@ -142,6 +133,7 @@ int main(int argc, char* argv[])
     unsigned long int f = 0;
     int count = 0;
     double cfl = 0;
+    double piston_height = 0;
     
     auto NN = vd.getCellList(r_cut);  //define neighborhoods with radius (repeated at end of time loop)
 
@@ -152,7 +144,13 @@ int main(int argc, char* argv[])
         std::cout << "--------step: " << i << " ------" << std::endl;
         find_neighbors(vd, NN); //contaions properties of neighbors
 
-        //function to solve for new cylinder geometry
+        //function to solve for new cylinder geometry / move the piston
+        //update_CA(simulation.dt, eng);
+        //piston_height = eng.stroke - movePiston(eng);
+        //update volume and pressure
+        //updateThermalProperties1(vd, a);  //find new pressure temp from density/energy
+        //update particle position/velocity from piston interaction
+
         count = 0;
 
         // Particle loop...
