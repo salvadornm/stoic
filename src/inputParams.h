@@ -10,8 +10,8 @@
 void inputUserParams(Cfd &simulation, engine &eng )
 {
     //simulation parameters
-    simulation.nparticles = 5000; //if you change this change the H value in global.h!
-    simulation.nsteps = 50; //100
+    simulation.nparticles = 10000; //if you change this change the H value in global.h!
+    simulation.nsteps = 150; //100
     simulation.dt = 0.003;   //0.01
     simulation.frame = 2;   //10
     simulation.rad = 2;

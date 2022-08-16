@@ -64,7 +64,8 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     //----------------------------------------------------------------------------
     //----------------------------------------------------------------------------
 
-    double viscp = 1.3e-6;
+    //approximate viscosity (air,400K,1bar)
+    double viscp = 2.59E-5;
     turb.k_sgs = 1e-8;
 
     //time scales
@@ -94,7 +95,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
 
     //equivalent time scale
     freq_eq = Cu*freq_sgs + freq_mol;
-    tau_eq = 1/freq_eq;
+    tau_eq = dt + 1/freq_eq;
 
     freq_eq_energy = (D_therm/(l*l))+ (Cu*freq_sgs);    
     tau_eq_energy = 1/freq_eq_energy;
@@ -108,13 +109,13 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     rho_new = rho_p + drho;
     vd.template getProp<i_rho>(p) =  rho_new;
 
-    //tau_eq = 1; tau_eq_energy = tau_eq;
+    //tau_eq = 10; tau_eq_energy = tau_eq;
    
     // (2) update momentum ---------------------
     Au_p = (0.5 + 0.75*Cu) * rho_p / tau_eq;
     B = C0*sqrt(turb.Eps_sgs) * sqrt(dt);        //turbulent diffusion
     
-    //cout << "Au_P solved: " << Au_p << " tau_eq: " << tau_eq << endl;
+    cout << "Au_P solved: " << Au_p << " tau_eq: " << tau_eq << endl;
 
     //SNM
     double ke = 0;
@@ -124,8 +125,8 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
         du = (u_mean[i] -  u_p[i]);
         //solve momentum 
         mom_p[i]  = rho_p * u_p[i];
-        mom_p[i] +=  P_grad[i] * dt + Au_p * du * dt + B * dWien[i];
-        //mom_p[i] +=  P_grad[i] * dt + Au_p * du * dt ;
+       //mom_p[i] +=  P_grad[i] * dt + Au_p * du * dt + B * dWien[i];
+        mom_p[i] +=  + Au_p * du * dt + B * dWien[i];
         
         vel_new =  mom_p[i] / rho_new;
         // clipping 
@@ -146,7 +147,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
 
     // (5) solve energy density ---------------------
     Ae_p = (rho_p * dh)/(tau_eq_energy+dt);
-    //cout << "Ae_P solved: " << Ae_p << " tau_eq_energy: " << tau_eq_energy << endl;
+    cout << "Ae_P solved: " << Ae_p << " tau_eq_energy: " << tau_eq_energy << endl;
     
     edensity_p = rho_p * energy_p;
     dvisc = (visc_grad[0] + visc_grad[1] + visc_grad[2])*dt;    //CHECK ... should this be velocity * P instead of visc*P?
