@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 
     //-- initialize user inputs --//
     inputUserParams(simulation,eng);
-    initialize_geometry(eng);
+    initialize_geometry(simulation, eng);
 
     //-- initialize openfpm --//
     openfpm_init(&argc,&argv);
@@ -79,7 +79,7 @@ int main(int argc, char* argv[])
         int key1 = key.getKey();
 
         // Assign a random position within engine cylinder
-        vd.getPos(key)[2] = ((double)rand() / RAND_MAX) * eng.stroke;
+        vd.getPos(key)[2] = ((double)rand() / RAND_MAX) * eng.height;
         initialBoundary(vd.getPos(key)[0], vd.getPos(key)[1], eng, simulation);
 
         //initialize properties (functions in inputParams.h)
@@ -137,10 +137,10 @@ int main(int argc, char* argv[])
 
         //function to solve for new cylinder geometry / move the piston
         update_CA(simulation.dt, eng);
-        piston_height = eng.stroke - movePiston(eng);
+        piston_height = movePiston(eng);
 
         //cout << "Crank angle: " << eng.ca << " Piston Height: " << piston_height << endl;
-        cout << eng.ca << endl;
+        cout << piston_height << endl << eng.s_inst << endl;
 
         //update volume and pressure
         //updateThermalProperties1(vd, a);  //find new pressure temp from density/energy

@@ -46,7 +46,7 @@ const double cv_global = 718; //[J/kgK]
       double bore,stroke,conRod,crankRad,Rcomp;
       double Nrpm,Nrps, smp;
       double Vdisp,VBDC,VTDC;
-      double volumeC;
+      double volumeC, height;
       double s_inst,V_inst; //instantaneous stroke and volume
       double ca,ca_init;  //crank angle
   };

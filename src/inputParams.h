@@ -24,16 +24,6 @@ void inputUserParams(Cfd &simulation, engine &eng )
     eng.Rcomp = 15;
     eng.Nrpm = 1500;   //[rpm]
     eng.ca_init = 180.0;  //start at BDC
-
-    //calculations
-    simulation.ppv = simulation.nparticles/eng.volumeC;
-    simulation.dp = std::cbrt(1/simulation.ppv);
-    simulation.H = 3*simulation.dp;
-    std::cout << "simulation.H: " << simulation.H << std::endl; //eventually move global.h H value to this... placeholder - not done yet
-    simulation.lx = 2 * eng.bore;
-    simulation.ly = 2 * eng.bore;
-    simulation.lz = 2 * eng.stroke;
-
 }
 
 void initialize_vel(particleset &vd, double key, double lx)

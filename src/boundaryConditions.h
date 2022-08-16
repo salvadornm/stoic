@@ -76,18 +76,16 @@ int inCylinder(vector<double> vel, Point <3,double> pos, Point <3,double> pos_ne
     }
 
     //is the particle within the z(height) boundaries...
-    //assume piston @ BDC and not moving (if moving: vd.getpos(p)[2] < eng.stroke - y) , where y is instantaneous distance from TDC  
-    if (pos_new[2] < 0){
+    //if moving: vd.getpos(p)[2] < eng.stroke - y) , where y is instantaneous distance from TDC  
+    if (pos_new[2] < eng.s_inst){
         flag = 0;   //out of bounds
-        //cout << "height boundary" << endl;
     }    
-    else if(pos_new[2] - eng.stroke > 0){
+    else if(pos_new[2] - eng.height > 0){
         flag = 0;   //out of bounds
-        //cout << "height boundary" << endl;
     }
 
-    if (vel[2] > 0){pos_wall[2] = eng.stroke; }
-    else {pos_wall[2] = 0; }
+    if (vel[2] > 0){pos_wall[2] = eng.height; }
+    else {pos_wall[2] = eng.s_inst; }
 
     hitFirst(vel, pos, pos_wall, psi);
 
@@ -101,12 +99,12 @@ int inCylinder(vector<double> vel, Point <3,double> pos, Point <3,double> pos_ne
 //determine if point p is inside the cylinder <-- looks like this is working!
 void topBound(Point <3,double> & pos_new, vector <double> &vel, engine eng)
 {   
-    //(1) Top Wall @ stroke, 
-    if (pos_new[2] - eng.stroke > 0){
+    //(1) Top Wall @ height, 
+    if (pos_new[2] - eng.height > 0){
     
     //find distance out of bound
-    double dz = pos_new[2] - eng.stroke;
-    pos_new[2] = eng.stroke - dz;
+    double dz = pos_new[2] - eng.height;
+    pos_new[2] = eng.height - dz;
 
     //update velocities
     vel[2] = -vel[2];   
@@ -117,10 +115,10 @@ void pistonBound(Point <3,double> & pos_new, vector <double> &vel, engine eng)
 {   //assume piston @ BDC and not moving (if moving: vd.getpos(p)[2] < eng.stroke - y) , where y is instantaneous distance from TDC  
     
     //(1) Bottom Wall @ stroke, 
-    if (pos_new[2] < 0){
+    if (pos_new[2] < eng.s_inst){
     //find distance out of bound
-    double dz = abs(pos_new[2]);
-    pos_new[2] = dz;
+    double dz = abs(pos_new[2] - eng.s_inst);
+    pos_new[2] = eng.s_inst + dz;
 
     //update velocities
     vel[2] = -vel[2];  
