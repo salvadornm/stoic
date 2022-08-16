@@ -69,5 +69,22 @@ void initialize_temp(particleset &vd, Cfd &simulation, double key, engine eng)
     }
 }
 
+void initialize_dvdmean(particleset &vd, double key)
+{
+    //initialize dvdmean particles
+    for (size_t j = 0; j < 7 ; j++)
+    {  
+        vd.template getProp<i_vdmean>(key)[j] = 0.0; 
+    }
+    for (size_t j = 0; j < 3 ; j++)
+    { 
+        vd.template getProp<i_dvdmean>(key)[j][i_momentum]  = 0.0;
+        vd.template getProp<i_dvdmean>(key)[j][i_rho]  = 0.0;
+        vd.template getProp<i_dvdmean>(key)[j][i_energy]  = 0.0;
+        vd.template getProp<i_dvdmean>(key)[j][i_pressure]  = 0.0;
+        vd.template getProp<i_dvdmean>(key)[j][i_temperature]  = 0.0;
+    }
+}
+
 
 #endif // _inputParams_h

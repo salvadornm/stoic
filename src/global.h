@@ -44,10 +44,11 @@ const double cv_global = 718; //[J/kgK]
   { 
       public:
       double bore,stroke,conRod,crankRad,Rcomp;
-      int rpm,rps;
+      double Nrpm,Nrps, smp;
       double Vdisp,VBDC,VTDC;
       double volumeC;
       double s_inst,V_inst; //instantaneous stroke and volume
+      double ca,ca_init;  //crank angle
   };
 
   class thermal

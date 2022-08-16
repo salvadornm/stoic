@@ -115,7 +115,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     Au_p = (0.5 + 0.75*Cu) * rho_p / tau_eq;
     B = C0*sqrt(turb.Eps_sgs) * sqrt(dt);        //turbulent diffusion
     
-    cout << "Au_P solved: " << Au_p << " tau_eq: " << tau_eq << endl;
+    //cout << "Au_P solved: " << Au_p << " tau_eq: " << tau_eq << endl;
 
     //SNM
     double ke = 0;
@@ -147,7 +147,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
 
     // (5) solve energy density ---------------------
     Ae_p = (rho_p * dh)/(tau_eq_energy+dt);
-    cout << "Ae_P solved: " << Ae_p << " tau_eq_energy: " << tau_eq_energy << endl;
+    //cout << "Ae_P solved: " << Ae_p << " tau_eq_energy: " << tau_eq_energy << endl;
     
     edensity_p = rho_p * energy_p;
     dvisc = (visc_grad[0] + visc_grad[1] + visc_grad[2])*dt;    //CHECK ... should this be velocity * P instead of visc*P?

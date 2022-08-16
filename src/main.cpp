@@ -96,16 +96,7 @@ int main(int argc, char* argv[])
         updateDensity(vd, key1);    //equation of state
         //cout << "initial energy: " << vd.template getProp<i_energy>(key) << " density: " << vd.template getProp<i_rho>(key) << endl;
 
-        //initialize dvdmean particles
-        for (size_t j = 0; j < 7 ; j++)
-        { vd.template getProp<i_vdmean>(key)[j] = 0.0; }
-        for (size_t j = 0; j < 3 ; j++)
-        { vd.template getProp<i_dvdmean>(key)[j][i_momentum]  = 0.0;
-        vd.template getProp<i_dvdmean>(key)[j][i_rho]  = 0.0;
-        vd.template getProp<i_dvdmean>(key)[j][i_energy]  = 0.0;
-        vd.template getProp<i_dvdmean>(key)[j][i_pressure]  = 0.0;
-        vd.template getProp<i_dvdmean>(key)[j][i_temperature]  = 0.0;
-        }
+        initialize_dvdmean(vd, key1);
         
         //updateChemicalProperties(vd); //initialize temperature and composition
         //updateThermalProperties1(vd);   //update conductivity,diffusivity,specific haet capacity, based on T/Y 
@@ -141,12 +132,16 @@ int main(int argc, char* argv[])
     for (size_t i = 0; i < simulation.nsteps ; i++)
     {
         auto it3 = vd.getDomainIterator();  //iterator that traverses the particles in the domain 
-        std::cout << "--------step: " << i << " ------" << std::endl;
+        //std::cout << "--------step: " << i << " ------" << std::endl;
         find_neighbors(vd, NN); //contaions properties of neighbors
 
         //function to solve for new cylinder geometry / move the piston
-        //update_CA(simulation.dt, eng);
-        //piston_height = eng.stroke - movePiston(eng);
+        update_CA(simulation.dt, eng);
+        piston_height = eng.stroke - movePiston(eng);
+
+        //cout << "Crank angle: " << eng.ca << " Piston Height: " << piston_height << endl;
+        cout << eng.ca << endl;
+
         //update volume and pressure
         //updateThermalProperties1(vd, a);  //find new pressure temp from density/energy
         //update particle position/velocity from piston interaction
@@ -161,7 +156,7 @@ int main(int argc, char* argv[])
             int place = p.getKey();
 
             //std::cout << count << " particle " << std::endl;
-            output_vd(vd,place);    //output particle properties
+            //output_vd(vd,place);    //output particle properties
             
             updateParticleProperties(vd, place, dt, H, turb, simulation);
 
@@ -178,7 +173,7 @@ int main(int argc, char* argv[])
         }
 
         
-        std::cout << "cfl: " << cfl << endl;
+        //std::cout << "cfl: " << cfl << endl;
         cfl = 0;
 
         //MOVE BOUNDARY/UPDATE PISTON LOCATION
@@ -207,7 +202,7 @@ int main(int argc, char* argv[])
 
         if (i % 10 ==0 )
         {
-          cout << " Step "  << i  << std::endl;  
+          //cout << " Step "  << i  << std::endl;  
         }  
          
     } 
