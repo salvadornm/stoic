@@ -39,6 +39,7 @@ const double cv_global = 718; //[J/kgK]
     double dt,dx,dy,dz, dp;
     double rad, ppv, H;
     double lx, ly, lz;
+    double m_tot;
   };
   class engine
   { 

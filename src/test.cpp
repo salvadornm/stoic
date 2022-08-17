@@ -65,7 +65,7 @@ void output_vd(particleset  & vd, int p)
     std::cout << " vx = " << a5 << " vy = " << a6 << " vz = " << a7 << std::endl;
     std::cout << " px = " << vd.getPos(p)[0] << " py = " << vd.getPos(p)[1] << " pz = " << vd.getPos(p)[2] << std::endl;
     
-
+    /*
     std::cout << "(vdmean particle) --------" << std::endl;
     std::cout << " temp = " << b2 << " p = " << b3 << std::endl;
     std::cout << "density = " << b1 << " energy = " << b4 << std::endl;
@@ -82,6 +82,7 @@ void output_vd(particleset  & vd, int p)
     std::cout << "(dvdmean_z particle) --------" << std::endl;
     std::cout << " temp = " << c2z << " p = " << c3z << std::endl;
     std::cout << " mom = " << c1z << " visc*P = " << c4z << std::endl;
+    */
     
 }
 

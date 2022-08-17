@@ -96,6 +96,21 @@ int inCylinder(vector<double> vel, Point <3,double> pos, Point <3,double> pos_ne
     return flag;
 }
 
+//return 0 if outside cylinder, 1 if inside cylinder USED SPECIFICALLY FOR PISTON MOVEMENT
+int inCylinder(Point <3,double> pos, engine eng)
+{  
+    int flag = 1;
+    //is the particle within the z(height) boundaries... 
+    if (pos[2] < eng.s_inst){
+        flag = 0;   //out of bounds
+    }    
+    else if(pos[2] - eng.height > 0){
+        flag = 0;   //out of bounds
+    }
+
+    return flag;
+}
+
 //determine if point p is inside the cylinder <-- looks like this is working!
 void topBound(Point <3,double> & pos_new, vector <double> &vel, engine eng)
 {   

@@ -20,7 +20,7 @@ void updateEqtnState(particleset & vd)
 
 //solve for density and energy from Pressure and Temperature
 // rho = (P)/(R*T)
-void updateDensity(particleset & vd, int a)
+void updateThermalProperties2(particleset & vd, int a)
 {
     double P = vd.template getProp<i_pressure>(a);
     double T = vd.template getProp<i_temperature>(a);
@@ -60,4 +60,23 @@ double viscous(const Point<3,double> & dr, double rr2, Point<3,double> & dv, dou
     }
     else
         return 0.0;
+}
+
+
+double calculateMass(particleset & vd, engine eng)
+{
+    auto it = vd.getDomainIterator();
+    double rho_tot;
+    int count = 0;
+    while (it.isNext())
+    {
+        auto a = it.get();
+        double rho_a = vd.template getProp<i_rho>(a);
+        rho_tot += rho_a;
+        
+        ++it; ++count;
+    }
+    rho_tot = rho_tot/count;    //find the average density
+    double mass_mix = rho_tot/eng.volumeC;
+    return mass_mix;
 }

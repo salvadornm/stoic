@@ -57,6 +57,71 @@ double movePiston(engine &eng){
     //st = eng.stroke - yt;
     return eng.s_inst;
 }
+
+void updateSimulation(Cfd &simulation, engine eng){
+
+    simulation.ppv = simulation.nparticles/eng.volumeC;
+    simulation.dp = std::cbrt(1/simulation.ppv);
+    simulation.H = 3*simulation.dp;
+    std::cout << "simulation.H: " << simulation.H << std::endl; 
+
+}
+
+void pistonInteraction(particleset &vd, Cfd &simulation, engine eng){
+
+    auto it = vd.getDomainIterator();
+    double Tmean;
+    int count = 0;
+
+    //calculate mean temperature from previous iteration
+    while (it.isNext())
+    {
+        auto a = it.get();
+        Tmean += vd.template getProp<i_temperature>(a);
+        
+        ++it; ++count;
+    }
+    Tmean = Tmean/count;
+    
+    //fluid mean density
+    double rhomean = simulation.m_tot/eng.volumeC;
+    double Pmean = rhomean * Tmean;
+    cout << "rhomean: " << rhomean << endl;
+
+    auto it2 = vd.getDomainIterator();
+    while (it2.isNext())
+    {   
+        auto p = it2.get();    //contains (i,j,k) index of grid
+        int p1 = p.getKey();
+        vd.template getProp<i_rho>(p) = rhomean;  //[pa] atmospheric pressure <- EQTN TO UPDATE THIS?
+
+        updateThermalProperties1(vd, p1);    //equation of state: update pressure and temperature
+        //output_vd(vd,p1);
+
+        //update particle position/velocity IF impacted by piston move
+        // update temporary particle position
+        Point <3,double> pos {vd.getPos(p)[0],vd.getPos(p)[1],vd.getPos(p)[2]};
+        vector <double> vel {vd.template getProp<i_velocity>(p)[0],vd.template getProp<i_velocity>(p)[1],vd.template getProp<i_velocity>(p)[2]};
+
+        //check particle inside cylinder
+        int bc_flag = inCylinder(pos, eng);
+        while (bc_flag == 0){
+            pistonBound(pos, vel, eng);
+            topBound(pos, vel, eng);
+
+            bc_flag = inCylinder(pos, eng);
+        }
+    
+        vd.getPos(p)[0] = pos[0];
+        vd.getPos(p)[1] = pos[1];
+        vd.getPos(p)[2] = pos[2];
+        vd.template getProp<i_velocity>(p)[0] = vel[0];
+        vd.template getProp<i_velocity>(p)[1] = vel[1];
+        vd.template getProp<i_velocity>(p)[2] = vel[2];   
+
+        ++it2;
+    }
+}
  
 
 #endif // _engineKinematics_h

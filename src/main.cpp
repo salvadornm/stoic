@@ -87,13 +87,14 @@ int main(int argc, char* argv[])
         initialize_temp(vd,simulation,key1,eng);
 
         //initialize remaining properties (placeholder values for now)
-        vd.template getProp<i_pressure>(key) = 101300;  //[pa] atmospheric pressure
+        vd.template getProp<i_pressure>(key) = 101300;  //[pa] atmospheric pressure <- EQTN TO UPDATE THIS?
         vd.template getProp<i_energy>(key) = 1; //temporary placeholder
         vd.template getProp<i_rho>(key) = .1; //temporary placeholder
 
         //vary_initialization(vd, simulation, key1); (fx in test.cpp)
         
-        updateDensity(vd, key1);    //equation of state
+        updateThermalProperties2(vd, key1);    //equation of state
+        simulation.m_tot = calculateMass(vd, eng);  //find mass of mixture: should not vary
         //cout << "initial energy: " << vd.template getProp<i_energy>(key) << " density: " << vd.template getProp<i_rho>(key) << endl;
 
         initialize_dvdmean(vd, key1);
@@ -131,20 +132,19 @@ int main(int argc, char* argv[])
     // Time loop
     for (size_t i = 0; i < simulation.nsteps ; i++)
     {
+        // Move the Crank - UPDATE GEOMETRY
+        //function to solve for new cylinder geometry / move the piston
+        update_CA(simulation.dt, eng);  //funtion in engineKinematics. updates piston and volume
+        piston_height = movePiston(eng);
+        cout << piston_height << endl << eng.s_inst << endl;
+        pistonInteraction(vd, simulation, eng);
+        cout << "interaction" << endl;
+
+        //cout << "Crank angle: " << eng.ca << " Piston Height: " << piston_height << endl;
+
         auto it3 = vd.getDomainIterator();  //iterator that traverses the particles in the domain 
         //std::cout << "--------step: " << i << " ------" << std::endl;
         find_neighbors(vd, NN); //contaions properties of neighbors
-
-        //function to solve for new cylinder geometry / move the piston
-        update_CA(simulation.dt, eng);
-        piston_height = movePiston(eng);
-
-        //cout << "Crank angle: " << eng.ca << " Piston Height: " << piston_height << endl;
-        cout << piston_height << endl << eng.s_inst << endl;
-
-        //update volume and pressure
-        //updateThermalProperties1(vd, a);  //find new pressure temp from density/energy
-        //update particle position/velocity from piston interaction
 
         count = 0;
 
@@ -176,9 +176,7 @@ int main(int argc, char* argv[])
         //std::cout << "cfl: " << cfl << endl;
         cfl = 0;
 
-        //MOVE BOUNDARY/UPDATE PISTON LOCATION
-        //moveCrank(eng);
-
+        //--OUTPUT--//  ------------------------------------
         // Map particles and re-sync the ghost
         vd.map();
         vd.template ghost_get<>();        
