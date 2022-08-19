@@ -17,6 +17,7 @@ void output_bc_props(vector<double> vel, Point <3,double> pos, Point <3,double> 
 void output_energy_props(particleset &vd, int p, double dh, double dvisc, double edensity_p, double edensity_new, double energy_new);
 void vary_initialization(particleset &vd, Cfd simulation, int key);
 void limit_velocity(particleset &vd, int key, int i);
+void outputdata_to_csv(particleset vd, int step);
 
 template<typename CellList> int stateOfNeighbors(particleset  & vd, CellList & NN)
 {    auto part = vd.getDomainIterator();

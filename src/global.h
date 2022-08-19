@@ -21,7 +21,7 @@ constexpr int i_velz     = 6;
 
 // Initialize global vars
 const double pi = 3.14159265358979323846;
-const double H = 0.009; //0.017; //0.173205; //for kernel : sqrt(3.0*dp*dp) support of the kernel
+const double H = 0.017; //0.009; //0.017; //0.173205; //for kernel : sqrt(3.0*dp*dp) support of the kernel
 const double r_cut = 2*H;
 const double Eta2 = 0.01 * H*H;
 const double R_air = 287; //[J/kgK]

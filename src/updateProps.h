@@ -107,13 +107,13 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     //----------------------------------------------------------------------------
     // (0) check continuity
     drho = - (mom_grad[0] + mom_grad[1] + mom_grad[2])*dt;
-    //cout << "drho: " << drho << endl;
 
     // (1) update density ---------------------------------
     rho_new = rho_p + drho;
     vd.template getProp<i_rho>(p) =  rho_new;
+    //cout << "drho: " << drho << " rhoNew: " << rho_new << endl;
 
-    tau_eq = 10; tau_eq_energy = tau_eq;
+    //tau_eq = 10; tau_eq_energy = tau_eq;
    
     // (2) update momentum ---------------------
     Au_p = (0.5 + 0.75*Cu) * rho_new / tau_eq;
@@ -130,6 +130,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
         //solve momentum 
         mom_p[i]  = rho_p * u_p[i];
        mom_p[i] +=  P_grad[i] * dt + Au_p * du * dt + B * dWien[i];
+       //cout << "p_grad: " << P_grad[i] << endl;
        // mom_p[i] +=  + Au_p * du * dt + B * dWien[i];
         
         vel_new =  mom_p[i] / rho_new;

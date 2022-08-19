@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
 
         //initialize remaining properties (placeholder values for now)
         vd.template getProp<i_pressure>(key) = 101300;  //[pa] atmospheric pressure <- EQTN TO UPDATE THIS?
-        vd.template getProp<i_energy>(key) = 1; //temporary placeholder
+        vd.template getProp<i_energy>(key) = 1e-8; //temporary placeholder
         vd.template getProp<i_rho>(key) = .1; //temporary placeholder
 
         //vary_initialization(vd, simulation, key1); (fx in test.cpp)
@@ -132,15 +132,17 @@ int main(int argc, char* argv[])
     // Time loop
     for (size_t i = 0; i < simulation.nsteps ; i++)
     {
+
         // Move the Crank - UPDATE GEOMETRY
         //function to solve for new cylinder geometry / move the piston
-        update_CA(simulation.dt, eng);  //funtion in engineKinematics. updates piston and volume
-        piston_height = movePiston(eng);
-        pistonInteraction(vd, simulation, eng);
+        //update_CA(simulation.dt, eng);  //funtion in engineKinematics. updates piston and volume
+        //piston_height = movePiston(eng);
+        //pistonInteraction(vd, simulation, eng);
 
         auto it3 = vd.getDomainIterator();  //iterator that traverses the particles in the domain 
         //std::cout << "--------step: " << i << " ------" << std::endl;
         find_neighbors(vd, NN); //contaions properties of neighbors
+        outputdata_to_csv(vd, i);     
 
         count = 0;
 
@@ -152,7 +154,7 @@ int main(int argc, char* argv[])
             int place = p.getKey();
 
             //std::cout << count << " particle " << std::endl;
-            //output_vd(vd,place);    //output particle properties
+            output_vd(vd,place);    //output particle properties
             
             updateParticleProperties(vd, place, dt, H, turb, simulation);
 
@@ -168,7 +170,6 @@ int main(int argc, char* argv[])
             ++it3;
         }
 
-        
         //std::cout << "cfl: " << cfl << endl;
         cfl = 0;
 

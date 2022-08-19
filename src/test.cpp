@@ -137,3 +137,59 @@ void limit_velocity(particleset &vd, int key, int i)
         cout << "velocity limited to -0.5m/s" << endl;
     }
 }
+
+void outputdata_to_csv(particleset vd, int step){
+    ofstream outputfile("stoic_output.csv", std::ios::app);
+    //outputfile.open("stoic_output.csv");
+    outputfile << "Step,ID,Posx,Posy,Posz,Vx,Vy,Vz,P,T,rho,U_in,Vx_avg,Vy_avg,Vz_avg,Pavg,Tavg,rho_avg,Uin_avg,Mom_gradx,Mom_grady,Mom_gradz,P_gradx,P_grady,P_gradz,T_gradx,T_grady,T_gradz,\n";
+    
+    auto part = vd.getDomainIterator();
+    while(part.isNext())
+    {
+        auto p = part.get();
+        int id = p.getKey();
+
+        double pos0 = vd.getPos(p)[0];
+        double pos1 = vd.getPos(p)[1];
+        double pos2 = vd.getPos(p)[2];
+
+    double a1 = vd.template getProp<i_rho>(p);
+    double a2 = vd.getProp<i_temperature>(p);
+    double a3 = vd.getProp<i_pressure>(p);
+    double a4 = vd.getProp<i_energy>(p);
+    double a5 = vd.getProp<i_velocity>(p)[0];
+    double a6 = vd.getProp<i_velocity>(p)[1];
+    double a7 = vd.getProp<i_velocity>(p)[2];
+
+    double b1 = vd.getProp<i_vdmean>(p)[i_rho];
+    double b2 = vd.getProp<i_vdmean>(p)[i_temperature]; 
+    double b3 = vd.getProp<i_vdmean>(p)[i_pressure];
+    double b4 = vd.getProp<i_vdmean>(p)[i_energy];
+    double b5 = vd.getProp<i_vdmean>(p)[i_velx];
+    double b6 = vd.getProp<i_vdmean>(p)[i_vely];
+    double b7 = vd.getProp<i_vdmean>(p)[i_velz];
+
+    double c1x = vd.getProp<i_dvdmean>(p)[0][i_momentum];
+    double c2x = vd.getProp<i_dvdmean>(p)[0][i_temperature]; 
+    double c3x = vd.getProp<i_dvdmean>(p)[0][i_pressure];
+    double c4x = vd.getProp<i_dvdmean>(p)[0][i_energy];
+
+    double c1y = vd.getProp<i_dvdmean>(p)[1][i_momentum];
+    double c2y = vd.getProp<i_dvdmean>(p)[1][i_temperature]; 
+    double c3y = vd.getProp<i_dvdmean>(p)[1][i_pressure];
+    double c4y = vd.getProp<i_dvdmean>(p)[1][i_energy];
+
+    double c1z = vd.getProp<i_dvdmean>(p)[2][i_momentum];
+    double c2z = vd.getProp<i_dvdmean>(p)[2][i_temperature]; 
+    double c3z = vd.getProp<i_dvdmean>(p)[2][i_pressure];
+    double c4z = vd.getProp<i_dvdmean>(p)[2][i_energy];
+
+    outputfile << step << "," << id << ",";
+    outputfile << pos0 << "," << pos1 << "," << pos2 << "," << a5 << "," << a6 << "," << a7 << "," << a3 << "," << a2 << "," << a1 << "," << a4 << ",";
+    outputfile << b5 << "," << b6 << "," << b7 << "," << b3 << "," << b2 << "," << b1 << "," << b4 << ",";
+    outputfile << c1x << "," << c1y << "," << c1z << "," << c3x << "," << c3y << "," << c3z << "," << c2x << "," << c2y << "," << c2z << "\n";
+    
+    ++part;
+    }
+
+}
