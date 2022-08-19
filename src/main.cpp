@@ -136,11 +136,7 @@ int main(int argc, char* argv[])
         //function to solve for new cylinder geometry / move the piston
         update_CA(simulation.dt, eng);  //funtion in engineKinematics. updates piston and volume
         piston_height = movePiston(eng);
-        cout << piston_height << endl << eng.s_inst << endl;
         pistonInteraction(vd, simulation, eng);
-        cout << "interaction" << endl;
-
-        //cout << "Crank angle: " << eng.ca << " Piston Height: " << piston_height << endl;
 
         auto it3 = vd.getDomainIterator();  //iterator that traverses the particles in the domain 
         //std::cout << "--------step: " << i << " ------" << std::endl;

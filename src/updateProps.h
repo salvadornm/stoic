@@ -92,6 +92,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     tau_mol = 1.0/freq_mol;
 
     //cout << "tau_mol: " << tau_mol << " tau_sgs: " << tau_sgs << endl; 
+    //cout << "cu: " << Cu << " freq_sgs: " << freq_sgs << " freq_mol: " << freq_mol << endl; 
 
     //equivalent time scale
     freq_eq = Cu*freq_sgs + freq_mol;
@@ -102,18 +103,21 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
 
     //cout << "tau_eq: " << tau_eq << " tau_eq_energy: " << tau_eq_energy << endl; 
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     // (0) check continuity
     drho = - (mom_grad[0] + mom_grad[1] + mom_grad[2])*dt;
+    //cout << "drho: " << drho << endl;
 
     // (1) update density ---------------------------------
     rho_new = rho_p + drho;
     vd.template getProp<i_rho>(p) =  rho_new;
 
-    //tau_eq = 10; tau_eq_energy = tau_eq;
+    tau_eq = 10; tau_eq_energy = tau_eq;
    
     // (2) update momentum ---------------------
-    Au_p = (0.5 + 0.75*Cu) * rho_p / tau_eq;
-    B = C0*sqrt(turb.Eps_sgs) * sqrt(dt);        //turbulent diffusion
+    Au_p = (0.5 + 0.75*Cu) * rho_new / tau_eq;
+    B = sqrt(C0*turb.Eps_sgs) * sqrt(dt);        //turbulent diffusion
     
     //cout << "Au_P solved: " << Au_p << " tau_eq: " << tau_eq << endl;
 
@@ -125,8 +129,8 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
         du = (u_mean[i] -  u_p[i]);
         //solve momentum 
         mom_p[i]  = rho_p * u_p[i];
-       //mom_p[i] +=  P_grad[i] * dt + Au_p * du * dt + B * dWien[i];
-        mom_p[i] +=  + Au_p * du * dt + B * dWien[i];
+       mom_p[i] +=  P_grad[i] * dt + Au_p * du * dt + B * dWien[i];
+       // mom_p[i] +=  + Au_p * du * dt + B * dWien[i];
         
         vel_new =  mom_p[i] / rho_new;
         // clipping 
