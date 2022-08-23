@@ -10,8 +10,8 @@
 void inputUserParams(Cfd &simulation, engine &eng )
 {
     //simulation parameters
-    simulation.nparticles = 1000; //if you change this change the H value in global.h!
-    simulation.nsteps = 50; //100
+    simulation.nparticles = 10000; //if you change this change the H value in global.h!
+    simulation.nsteps = 100; //100
     simulation.dt = 0.003;   //0.01
     simulation.frame = 2;   //10
     simulation.rad = 2;
@@ -54,9 +54,9 @@ void initialize_temp(particleset &vd, Cfd &simulation, double key, engine eng)
 
     if(radius < 0.1*eng.bore){
         vd.template getProp<i_temperature>(key) = 2500.0;   //hot product temperature
-        vd.template getProp<i_velocity>(key)[0] = 1e-8;
-        vd.template getProp<i_velocity>(key)[1] = 1e-8;
-        vd.template getProp<i_velocity>(key)[2] = 1e-8;
+        //vd.template getProp<i_velocity>(key)[0] = 1e-8;
+        //vd.template getProp<i_velocity>(key)[1] = 1e-8;
+        //vd.template getProp<i_velocity>(key)[2] = 1e-8;
     } else{
         vd.template getProp<i_temperature>(key) = 700.0;    //cool reactant temperature
     }

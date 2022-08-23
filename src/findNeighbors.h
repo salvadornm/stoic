@@ -77,9 +77,11 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
                 //gradient of particle property
                 Point<3,double> dv = va - vb;
                 Point<3,double> dP = vd.getProp<i_pressure>(a) - vd.getProp<i_pressure>(b);
+                //cout << "dP: " << dP[0] << " dPy: " << dP[1] << " dPz: " << dP[2] <<endl;
                 Point<3,double> dT = vd.getProp<i_temperature>(a)-vd.getProp<i_temperature>(b);
                 Point<3,double> drho =  vd.getProp<i_rho>(a)*va-vd.getProp<i_rho>(b)*vb; //0.1*(va - vb);
                 double visc = viscous(dr, r2, dv,vd.getProp<i_rho>(a), vd.getProp<i_rho>(b), 1, 0);
+                //visc = 2.59E-5;
                 Point<3,double> dviscP =  visc*(vd.getProp<i_pressure>(a) - vd.getProp<i_pressure>(b));
                 //Point<3,double> dviscP =  va*vd.getProp<i_pressure>(a) - vb*vd.getProp<i_pressure>(b);
 

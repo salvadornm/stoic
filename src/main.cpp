@@ -140,9 +140,9 @@ int main(int argc, char* argv[])
         //pistonInteraction(vd, simulation, eng);
 
         auto it3 = vd.getDomainIterator();  //iterator that traverses the particles in the domain 
-        //std::cout << "--------step: " << i << " ------" << std::endl;
+        std::cout << "--------step: " << i << " ------" << std::endl;
         find_neighbors(vd, NN); //contaions properties of neighbors
-        outputdata_to_csv(vd, i);     
+        //outputdata_to_csv(vd, i);     
 
         count = 0;
 
@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
             int place = p.getKey();
 
             //std::cout << count << " particle " << std::endl;
-            output_vd(vd,place);    //output particle properties
+            //output_vd(vd,place);    //output particle properties
             
             updateParticleProperties(vd, place, dt, H, turb, simulation);
 

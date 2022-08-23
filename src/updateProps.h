@@ -111,12 +111,12 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     // (1) update density ---------------------------------
     rho_new = rho_p + drho;
     vd.template getProp<i_rho>(p) =  rho_new;
-    //cout << "drho: " << drho << " rhoNew: " << rho_new << endl;
+    cout << "drho: " << drho << " rhoNew: " << rho_new << endl;
 
     //tau_eq = 10; tau_eq_energy = tau_eq;
    
     // (2) update momentum ---------------------
-    Au_p = (0.5 + 0.75*Cu) * rho_new / tau_eq;
+    Au_p = (0.5 + 0.75*Cu) * rho_p / tau_eq;
     B = sqrt(C0*turb.Eps_sgs) * sqrt(dt);        //turbulent diffusion
     
     //cout << "Au_P solved: " << Au_p << " tau_eq: " << tau_eq << endl;
@@ -148,17 +148,22 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     // (4) find specific enthalpy ---------------------
     h_p =  energy_p      + (Pp / rho_p);
     h_mean = energy_mean + (Pmean / rho_mean);
-    dh = h_mean - h_p;
+    dh = cp_global*(Tmean - Tp); //h_mean - h_p;
+    cout << "h_p: " << h_p << " h_mean: " << h_mean << " dh: " << dh << endl;
 
     // (5) solve energy density ---------------------
     Ae_p = (rho_p * dh)/(tau_eq_energy+dt);
-    //cout << "Ae_P solved: " << Ae_p << " tau_eq_energy: " << tau_eq_energy << endl;
+    //Ae_p = 1000;
+    cout << "Ae_P solved: " << Ae_p << " tau_eq_energy: " << tau_eq_energy << endl;
     
     edensity_p = rho_p * energy_p;
     dvisc = (visc_grad[0] + visc_grad[1] + visc_grad[2])*dt;    //CHECK ... should this be velocity * P instead of visc*P?
+    cout << " dvisc: " << dvisc << endl;
 
     edensity_new = edensity_p - (dvisc) + (Ae_p * dt);
+    cout << "edensity_p: " << edensity_p << " edensity_new: " << edensity_new << endl;
     energy_new = edensity_new/rho_new;    //specific total energy
+    cout << "energy_new: " << energy_new << " ke: " << ke << endl;
 
     //SNM: U = Etotal - Ekin
     vd.template getProp<i_energy>(p)= energy_new - ke; //internal energy
