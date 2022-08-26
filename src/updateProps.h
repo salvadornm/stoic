@@ -33,7 +33,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     double Tmean = vd.template getProp<i_vdmean>(p)[i_temperature];
     double Pmean = vd.template getProp<i_vdmean>(p)[i_pressure];
     double rho_mean = vd.template getProp<i_vdmean>(p)[i_rho];
-    double energy_mean = vd.template getProp<i_vdmean>(p)[i_temperature];
+    double energy_mean = vd.template getProp<i_vdmean>(p)[i_energy];
     vector <double> u_mean {vd.template getProp<i_vdmean>(p)[i_velx],vd.template getProp<i_vdmean>(p)[i_vely],vd.template getProp<i_vdmean>(p)[i_velz]};
         
     //gradient particle properties (dvdmean(p))
@@ -133,9 +133,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
         du = (u_mean[i] -  u_p[i]);
         //solve momentum 
         mom_p[i]  = rho_p * u_p[i];
-       mom_p[i] +=  P_grad[i] * dt + Au_p * du * dt + B * dWien[i];
-       //cout << "p_grad: " << P_grad[i] << endl;
-       // mom_p[i] +=  + Au_p * du * dt + B * dWien[i];
+        mom_p[i] +=  P_grad[i] * dt + Au_p * du * dt + B * dWien[i];
         
         vel_new =  mom_p[i] / rho_new;
         // clipping 
@@ -144,7 +142,6 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
 
         // (3) update velocity ---------------------
         vd.template getProp<i_velocity>(p)[i] = vel_new;
-        //cout << " vel_new " << vel_new ;
 
         ke_p += .5*(u_p[i]*u_p[i]);
         ke += .5*(vel_new*vel_new);
@@ -152,25 +149,20 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     }
 
     // (4) find specific enthalpy ---------------------
-    h_p =  (energy_p + ke_p)     + (Pp / rho_p);
-    h_mean = (energy_mean + ke_mean) + (Pmean / rho_mean);
+    h_p =  (energy_p) + (Pp / rho_p);
+    h_mean = (energy_mean) + (Pmean / rho_mean);
     dh = h_mean - h_p; //dh = cp_global*(Tmean - Tp);
-    cout << "h_p: " << h_p << " h_mean: " << h_mean << " dh: " << dh << endl;
 
     // (5) solve energy density ---------------------
     Ae_p = (rho_p * dh)/(tau_eq_energy);
-    cout << "Ae_P solved: " << Ae_p << " tau_eq_energy: " << tau_eq_energy << endl;
     
-    edensity_p = rho_p * (energy_p + ke);
+    edensity_p = rho_p * (energy_p);
     dvisc = (visc_grad[0] + visc_grad[1] + visc_grad[2])*dt;    //CHECK ... should this be velocity * P instead of visc*P?
-    dvisc = 0;
-    Ae_p = 0;
+    //dvisc = 0;
+    //Ae_p = 0;
 
     edensity_new = edensity_p - (dvisc) + (Ae_p * dt);
-    cout << "edensity_p: " << edensity_p << " edensity_new: " << edensity_new << endl;
     energy_new = edensity_new/rho_new;    //specific total energy
-    //energy_new = energy_p;
-    cout << "energy_new: " << energy_new << " ke: " << ke << endl;
 
     //SNM: U = Etotal - Ekin
     vd.template getProp<i_energy>(p)= energy_new - ke; //internal energy
