@@ -70,8 +70,10 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
 
     //time scales
     double Cu = 2.1; //Kolmogorov constant
-    double C0 = 1;
+    turb.C0 = 1.0;
+    turb.delta = 9.92e-4;
     double k = .025;    //[W/m K] thermal conductivity
+
     D_therm = k/(rho_p*cp_global);    //placeholder for thermal diffusivity (dependent on equivalence ratio)
 
     tau_mol = 0.0; tau_sgs = 0; tau_eq = 0; tau_eq_energy = 0;
@@ -99,7 +101,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     tau_eq = dt + 1/freq_eq;
 
     freq_eq_energy = (D_therm/(l*l))+ (Cu*freq_sgs);    
-    tau_eq_energy = 1/freq_eq_energy;
+    tau_eq_energy = dt + 1/freq_eq_energy;
 
     //cout << "tau_eq: " << tau_eq << " tau_eq_energy: " << tau_eq_energy << endl; 
 
@@ -117,12 +119,14 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
    
     // (2) update momentum ---------------------
     Au_p = (0.5 + 0.75*Cu) * rho_p / tau_eq;
-    B = sqrt(C0*turb.Eps_sgs) * sqrt(dt);        //turbulent diffusion
+    B = sqrt(turb.C0*turb.Eps_sgs) * sqrt(dt);        //turbulent diffusion
     
     //cout << "Au_P solved: " << Au_p << " tau_eq: " << tau_eq << endl;
 
     //SNM
+    double ke_p = 0;
     double ke = 0;
+    double ke_mean = 0;
 
     for (size_t i = 0; i < 3 ; i++) 
     {    
@@ -142,27 +146,30 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
         vd.template getProp<i_velocity>(p)[i] = vel_new;
         //cout << " vel_new " << vel_new ;
 
+        ke_p += .5*(u_p[i]*u_p[i]);
         ke += .5*(vel_new*vel_new);
+        ke_mean += .5*(u_mean[i]*u_mean[i]);
     }
 
     // (4) find specific enthalpy ---------------------
-    h_p =  energy_p      + (Pp / rho_p);
-    h_mean = energy_mean + (Pmean / rho_mean);
-    dh = cp_global*(Tmean - Tp); //h_mean - h_p;
+    h_p =  (energy_p + ke_p)     + (Pp / rho_p);
+    h_mean = (energy_mean + ke_mean) + (Pmean / rho_mean);
+    dh = h_mean - h_p; //dh = cp_global*(Tmean - Tp);
     cout << "h_p: " << h_p << " h_mean: " << h_mean << " dh: " << dh << endl;
 
     // (5) solve energy density ---------------------
-    Ae_p = (rho_p * dh)/(tau_eq_energy+dt);
-    //Ae_p = 1000;
+    Ae_p = (rho_p * dh)/(tau_eq_energy);
     cout << "Ae_P solved: " << Ae_p << " tau_eq_energy: " << tau_eq_energy << endl;
     
-    edensity_p = rho_p * energy_p;
+    edensity_p = rho_p * (energy_p + ke);
     dvisc = (visc_grad[0] + visc_grad[1] + visc_grad[2])*dt;    //CHECK ... should this be velocity * P instead of visc*P?
-    cout << " dvisc: " << dvisc << endl;
+    dvisc = 0;
+    Ae_p = 0;
 
     edensity_new = edensity_p - (dvisc) + (Ae_p * dt);
     cout << "edensity_p: " << edensity_p << " edensity_new: " << edensity_new << endl;
     energy_new = edensity_new/rho_new;    //specific total energy
+    //energy_new = energy_p;
     cout << "energy_new: " << energy_new << " ke: " << ke << endl;
 
     //SNM: U = Etotal - Ekin

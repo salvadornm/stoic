@@ -61,7 +61,7 @@ const double cv_global = 718; //[J/kgK]
   class turbulence
   { 
       public:
-      double k_sgs, Eps_sgs;
+      double k_sgs, Eps_sgs, C0, delta;
   };
 
 // particle structure

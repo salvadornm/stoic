@@ -11,7 +11,7 @@ void moveParticles(particleset  & vd, int p, double dt, engine eng)
     Point <3,double> psi {0.0,0.0,0.0};  //dt to reach wall boundaries
 
     // update temporary particle position
-    Point <3,double> pos_zero  = vd.getPos(p);
+    Point <3,double> pos_zero {vd.getPos(p)[0],vd.getPos(p)[1],vd.getPos(p)[2]};
     Point <3,double> pos_new {pos_zero[0] + vd.template getProp<i_velocity>(p)[0]*dt, pos_zero[1] + vd.template getProp<i_velocity>(p)[1]*dt, pos_zero[2] + vd.template getProp<i_velocity>(p)[2]*dt};
     vector <double> vel {vd.template getProp<i_velocity>(p)[0],vd.template getProp<i_velocity>(p)[1],vd.template getProp<i_velocity>(p)[2]};
 
