@@ -12,6 +12,7 @@
 const double Rideal = 8.3144621;
 void updateParticleProperties(particleset  & vd, int p, double dt, double l, turbulence turb, Cfd sim )
 {
+    l = sim.H;
     // stoic    
     std::random_device rd;
     std::default_random_engine generator(rd());
@@ -113,7 +114,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     // (1) update density ---------------------------------
     rho_new = rho_p + drho;
     vd.template getProp<i_rho>(p) =  rho_new;
-    cout << "drho: " << drho << " rhoNew: " << rho_new << endl;
+    //cout << "drho: " << drho << " rhoNew: " << rho_new << endl;
 
     //tau_eq = 10; tau_eq_energy = tau_eq;
    
@@ -149,7 +150,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     }
 
     // (4) find specific enthalpy ---------------------
-    h_p =  (energy_p) + (Pp / rho_p);
+    h_p =  (energy_p)+ (Pp / rho_p);
     h_mean = (energy_mean) + (Pmean / rho_mean);
     dh = h_mean - h_p; //dh = cp_global*(Tmean - Tp);
 

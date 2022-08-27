@@ -29,7 +29,7 @@ void initialize_geometry(Cfd &simulation, engine &eng){
     //calculations
     simulation.ppv = simulation.nparticles/eng.volumeC;
     simulation.dp = std::cbrt(1/simulation.ppv);
-    simulation.H = 3*simulation.dp;
+    simulation.H = (5/3)*simulation.dp;
     std::cout << "simulation.H: " << simulation.H << std::endl; //eventually move global.h H value to this... placeholder - not done yet
     simulation.lx = 2 * eng.bore;
     simulation.ly = 2 * eng.bore;
@@ -41,6 +41,18 @@ void update_CA(double dt, engine &eng){
     double rotation = N*dt;     //xx revolutions
 
     eng.ca += rotation*360;
+}
+
+void updateSimulation(Cfd &simulation, engine eng){
+
+    simulation.ppv = simulation.nparticles/eng.volumeC;
+    simulation.dp = std::cbrt(1/simulation.ppv);
+    simulation.H = (5/3)*simulation.dp; //*simulation.dp;
+    simulation.r_cut = 2*simulation.H;
+    simulation.Eta2 = 0.01 * simulation.H * simulation.H;
+    std::cout << "volumec: " << eng.volumeC << std::endl;
+    std::cout << "simulation.H: " << simulation.H << std::endl; 
+
 }
 
 //update instantaneous volume,stroke. return piston height
@@ -56,15 +68,6 @@ double movePiston(engine &eng){
 
     //st = eng.stroke - yt;
     return eng.s_inst;
-}
-
-void updateSimulation(Cfd &simulation, engine eng){
-
-    simulation.ppv = simulation.nparticles/eng.volumeC;
-    simulation.dp = std::cbrt(1/simulation.ppv);
-    simulation.H = 3*simulation.dp;
-    std::cout << "simulation.H: " << simulation.H << std::endl; 
-
 }
 
 void pistonInteraction(particleset &vd, Cfd &simulation, engine eng){

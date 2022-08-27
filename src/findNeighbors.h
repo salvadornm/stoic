@@ -6,7 +6,7 @@
 #include "calculations.h"
 #include"test.h"
 
-template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN){
+template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN, Cfd sim){
     int n,ingh,ip;
     float iavg=0;
     
@@ -60,7 +60,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
             double r = sqrt(r2);
                         
             //if the particles interact...
-            if (r < H) {
+            if (r < sim.H) {
                 Point<3,double> DW;
                 double factor = DWab(dr,DW,r,false); // gradient kernel //
                 double W = Wab(r); //kernel

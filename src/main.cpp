@@ -95,7 +95,6 @@ int main(int argc, char* argv[])
         
         updateThermalProperties2(vd, key1);    //equation of state
         simulation.m_tot = calculateMass(vd, eng);  //find mass of mixture: should not vary
-        //cout << "initial energy: " << vd.template getProp<i_energy>(key) << " density: " << vd.template getProp<i_rho>(key) << endl;
 
         initialize_dvdmean(vd, key1);
         
@@ -137,11 +136,12 @@ int main(int argc, char* argv[])
         //function to solve for new cylinder geometry / move the piston
         //update_CA(simulation.dt, eng);  //funtion in engineKinematics. updates piston and volume
         //piston_height = movePiston(eng);
+        //updateSimulation(simulation, eng);
         //pistonInteraction(vd, simulation, eng);
 
         auto it3 = vd.getDomainIterator();  //iterator that traverses the particles in the domain 
         std::cout << "--------step: " << i << " ------" << std::endl;
-        find_neighbors(vd, NN); //contaions properties of neighbors
+        find_neighbors(vd, NN, simulation); //contaions properties of neighbors
         //outputdata_to_csv(vd, i);     
 
         count = 0;
@@ -156,11 +156,11 @@ int main(int argc, char* argv[])
             //std::cout << count << " particle " << std::endl;
             //output_vd(vd,place);    //output particle properties
             
-            updateParticleProperties(vd, place, dt, H, turb, simulation);
+            updateParticleProperties(vd, place, dt, simulation.H, turb, simulation);
 
             //smooth P
 
-            double cfl_temp = (dt/H) * (vd.template getProp<i_velocity>(p)[0]+vd.template getProp<i_velocity>(p)[1]+vd.template getProp<i_velocity>(p)[2]);
+            double cfl_temp = (dt/simulation.H) * (vd.template getProp<i_velocity>(p)[0]+vd.template getProp<i_velocity>(p)[1]+vd.template getProp<i_velocity>(p)[2]);
             cfl = std::max(abs(cfl_temp),cfl);       //look for max not average. needs to be absolute.  should hold
        
             moveParticles(vd, place, dt, eng);

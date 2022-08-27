@@ -37,9 +37,9 @@ const double cv_global = 718; //[J/kgK]
     int nparticles;
     int frame;
     double dt,dx,dy,dz, dp;
-    double rad, ppv, H;
+    double rad, ppv, H, r_cut;
     double lx, ly, lz;
-    double m_tot;
+    double m_tot, Eta2;
   };
   class engine
   { 
