@@ -111,7 +111,7 @@ int inCylinder(Point <3,double> pos, engine eng)
     return flag;
 }
 
-//determine if point p is inside the cylinder <-- looks like this is working!
+//determine if point p is inside the cylinder
 void topBound(Point <3,double> & pos_new, vector <double> &vel, engine eng)
 {   
     //(1) Top Wall @ height, 
@@ -127,7 +127,8 @@ void topBound(Point <3,double> & pos_new, vector <double> &vel, engine eng)
 }
 
 void pistonBound(Point <3,double> & pos_new, vector <double> &vel, engine eng)
-{   //assume piston @ BDC and not moving (if moving: vd.getpos(p)[2] < eng.stroke - y) , where y is instantaneous distance from TDC  
+{   // assume piston @ BDC, and piston geometry is flat
+    // if moving: vd.getpos(p)[2] < eng.stroke - y, where y is instantaneous distance from TDC  
     
     //(1) Bottom Wall @ stroke, 
     if (pos_new[2] < eng.s_inst){
@@ -135,8 +136,8 @@ void pistonBound(Point <3,double> & pos_new, vector <double> &vel, engine eng)
     double dz = abs(pos_new[2] - eng.s_inst);
     pos_new[2] = eng.s_inst + dz;
 
-    //update velocities
-    vel[2] = -vel[2];  
+    //update normal velocity to match piston speed
+    vel[2] = eng.smp;  
     }
 }
 
