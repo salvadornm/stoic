@@ -15,6 +15,7 @@ void initialize_geometry(Cfd &simulation, engine &eng){
     //initialize
     eng.ca = eng.ca_init;
     eng.s_inst = 0;
+    eng.flag = 0;
 
     //volumes
     eng.Vdisp = (pi/4) * eng.bore * eng.bore * eng.stroke;  //[m3]
@@ -56,18 +57,22 @@ void updateSimulation(Cfd &simulation, engine eng){
 }
 
 //update instantaneous volume,stroke. return piston height
-double movePiston(engine &eng){
+void movePiston(engine &eng){
     double a = eng.crankRad;    //crank radius
     double l = eng.conRod;
     double theta = eng.ca*(pi/180);     //convert to radians
+    double s_temp = 0;
     
-    eng.s_inst = a - l + sqrt(l*l - a*a*sin(theta)*sin(theta)) + a*cos(theta);
-    
+    s_temp = a - l + sqrt(l*l - a*a*sin(theta)*sin(theta)) + a*cos(theta);
+
+    if (s_temp < eng.s_inst){eng.flag = 0;} //expansion stroke
+    else{eng.flag = 1;} //compression stroke
+
+    eng.s_inst = s_temp;
     double yt = 2*a - eng.s_inst;                           //distance of piston from top
     eng.volumeC = eng.VTDC + (pi/4)*eng.bore*eng.bore*(yt);   //updated volume of cylinder
 
     //st = eng.stroke - yt;
-    return eng.s_inst;
 }
 
 void pistonInteraction(particleset &vd, Cfd &simulation, engine eng){

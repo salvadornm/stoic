@@ -136,8 +136,12 @@ void pistonBound(Point <3,double> & pos_new, vector <double> &vel, engine eng)
     double dz = abs(pos_new[2] - eng.s_inst);
     pos_new[2] = eng.s_inst + dz;
 
-    //update normal velocity to match piston speed
-    vel[2] = eng.smp;  
+    //update normal velocity to match piston speed if compresiion
+    if(eng.flag == 1){
+    vel[2] = eng.smp; } 
+    else{
+    vel[2] = -vel[2];  }    //if expansion stroke, treat as normal wall
+
     }
 }
 

@@ -50,6 +50,7 @@ const double cv_global = 718; //[J/kgK]
       double volumeC, height;
       double s_inst,V_inst; //instantaneous stroke and volume
       double ca,ca_init;  //crank angle
+      int flag; //compression or expansion stroke
   };
 
   class thermal
