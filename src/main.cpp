@@ -30,7 +30,6 @@ using namespace std;
 int main(int argc, char* argv[])
 {
     cout << "Hello World \n" << endl;
-    cout << "H = " << H << endl;
     
     //-- VARIABLES --// ------------------------------------
 
@@ -120,11 +119,9 @@ int main(int argc, char* argv[])
 
     timer tsim;
     tsim.start();
-    double dt = simulation.dt;
     unsigned long int f = 0;
     int count = 0;
     double cfl = 0;
-    double piston_height = 0;
     
     auto NN = vd.getCellList(r_cut);  //define neighborhoods with radius (repeated at end of time loop)
 
@@ -135,7 +132,7 @@ int main(int argc, char* argv[])
         // Move the Crank - UPDATE GEOMETRY
         //function to solve for new cylinder geometry / move the piston
         //update_CA(simulation.dt, eng);  //funtion in engineKinematics. updates piston and volume
-        //piston_height = movePiston(eng);
+        //movePiston(eng);
         //updateSimulation(simulation, eng);
         //pistonInteraction(vd, simulation, eng);
 
@@ -156,21 +153,21 @@ int main(int argc, char* argv[])
             //std::cout << count << " particle " << std::endl;
             //output_vd(vd,place);    //output particle properties
             
-            updateParticleProperties(vd, place, dt, simulation.H, turb, simulation);
+            updateParticleProperties(vd, place, simulation.dt, simulation.H, turb, simulation);
 
             //smooth P
 
-            double cfl_temp = (dt/simulation.H) * (vd.template getProp<i_velocity>(p)[0]+vd.template getProp<i_velocity>(p)[1]+vd.template getProp<i_velocity>(p)[2]);
-            cfl = std::max(abs(cfl_temp),cfl);       //look for max not average. needs to be absolute.  should hold
-       
-            moveParticles(vd, place, dt, eng);
+            moveParticles(vd, place, simulation.dt, eng);
             
             //updateThermalProperties1(cd, place);   //update pressure/temperature equation of state
 
+            double cfl_temp = (simulation.dt/simulation.H) * (vd.template getProp<i_velocity>(p)[0]+vd.template getProp<i_velocity>(p)[1]+vd.template getProp<i_velocity>(p)[2]);
+            cfl = std::max(abs(cfl_temp),cfl);       //look for max not average. needs to be absolute.  should hold
+       
             ++it3;
         }
 
-        //std::cout << "cfl: " << cfl << endl;
+        std::cout << "cfl: " << cfl << endl;
         cfl = 0;
 
         //--OUTPUT--//  ------------------------------------

@@ -23,9 +23,6 @@ void initialize_geometry(Cfd &simulation, engine &eng){
     eng.VTDC = eng.VBDC - eng.Vdisp;
     eng.height = eng.stroke + ((4*eng.VTDC) / (pi*eng.bore*eng.bore));
     eng.volumeC = (pi/4)*eng.bore*eng.bore*eng.height;
-    cout << "vol_c: " << eng.volumeC << " VTDC: " << eng.VTDC << " VBDC: " << eng.VBDC << endl;
-    cout << "eng height: " << eng.height << endl;
-
 
     //calculations
     simulation.ppv = simulation.nparticles/eng.volumeC;
@@ -35,6 +32,7 @@ void initialize_geometry(Cfd &simulation, engine &eng){
     simulation.lx = 2 * eng.bore;
     simulation.ly = 2 * eng.bore;
     simulation.lz = 2 * eng.height;
+    std::cout << "Simulation.dt: " << simulation.dt << std::endl;
 }
 
 void update_CA(double dt, engine &eng){

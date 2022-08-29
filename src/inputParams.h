@@ -11,8 +11,8 @@ void inputUserParams(Cfd &simulation, engine &eng )
 {
     //simulation parameters
     simulation.nparticles = 10000; //
-    simulation.nsteps = 25; //100
-    simulation.dt = 0.003;   //0.01
+    simulation.nsteps = 500; //100
+    simulation.dt = 0.0001;   //0.01
     simulation.frame = 1;   //10
     simulation.rad = 2;
     simulation.dp = 1/sqrt(simulation.nparticles);

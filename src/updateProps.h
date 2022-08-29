@@ -12,11 +12,10 @@
 const double Rideal = 8.3144621;
 void updateParticleProperties(particleset  & vd, int p, double dt, double l, turbulence turb, Cfd sim )
 {
-    l = sim.H;
     // stoic    
     std::random_device rd;
     std::default_random_engine generator(rd());
-    std::normal_distribution<double> distribution(0.0,sim.lx);
+    std::normal_distribution<double> distribution(0.0,1.0);
     double eps_turb = 0.1;
     vector <double> dWien {distribution(generator)*sqrt(dt),distribution(generator)*sqrt(dt),distribution(generator)*sqrt(dt)}; // eps_turb*distribution(generator)*sqrt(dt);
     
@@ -28,7 +27,6 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     double energy_p = vd.template getProp<i_energy>(p);
     vector <double> u_p {vd.template getProp<i_velocity>(p)[0],vd.template getProp<i_velocity>(p)[1],vd.template getProp<i_velocity>(p)[2]};
     double mass_p, edensity_p;
-
 
     //mean particle properties (vdmean(p))
     double Tmean = vd.template getProp<i_vdmean>(p)[i_temperature];
@@ -65,6 +63,8 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     //----------------------------------------------------------------------------
     //----------------------------------------------------------------------------
 
+    l = sim.H;
+
     //approximate viscosity (air,400K,1bar)
     double viscp = 2.59E-5;
     turb.k_sgs = 1e-8;
@@ -78,7 +78,9 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     D_therm = k/(rho_p*cp_global);    //placeholder for thermal diffusivity (dependent on equivalence ratio)
 
     tau_mol = 0.0; tau_sgs = 0; tau_eq = 0; tau_eq_energy = 0;
-    
+    drho = 0.0; de = 0.0; dm = 0.0; dYk = 0.0; dvisc = 0.0; du = 0.0; dh = 0.0; 
+    Au_p = 0.0; Ae_p = 0.0; B = 0.0;
+    h_p = 0.0; h_mean = 0.0;
     
     //----------------------------------------------------------------------------
     //----------------------------------------------------------------------------
@@ -120,7 +122,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
    
     // (2) update momentum ---------------------
     Au_p = (0.5 + 0.75*Cu) * rho_p / tau_eq;
-    B = sqrt(turb.C0*turb.Eps_sgs) * sqrt(dt);        //turbulent diffusion
+    B = sqrt(turb.C0*turb.Eps_sgs);//* sqrt(dt); //is already in dWien term       //turbulent diffusion
     
     //cout << "Au_P solved: " << Au_p << " tau_eq: " << tau_eq << endl;
 
@@ -156,6 +158,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
 
     // (5) solve energy density ---------------------
     Ae_p = (rho_p * dh)/(tau_eq_energy);
+
     
     edensity_p = rho_p * (energy_p);
     dvisc = (visc_grad[0] + visc_grad[1] + visc_grad[2])*dt;    //CHECK ... should this be velocity * P instead of visc*P?
