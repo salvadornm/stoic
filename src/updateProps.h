@@ -77,7 +77,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
 
     D_therm = k/(rho_p*cp_global);    //placeholder for thermal diffusivity (dependent on equivalence ratio)
 
-    tau_mol = 0.0; tau_sgs = 0; tau_eq = 0; tau_eq_energy = 0;
+    tau_mol = 0.0; tau_sgs = 0.0; tau_eq = 0.0; tau_eq_energy = 0.0;
     drho = 0.0; de = 0.0; dm = 0.0; dYk = 0.0; dvisc = 0.0; du = 0.0; dh = 0.0; 
     Au_p = 0.0; Ae_p = 0.0; B = 0.0;
     h_p = 0.0; h_mean = 0.0;
@@ -90,7 +90,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     turb.Eps_sgs = pow(turb.k_sgs,1.5)/l; 
     
     freq_sgs = turb.Eps_sgs/turb.k_sgs; 
-    tau_sgs = 1/freq_sgs;
+    tau_sgs = 1.0/freq_sgs;
 
     //molecular times scale
     freq_mol = viscp/(rho_p*l*l);
@@ -101,10 +101,12 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
 
     //equivalent time scale
     freq_eq = Cu*freq_sgs + freq_mol;
-    tau_eq = dt + 1/freq_eq;
+    tau_eq = dt + 1.0/freq_eq;
 
-    freq_eq_energy = (D_therm/(l*l))+ (Cu*freq_sgs);    
-    tau_eq_energy = dt + 1/freq_eq_energy;
+    freq_eq_energy = D_therm/l*l + Cu*freq_sgs;    
+    tau_eq_energy = dt + 1.0/freq_eq_energy;
+
+    tau_eq_energy = tau_eq;
 
     //cout << "tau_eq: " << tau_eq << " tau_eq_energy: " << tau_eq_energy << endl; 
 
@@ -117,23 +119,22 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     rho_new = rho_p + drho;
     vd.template getProp<i_rho>(p) =  rho_new;
     //cout << "drho: " << drho << " rhoNew: " << rho_new << endl;
-
-    //tau_eq = 10; tau_eq_energy = tau_eq;
    
     // (2) update momentum ---------------------
     Au_p = (0.5 + 0.75*Cu) * rho_p / tau_eq;
     B = sqrt(turb.C0*turb.Eps_sgs);//* sqrt(dt); //is already in dWien term       //turbulent diffusion
     
-    //cout << "Au_P solved: " << Au_p << " tau_eq: " << tau_eq << endl;
-
     //SNM
     double ke_p = 0;
     double ke = 0;
     double ke_mean = 0;
 
+    //Au_p=0.0;
+    //B=0.0;//<------------
+
     for (size_t i = 0; i < 3 ; i++) 
     {    
-        du = (u_mean[i] -  u_p[i]);
+        du = u_mean[i] -  u_p[i];
         //solve momentum 
         mom_p[i]  = rho_p * u_p[i];
         mom_p[i] +=  P_grad[i] * dt + Au_p * du * dt + B * dWien[i];
@@ -146,27 +147,27 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
         // (3) update velocity ---------------------
         vd.template getProp<i_velocity>(p)[i] = vel_new;
 
-        ke_p += .5*(u_p[i]*u_p[i]);
-        ke += .5*(vel_new*vel_new);
-        ke_mean += .5*(u_mean[i]*u_mean[i]);
+        ke_p += .5*u_p[i]*u_p[i];
+        ke   += .5*vel_new*vel_new;
+        ke_mean += .5*u_mean[i]*u_mean[i];
     }
 
     // (4) find specific enthalpy ---------------------
-    h_p =  (energy_p)+ (Pp / rho_p);
-    h_mean = (energy_mean) + (Pmean / rho_mean);
-    dh = h_mean - h_p; //dh = cp_global*(Tmean - Tp);
+    h_p   =  energy_p      + Pp / rho_p;
+    h_mean = energy_mean + Pmean / rho_mean;
+    dh = h_mean - h_p; 
 
     // (5) solve energy density ---------------------
-    Ae_p = (rho_p * dh)/(tau_eq_energy);
+    Ae_p = rho_p * dh/tau_eq_energy;
 
     
-    edensity_p = rho_p * (energy_p);
-    dvisc = (visc_grad[0] + visc_grad[1] + visc_grad[2])*dt;    //CHECK ... should this be velocity * P instead of visc*P?
-    //dvisc = 0;
+    edensity_p = rho_p * energy_p;
+   // dvisc = (visc_grad[0] + visc_grad[1] + visc_grad[2])*dt;    //CHECK ... should this be velocity * P instead of visc*P?
+   // dvisc = 0;
     //Ae_p = 0;
 
-    edensity_new = edensity_p - (dvisc) + (Ae_p * dt);
-    energy_new = edensity_new/rho_new;    //specific total energy
+    edensity_p += Ae_p * dt;
+    energy_new = edensity_p/rho_new;    //specific total energy
 
     //SNM: U = Etotal - Ekin
     vd.template getProp<i_energy>(p)= energy_new - ke; //internal energy
@@ -174,6 +175,8 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     // (6) check continuity again - update temperature and pressure
     updateThermalProperties1(vd, p);
     //output_energy_props(vd, p, dh, dvisc, edensity_p, edensity_new, energy_new);
+
+    // relax pressure
 
 }
 #endif // _updateProps_h

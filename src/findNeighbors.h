@@ -60,7 +60,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
             double r = sqrt(r2);
                         
             //if the particles interact...
-            if (r < sim.H) {
+            if (r < 2.0*sim.H) {
                 Point<3,double> DW;
                 double factor = DWab(dr,DW,r,false); // gradient kernel //
                 double W = Wab(r); //kernel
