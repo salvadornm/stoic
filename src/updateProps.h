@@ -176,7 +176,8 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     updateThermalProperties1(vd, p);
     //output_energy_props(vd, p, dh, dvisc, edensity_p, edensity_new, energy_new);
 
-    // relax pressure
+    // (7) relax/smooth pressure
+    vd.template getProp<i_pressure>(p) += (Pmean - vd.template getProp<i_pressure>(p))/5;
 
 }
 #endif // _updateProps_h
