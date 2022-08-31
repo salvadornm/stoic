@@ -84,9 +84,11 @@ int main(int argc, char* argv[])
         //initialize properties (functions in inputParams.h)
         initialize_vel(vd, key1, simulation.lx);
         initialize_temp(vd,simulation,key1,eng);
+        initialize_pres(vd,simulation,key1,eng);
 
         //initialize remaining properties (placeholder values for now)
-        vd.template getProp<i_pressure>(key) = 101300;  //[pa] atmospheric pressure <- EQTN TO UPDATE THIS?
+        //vd.template getProp<i_pressure>(key) = 101300;  //[pa] atmospheric pressure <- EQTN TO UPDATE THIS?
+        vd.template getProp<i_temperature>(key) = 500;
        // vd.template getProp<i_energy>(key) = 1e-8; //temporary placeholder
        // vd.template getProp<i_rho>(key) = .1; //temporary placeholder
 

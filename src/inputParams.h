@@ -11,9 +11,9 @@ void inputUserParams(Cfd &simulation, engine &eng )
 {
     //simulation parameters
     simulation.nparticles = 10000; //
-    simulation.nsteps = 2000; //100
+    simulation.nsteps = 1000; //100
     simulation.dt = 0.00001;   //0.01
-    simulation.frame = 50;   //10
+    simulation.frame = 10;   //10
     simulation.rad = 2;
     simulation.dp = 1/sqrt(simulation.nparticles);
 
@@ -56,6 +56,22 @@ void initialize_temp(particleset &vd, Cfd &simulation, double key, engine eng)
         vd.template getProp<i_temperature>(key) = 2500.0;   //hot product temperature
     } else{
         vd.template getProp<i_temperature>(key) = 700.0;    //cool reactant temperature
+    }
+}
+
+void initialize_pres(particleset &vd, Cfd &simulation, double key, engine eng)
+{
+    // Get the distance between a and b
+    double r_cyl = eng.bore/2;
+    Point<3,double> cyl_center {r_cyl, r_cyl};
+    Point<3,double> pos {vd.getPos(key)[0], vd.getPos(key)[1]};
+    //double radius = sqrt(norm2(pos - r_cyl));
+    double radius = sqrt(pow((vd.getPos(key)[0]-r_cyl),2)+pow((vd.getPos(key)[1]-r_cyl),2));
+
+    if(radius < 0.2*eng.bore){
+        vd.template getProp<i_pressure>(key) = 10*101300;   //hot product temperature
+    } else{
+        vd.template getProp<i_pressure>(key) = 101300;
     }
 }
 
