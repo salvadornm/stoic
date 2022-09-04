@@ -10,7 +10,7 @@
 
 
 const double Rideal = 8.3144621;
-void updateParticleProperties(particleset  & vd, int p, double dt, double l, turbulence turb, Cfd sim )
+void updateParticleProperties(particleset  & vd, int p, double dt, double l, turbulence turb, Cfd sim, engine eng )
 {
     // stoic    
     std::random_device rd;
@@ -36,7 +36,6 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     vector <double> u_mean {vd.template getProp<i_vdmean>(p)[i_velx],vd.template getProp<i_vdmean>(p)[i_vely],vd.template getProp<i_vdmean>(p)[i_velz]};
         
     //gradient particle properties (dvdmean(p))
-    double energy_grad;
     vector <double> T_grad {vd.template getProp<i_dvdmean>(p)[0][i_temperature],vd.template getProp<i_dvdmean>(p)[1][i_temperature],vd.template getProp<i_dvdmean>(p)[2][i_temperature]}; 
     vector <double> P_grad {vd.template getProp<i_dvdmean>(p)[0][i_pressure],vd.template getProp<i_dvdmean>(p)[1][i_pressure],vd.template getProp<i_dvdmean>(p)[2][i_pressure]}; 
     vector <double> mom_grad {vd.template getProp<i_dvdmean>(p)[0][i_momentum],vd.template getProp<i_dvdmean>(p)[1][i_momentum],vd.template getProp<i_dvdmean>(p)[2][i_momentum]};
@@ -117,6 +116,7 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
 
     // (1) update density ---------------------------------
     rho_new = rho_p + drho;
+    //cout <<  "roh_p: " << rho_p << "droh: " << drho << "rho_nw: " << rho_new << endl;
     vd.template getProp<i_rho>(p) =  rho_new;
     //cout << "drho: " << drho << " rhoNew: " << rho_new << endl;
    
@@ -141,8 +141,8 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
         
         vel_new =  mom_p[i] / rho_new;
         // clipping 
-        vel_new = min(vel_new,50.0);
-        vel_new = max(vel_new,-50.0);
+        vel_new = min(vel_new,5*eng.smp);
+        vel_new = max(vel_new,-5*eng.smp);
 
         // (3) update velocity ---------------------
         vd.template getProp<i_velocity>(p)[i] = vel_new;

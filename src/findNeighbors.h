@@ -76,22 +76,33 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
 
                 //gradient of particle property
                 Point<3,double> dv = va - vb;
-                Point<3,double> dP = vd.getProp<i_pressure>(a) - vd.getProp<i_pressure>(b);
-                Point<3,double> dT = vd.getProp<i_temperature>(a)-vd.getProp<i_temperature>(b);
+                double dP = vd.getProp<i_pressure>(a) - vd.getProp<i_pressure>(b);
+                double dT = vd.getProp<i_temperature>(a)-vd.getProp<i_temperature>(b);
                 Point<3,double> drho =  vd.getProp<i_rho>(a)*va-vd.getProp<i_rho>(b)*vb; //0.1*(va - vb);
+                //drho =  vd.getProp<i_rho>(a)-vd.getProp<i_rho>(b); //0.1*(va - vb);
                 double visc = viscous(dr, r2, dv,vd.getProp<i_rho>(a), vd.getProp<i_rho>(b), 1, 0);
-                Point<3,double> dviscP =  visc*(vd.getProp<i_pressure>(a) - vd.getProp<i_pressure>(b));
+                double dviscP =  visc*(vd.getProp<i_pressure>(a) - vd.getProp<i_pressure>(b));
                 //Point<3,double> dviscP =  va*vd.getProp<i_pressure>(a) - vb*vd.getProp<i_pressure>(b);
 
                 for (size_t i = 0; i < 3 ; i++) //loop through x,y,z directions
                 {
                     // grad of particle property at a particle position
+                    /*cout << "i= " << i << "------------" << endl;
+                    cout << "va: " << va.get(i) << endl;
+                    cout << "vb: " << vb.get(i) << endl;
+                    cout << "rhoa: " << vd.getProp<i_rho>(a) << endl;
+                    cout << "rhob: " << vd.getProp<i_rho>(b) << endl;
+                    cout << "drho: " << drho.get(i) << endl;
+                    double drho_double =  vd.getProp<i_rho>(a)*va.get(i)-vd.getProp<i_rho>(b)*vb.get(i); 
+                    cout << "drho: " << drho_double << endl;
+                    cout << "DW: " << DW.get(i) << endl;
+                    */
+                    //vd.template getProp<i_dvdmean>(a)[i][i_momentum] += drho.get(i)*dv.get(i)*DW.get(i);
                     vd.template getProp<i_dvdmean>(a)[i][i_momentum] += (drho.get(i)*DW.get(i));
-                    vd.template getProp<i_dvdmean>(a)[i][i_pressure]    += (dP.get(i)*DW.get(i));
-                    vd.template getProp<i_dvdmean>(a)[i][i_temperature] += (dT.get(i)*DW.get(i));
-                    vd.template getProp<i_dvdmean>(a)[i][i_visc] += (dviscP.get(i)*DW.get(i));
-                }
-                ingh++;
+                    vd.template getProp<i_dvdmean>(a)[i][i_pressure]    += (dP*DW.get(i));
+                    vd.template getProp<i_dvdmean>(a)[i][i_temperature] += (dT*DW.get(i));
+                    vd.template getProp<i_dvdmean>(a)[i][i_visc] += (dviscP*DW.get(i));
+                }ingh++;
             }
             ++Np;
         }
@@ -111,7 +122,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
         ++part;
     }
 
-    cout << " Avg number of neighbours=" << iavg/ip << endl;
+    //cout << " Avg number of neighbours=" << iavg/ip << endl;
 
     //tsim.stop();
     //std::cout << "Time: " << tsim.getwct() << std::endl;

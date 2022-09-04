@@ -38,9 +38,9 @@ void initialize_vel(particleset &vd, double key, double lx)
     double numberz = distribution(generator);
 
     //set the property of the particles : eventually velocity will be initialized from turbulence files
-    vd.template getProp<i_velocity>(key)[0] = 0.0;//numberx;
-    vd.template getProp<i_velocity>(key)[1] = 0.0;//numbery;
-    vd.template getProp<i_velocity>(key)[2] = 0.0;//numberz;
+    vd.template getProp<i_velocity>(key)[0] = numberx;
+    vd.template getProp<i_velocity>(key)[1] = numbery;
+    vd.template getProp<i_velocity>(key)[2] = numberz;
 }
 
 void initialize_temp(particleset &vd, Cfd &simulation, double key, engine eng)

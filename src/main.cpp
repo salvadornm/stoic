@@ -63,6 +63,7 @@ int main(int argc, char* argv[])
     particleset vd(0,domain,bc,g,DEC_GRAN(512));  
 
     openfpm::vector<std::string> names({"velocity","rho","energy","Pressure","Temperature","scalars","species","vdmean","dvdmean"});
+    //openfpm::vector<std::string> names({"vx","vy","vz","rho","energy","Pressure","Temperature","scalars","species","vxmean","rhomean","energymean","Pmean","Tmean","vymean","vxmean","dvdmean"});
     openfpm::vector<std::string> grad_names({"momentum","density","energy","Pressure","Temperature"});
     vd.setPropNames(names);
     
@@ -87,7 +88,7 @@ int main(int argc, char* argv[])
         initialize_pres(vd,simulation,key1,eng);
 
         //initialize remaining properties (placeholder values for now)
-        //vd.template getProp<i_pressure>(key) = 101300;  //[pa] atmospheric pressure <- EQTN TO UPDATE THIS?
+        vd.template getProp<i_pressure>(key) = 101300;  //[pa] atmospheric pressure <- EQTN TO UPDATE THIS?
         vd.template getProp<i_temperature>(key) = 500;
        // vd.template getProp<i_energy>(key) = 1e-8; //temporary placeholder
        // vd.template getProp<i_rho>(key) = .1; //temporary placeholder
@@ -95,8 +96,6 @@ int main(int argc, char* argv[])
         //vary_initialization(vd, simulation, key1); (fx in test.cpp)
         
         updateThermalProperties2(vd, key1);    //equation of state
-        simulation.m_tot = calculateMass(vd, eng);  //find mass of mixture: should not vary
-
         initialize_dvdmean(vd, key1);
         
         //updateChemicalProperties(vd); //initialize temperature and composition
@@ -108,6 +107,9 @@ int main(int argc, char* argv[])
         ++it;
         cnt++;
     }
+
+    simulation.m_tot = calculateMass(vd, eng);  //find mass of mixture: should not vary
+    cout << "mtot: " << simulation.m_tot << endl;
 
     //-- Map Particles to grid --/
     vd.map();       //distribute particle positions across the processors
@@ -124,22 +126,21 @@ int main(int argc, char* argv[])
     unsigned long int f = 0;
     int count = 0;
     double cfl = 0;
+    double Pmean = 0; double Tmean = 0;
     
     auto NN = vd.getCellList(r_cut);  //define neighborhoods with radius (repeated at end of time loop)
 
     // Time loop
     for (size_t i = 0; i < simulation.nsteps ; i++)
     {
-
-        // Move the Crank - UPDATE GEOMETRY
-        //function to solve for new cylinder geometry / move the piston
+        // Move the Crank - function to solve for new cylinder geometry / move the piston
         //update_CA(simulation.dt, eng);  //funtion in engineKinematics. updates piston and volume
         //movePiston(eng);
         //updateSimulation(simulation, eng);
         //pistonInteraction(vd, simulation, eng);
 
         auto it3 = vd.getDomainIterator();  //iterator that traverses the particles in the domain 
-        std::cout << "--------step: " << i << " ------" << std::endl;
+        //std::cout << "--------step: " << i << " ------" << std::endl;
         find_neighbors(vd, NN, simulation); //contaions properties of neighbors
         //outputdata_to_csv(vd, i);     
 
@@ -155,10 +156,7 @@ int main(int argc, char* argv[])
             //std::cout << count << " particle " << std::endl;
             //output_vd(vd,place);    //output particle properties
             
-            updateParticleProperties(vd, place, simulation.dt, simulation.H, turb, simulation);
-
-            //smooth P
-
+            updateParticleProperties(vd, place, simulation.dt, simulation.H, turb, simulation, eng);
             moveParticles(vd, place, simulation.dt, eng);
             
             //updateThermalProperties1(cd, place);   //update pressure/temperature equation of state
@@ -166,11 +164,18 @@ int main(int argc, char* argv[])
             double cfl_temp = (simulation.dt/simulation.H) * (vd.template getProp<i_velocity>(p)[0]+vd.template getProp<i_velocity>(p)[1]+vd.template getProp<i_velocity>(p)[2]);
             cfl = std::max(abs(cfl_temp),cfl);       //look for max not average. needs to be absolute.  should hold
        
+
+            Tmean += vd.template getProp<i_temperature>(p);
+            Pmean += vd.template getProp<i_pressure>(p);
             ++it3;
         }
 
-        std::cout << "cfl: " << cfl << endl;
-        cfl = 0;
+        Tmean = Tmean/count;
+        Pmean = Pmean/count;
+        //std::cout << "tmean: " << Tmean << endl;
+        std::cout << Pmean << endl;
+        //std::cout << "cfl: " << cfl << endl;
+        cfl = 0; Pmean = 0; Tmean = 0;
 
         //--OUTPUT--//  ------------------------------------
         // Map particles and re-sync the ghost
