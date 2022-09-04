@@ -18,6 +18,38 @@ void updateEqtnState(particleset & vd)
     }
 }
 
+void calculateMeans(particleset & vd, Cfd &simulation)
+{   
+    double Tmean = 0;
+    double Pmean = 0;
+    double Rhomean = 0;
+    double count = 0;
+    //calculate mean temperature from previous iteration
+    auto it = vd.getDomainIterator();
+    while (it.isNext())
+    {
+        auto a = it.get();
+        Tmean += vd.template getProp<i_temperature>(a);
+        Pmean += vd.template getProp<i_pressure>(a);
+        Rhomean += vd.template getProp<i_rho>(a);
+        
+        ++it; ++count;
+    }
+
+    simulation.Pmean = Pmean / count;
+    simulation.Tmean = Tmean / count;
+    simulation.Rhomean = Rhomean / count;
+}
+
+void updateInitialProps(particleset & vd, Cfd &simulation)
+{
+    calculateMeans(vd, simulation);
+
+    simulation.P0 = simulation.Pmean;
+    simulation.T0 = simulation.Tmean;
+}
+
+
 //solve for density and energy from Pressure and Temperature
 // rho = (P)/(R*T)
 void updateThermalProperties2(particleset & vd, int a)
@@ -79,4 +111,62 @@ double calculateMass(particleset & vd, engine eng)
     rho_tot = rho_tot/count;    //find the average density
     double mass_mix = rho_tot/eng.volumeC;
     return mass_mix;
+}
+
+double calculateHeatloss(particleset & vd, Cfd simulation, engine eng)
+{
+    double rho = simulation.m_tot / eng.volumeC;
+    double P = rho*(R_air*simulation.Tmean);
+
+    // Monitored pressure  (from old code)(in vgas would be P-Pm )
+    /*
+    Pm_old=Pm
+    Pm=Pref*(eng.VBDC/eng.volumeC)**GAMA
+    dPm=Pm-Pm_old
+    */
+
+    // Compute gas velocity
+    double v_gas = 2.28*eng.smp + (0.00324/6.0)*simulation.T0*(eng.Vdisp/eng.VBDC)*(P)/simulation.P0;
+
+    // Heat Transfer coefficient; modified Woschni correlation by Chang (2004)
+    double h_coeff = 3.4 * pow(P,0.80) * pow(v_gas,0.80) * pow((simulation.ly-eng.dStime),-0.20) * pow(simulation.Tmean,-0.73) ; 
+    // P(t), T(t), do not depend on position h_coeff is not local, global. [W/m²K
+
+    double Tdelta = 0; double heat_transfer = 0;
+    double SA = 0; double Q = 0; int count2 = 0;
+
+    auto it = vd.getDomainIterator();
+    while (it.isNext())
+    {
+        auto a = it.get();
+        Point<3,double> xa = vd.getPos(a);
+        // set up geometries
+        double r_cyl = eng.bore/2;
+        Point<3,double> cyl_center {r_cyl, r_cyl, xa[2]};
+        double r_pos = sqrt(norm2(xa - cyl_center));
+
+        //if @ walls, then:
+        if ( r_cyl - r_pos < 1e-8){
+        SA = (2*pi*r_cyl) * eng.height;
+        } else if((eng.height - xa[2] < 1e-8) || ((xa[2] - eng.s_inst) < 1e-8) ){
+        // else if @ top/bottom
+        SA = pow(r_cyl,2) * (pi);
+        }
+
+        Tdelta = vd.template getProp<i_temperature>(a) - eng.Twall;
+        Q = h_coeff * Tdelta  * simulation.dt;
+        vd.template getProp<i_energy>(a) = vd.template getProp<i_energy>(a) - (Q* SA) -  (vd.template getProp<i_pressure>(a) / vd.template getProp<i_rho>(a));
+    
+        //update temperature based on new enthalpy/energy
+        vd.template getProp<i_temperature>(a) = vd.template getProp<i_energy>(a)/cv_global;
+
+        heat_transfer += Q;
+        count2++; ++it;
+    }
+
+    // mean heat transferred of a particle per unit area [J/m2]
+    heat_transfer = heat_transfer/count2;
+    double heat_flux = heat_transfer/(simulation.dt*10e5);    //[MW/m2]
+    
+    return heat_transfer;
 }

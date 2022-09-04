@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
         initialBoundary(vd.getPos(key)[0], vd.getPos(key)[1], eng, simulation);
 
         //initialize properties (functions in inputParams.h)
-        initialize_vel(vd, key1, simulation.lx);
+        initialize_vel(vd,simulation,key1,eng);
         initialize_temp(vd,simulation,key1,eng);
         initialize_pres(vd,simulation,key1,eng);
 
@@ -92,8 +92,6 @@ int main(int argc, char* argv[])
         vd.template getProp<i_temperature>(key) = 500;
        // vd.template getProp<i_energy>(key) = 1e-8; //temporary placeholder
        // vd.template getProp<i_rho>(key) = .1; //temporary placeholder
-
-        //vary_initialization(vd, simulation, key1); (fx in test.cpp)
         
         updateThermalProperties2(vd, key1);    //equation of state
         initialize_dvdmean(vd, key1);
@@ -107,7 +105,7 @@ int main(int argc, char* argv[])
         ++it;
         cnt++;
     }
-
+    updateInitialProps(vd, simulation);
     simulation.m_tot = calculateMass(vd, eng);  //find mass of mixture: should not vary
     cout << "mtot: " << simulation.m_tot << endl;
 
@@ -140,7 +138,7 @@ int main(int argc, char* argv[])
         //pistonInteraction(vd, simulation, eng);
 
         auto it3 = vd.getDomainIterator();  //iterator that traverses the particles in the domain 
-        //std::cout << "--------step: " << i << " ------" << std::endl;
+        std::cout << "--------step: " << i << " ------" << std::endl;
         find_neighbors(vd, NN, simulation); //contaions properties of neighbors
         //outputdata_to_csv(vd, i);     
 
@@ -157,7 +155,7 @@ int main(int argc, char* argv[])
             //output_vd(vd,place);    //output particle properties
             
             updateParticleProperties(vd, place, simulation.dt, simulation.H, turb, simulation, eng);
-            moveParticles(vd, place, simulation.dt, eng);
+            moveParticles(vd, place, simulation.dt, eng, simulation);
             
             //updateThermalProperties1(cd, place);   //update pressure/temperature equation of state
 

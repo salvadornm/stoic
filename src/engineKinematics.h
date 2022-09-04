@@ -59,17 +59,21 @@ void movePiston(engine &eng){
     double a = eng.crankRad;    //crank radius
     double l = eng.conRod;
     double theta = eng.ca*(pi/180);     //convert to radians
-    double s_temp = 0;
+    double s_temp = 0; double vol_temp = 0;
     
     s_temp = a - l + sqrt(l*l - a*a*sin(theta)*sin(theta)) + a*cos(theta);
 
     if (s_temp < eng.s_inst){eng.flag = 0;} //expansion stroke
     else{eng.flag = 1;} //compression stroke
 
+    eng.dStime = s_temp - eng.s_inst;
+    
     eng.s_inst = s_temp;
     double yt = 2*a - eng.s_inst;                           //distance of piston from top
-    eng.volumeC = eng.VTDC + (pi/4)*eng.bore*eng.bore*(yt);   //updated volume of cylinder
-
+    vol_temp = eng.VTDC + (pi/4)*pow(eng.bore,2)*(yt);   //updated volume of cylinder
+    
+    eng.dVol = vol_temp - eng.volumeC;
+    eng.volumeC = vol_temp;
     //st = eng.stroke - yt;
 }
 
@@ -92,14 +96,14 @@ void pistonInteraction(particleset &vd, Cfd &simulation, engine eng){
     //fluid mean density
     double rhomean = simulation.m_tot/eng.volumeC;
     double Pmean = rhomean * Tmean;
-    //cout << "rhomean: " << rhomean << endl;
+    //cout << "pmean: " << Pmean << endl;
 
     auto it2 = vd.getDomainIterator();
     while (it2.isNext())
     {   
         auto p = it2.get();    //contains (i,j,k) index of grid
         int p1 = p.getKey();
-        vd.template getProp<i_rho>(p) = rhomean;  //[pa] atmospheric pressure <- EQTN TO UPDATE THIS?
+        vd.template getProp<i_rho>(p) = rhomean;  //[pa] 
 
         updateThermalProperties1(vd, p1);    //equation of state: update pressure and temperature
         //output_vd(vd,p1);

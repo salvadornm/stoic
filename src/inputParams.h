@@ -24,13 +24,15 @@ void inputUserParams(Cfd &simulation, engine &eng )
     eng.Rcomp = 15;
     eng.Nrpm = 1500;   //[rpm]
     eng.ca_init = 180.0;  //start at BDC
+
+    eng.Twall = 300; //[K]
 }
 
-void initialize_vel(particleset &vd, double key, double lx)
+void initialize_vel(particleset &vd, Cfd &simulation, double key, engine eng)
 {
     std::random_device rd;
     std::default_random_engine generator(rd());
-    std::normal_distribution<double> distribution(0.0, lx);
+    std::normal_distribution<double> distribution(0.0, eng.smp);
 
     //set random velocity of the particles
     double numberx = distribution(generator);

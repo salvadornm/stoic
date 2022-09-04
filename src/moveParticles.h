@@ -6,9 +6,10 @@
 #include "global.h"
 #include "vector_math.h"
 
-void moveParticles(particleset  & vd, int p, double dt, engine eng)
+void moveParticles(particleset  & vd, int p, double dt, engine eng, Cfd sim)
 {
     Point <3,double> psi {0.0,0.0,0.0};  //dt to reach wall boundaries
+    double heat_transfer = 0;
 
     // update temporary particle position
     Point <3,double> pos_zero {vd.getPos(p)[0],vd.getPos(p)[1],vd.getPos(p)[2]};
@@ -43,9 +44,7 @@ void moveParticles(particleset  & vd, int p, double dt, engine eng)
         }
   
         bc_flag = inCylinder(vel, pos_zero, pos_new, eng, psi);
-        if (bc_flag == 1){
-            //cout << "IN BOUNDS!" << endl;
-        }
+        //heat_transfer = calculateHeatloss(vd,sim,eng);
     }
     
     vd.getPos(p)[0] = pos_new[0];

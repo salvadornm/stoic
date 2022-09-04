@@ -40,6 +40,7 @@ const double cv_global = 718; //[J/kgK]
     double rad, ppv, H, r_cut;
     double lx, ly, lz;
     double m_tot, Eta2;
+    double P0,T0, Pmean, Tmean, Rhomean;
   };
   class engine
   { 
@@ -48,9 +49,10 @@ const double cv_global = 718; //[J/kgK]
       double Nrpm,Nrps, smp;
       double Vdisp,VBDC,VTDC;
       double volumeC, height;
-      double s_inst,V_inst; //instantaneous stroke and volume
+      double s_inst,V_inst, dStime, dVol; //instantaneous stroke and volume
       double ca,ca_init;  //crank angle
       int flag; //compression or expansion stroke
+      double Twall;
   };
 
   class thermal
