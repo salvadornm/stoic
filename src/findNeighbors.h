@@ -6,7 +6,7 @@
 #include "calculations.h"
 #include"test.h"
 
-template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN, Cfd sim){
+template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN, Cfd sim, engine eng){
     int n,ingh,ip;
     float iavg=0;
     
@@ -43,6 +43,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
         // Get an iterator of all the particles neighborhood of p
         auto Np = NN.template getNNIterator<NO_CHECK>(NN.getCell(vd.getPos(a)));
         double tot_W = 0;
+        double tot_factor = 0;
         
         // For each neighborhood particle
         ingh =0;
@@ -61,10 +62,11 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
                         
             //if the particles interact...
             if (r < 2.0*sim.H) {
-                Point<3,double> DW;
-                double factor = DWab(dr,DW,r,false); // gradient kernel //
-                double W = Wab(r); //kernel
-                tot_W += W;          
+                Point<3,double> DW {0.0,0.0,0.0};
+                double factor = DWab(dr,DW,r,sim.H); // gradient kernel //
+                double W = Wab(r, sim.H); //kernel
+                tot_W += W;
+                tot_factor += factor;          
                 
                 vd.template getProp<i_vdmean>(a)[i_rho] += W*vd.getProp<i_rho>(b);
                 vd.template getProp<i_vdmean>(a)[i_temperature] += W*vd.getProp<i_temperature>(b);
@@ -95,9 +97,10 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
                     cout << "drho: " << drho.get(i) << endl;
                     double drho_double =  vd.getProp<i_rho>(a)*va.get(i)-vd.getProp<i_rho>(b)*vb.get(i); 
                     cout << "drho: " << drho_double << endl;
-                    cout << "DW: " << DW.get(i) << endl;
                     */
-                    //vd.template getProp<i_dvdmean>(a)[i][i_momentum] += drho.get(i)*dv.get(i)*DW.get(i);
+                    //vd.template getProp<i_dvdmean>(a)[i][i_momentum] += (vd.getProp<i_rho>(b)/eng.volumeC)*dv.get(i)*DW.get(i);
+                    
+                    //cout << "DW: " << DW.get(i) << endl;
                     vd.template getProp<i_dvdmean>(a)[i][i_momentum] += (drho.get(i)*DW.get(i));
                     vd.template getProp<i_dvdmean>(a)[i][i_pressure]    += (dP*DW.get(i));
                     vd.template getProp<i_dvdmean>(a)[i][i_temperature] += (dT*DW.get(i));
@@ -122,7 +125,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
         ++part;
     }
 
-    //cout << " Avg number of neighbours=" << iavg/ip << endl;
+    cout << " Avg number of neighbours=" << iavg/ip << endl;
 
     //tsim.stop();
     //std::cout << "Time: " << tsim.getwct() << std::endl;

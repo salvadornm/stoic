@@ -3,23 +3,28 @@
 void kernel_test( double H, Point<3,double> dr)
 {
     // test kernel function
-    std::cout << " kernel(0.0 H)  " << Wab(0.0) << std::endl;
-    std::cout << " kernel(0.99 H) " << Wab(0.99*H)<< std::endl;
-    std::cout << " kernel(1.01 H) " << Wab(1.01*H)<< std::endl;
-    std::cout << " kernel(1.9 H)  " << Wab(1.9*H) << std::endl;
+    std::cout << " kernel(0.0 H)  " << Wab(0.0,H) << std::endl;
+    std::cout << " kernel(0.99 H) " << Wab(0.99*H,H)<< std::endl;
+    std::cout << " kernel(1.01 H) " << Wab(1.01*H,H)<< std::endl;
+    std::cout << " kernel(1.9 H)  " << Wab(1.9*H,H) << std::endl;
 
     double r = -0.1;
-                Point<3,double> DW;
-                double factor = DWab(dr,DW,r,false); // gradient kernel //
-                double W = Wab(r); //kernel
+    Point<3,double> DW;
+    double factor = DWab(dr,DW,r,H); // gradient kernel //
+    double W = Wab(r,H); //kernel
+    
+    double a = 1.0/(pi*pow(H,3));
+    double a_h = a/H;
+
     while (r < 2)
     {
         r += 0.1;
-        W = Wab(r*H); //kernel
-        //cout << " W = " << W << endl;
-        factor = DWab(dr,DW,r*H,false);
+        W = Wab(r*H,H); //kernel
+        cout << " H = " << H << endl;
+        factor = DWab(dr,DW,r*H,H);
         cout << "r= " << r << endl;
-        cout << "dW = " << factor << ", W/a = " << W << endl;
+        cout << "dW = " << factor << ", W = " << W << endl;
+        cout << "dW/(a/h) = " << factor/a_h << ", W/a = " << W/a << endl;
         cout << "dWab = " << DW.get(0) << " , " << DW.get(1) << " , " << DW.get(2) << endl;
     }
 }

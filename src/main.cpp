@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
         initialize_pres(vd,simulation,key1,eng);
 
         //initialize remaining properties (placeholder values for now)
-        vd.template getProp<i_pressure>(key) = 101300;  //[pa] atmospheric pressure <- EQTN TO UPDATE THIS?
+        //vd.template getProp<i_pressure>(key) = 101300;  //[pa] atmospheric pressure <- EQTN TO UPDATE THIS?
         vd.template getProp<i_temperature>(key) = 500;
        // vd.template getProp<i_energy>(key) = 1e-8; //temporary placeholder
        // vd.template getProp<i_rho>(key) = .1; //temporary placeholder
@@ -139,8 +139,8 @@ int main(int argc, char* argv[])
 
         auto it3 = vd.getDomainIterator();  //iterator that traverses the particles in the domain 
         std::cout << "--------step: " << i << " ------" << std::endl;
-        find_neighbors(vd, NN, simulation); //contaions properties of neighbors
-        //outputdata_to_csv(vd, i);     
+        find_neighbors(vd, NN, simulation, eng); //contaions properties of neighbors
+        outputdata_to_csv(vd, i);     
 
         count = 0;
 

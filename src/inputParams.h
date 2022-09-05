@@ -11,9 +11,9 @@ void inputUserParams(Cfd &simulation, engine &eng )
 {
     //simulation parameters
     simulation.nparticles = 10000; //
-    simulation.nsteps = 1000; //100
+    simulation.nsteps = 100; //100
     simulation.dt = 0.00001;   //0.01
-    simulation.frame = 10;   //10
+    simulation.frame = 1;   //10
     simulation.rad = 2;
     simulation.dp = 1/sqrt(simulation.nparticles);
 
@@ -40,9 +40,25 @@ void initialize_vel(particleset &vd, Cfd &simulation, double key, engine eng)
     double numberz = distribution(generator);
 
     //set the property of the particles : eventually velocity will be initialized from turbulence files
-    vd.template getProp<i_velocity>(key)[0] = numberx;
-    vd.template getProp<i_velocity>(key)[1] = numbery;
-    vd.template getProp<i_velocity>(key)[2] = numberz;
+    vd.template getProp<i_velocity>(key)[0] = 0;// numberx;
+    vd.template getProp<i_velocity>(key)[1] = 0;// numbery;
+    vd.template getProp<i_velocity>(key)[2] = 0;// numberz;
+    
+    //use to test different velocity inputs per location in cylinder  
+    /*
+    // Get the distance between a and b
+    double r_cyl = eng.bore/2;
+    Point<3,double> cyl_center {r_cyl, r_cyl};
+    Point<3,double> pos {vd.getPos(key)[0], vd.getPos(key)[1]};
+    //double radius = sqrt(norm2(pos - r_cyl));
+    double radius = sqrt(pow((vd.getPos(key)[0]-r_cyl),2)+pow((vd.getPos(key)[1]-r_cyl),2));
+
+    if(radius > 0.2*eng.bore){
+        vd.template getProp<i_velocity>(key)[0] = 0;
+        vd.template getProp<i_velocity>(key)[1] = 0;
+        vd.template getProp<i_velocity>(key)[2] = 0;
+    }
+    */
 }
 
 void initialize_temp(particleset &vd, Cfd &simulation, double key, engine eng)
