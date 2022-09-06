@@ -18,6 +18,7 @@ void output_energy_props(particleset &vd, int p, double dh, double dvisc, double
 void vary_initialization(particleset &vd, Cfd simulation, int key);
 void limit_velocity(particleset &vd, int key, int i);
 void outputdata_to_csv(particleset vd, int step);
+void outputmeans_to_csv(particleset vd, int step);
 
 template<typename CellList> int stateOfNeighbors(particleset  & vd, CellList & NN)
 {    auto part = vd.getDomainIterator();

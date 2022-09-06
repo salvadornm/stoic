@@ -198,3 +198,53 @@ void outputdata_to_csv(particleset vd, int step){
     }
 
 }
+
+void outputmeans_to_csv(particleset vd, int step){
+    ofstream outputfile("stoic-means_output.csv", std::ios::app);
+    //outputfile.open("stoic_output.csv");
+    outputfile << "Step,V_avg,Vx_avg,Vy_avg,Vz_avg,Pavg,Tavg,rho_avg,Uin_avg\n";
+    
+    double Tmean = 0;
+    double Pmean = 0;
+    double Rhomean = 0;
+    double Umean = 0;
+
+    double Vmean = 0;
+    double Vxmean = 0;
+    double Vymean = 0;
+    double Vzmean = 0;
+
+    double count = 1e-8;
+
+    //calculate mean temperature from previous iteration
+    auto it = vd.getDomainIterator();
+    while (it.isNext())
+    {
+        auto a = it.get();
+        Tmean += vd.template getProp<i_temperature>(a);
+        Pmean += vd.template getProp<i_pressure>(a);
+        Rhomean += vd.template getProp<i_rho>(a);
+        Umean += vd.template getProp<i_energy>(a);
+
+        Vxmean += vd.template getProp<i_velocity>(a)[0];
+        Vymean += vd.template getProp<i_velocity>(a)[1];
+        Vzmean += vd.template getProp<i_velocity>(a)[2];
+        
+        Vmean += sqrt(pow(vd.template getProp<i_velocity>(a)[0],2) + pow(vd.template getProp<i_velocity>(a)[1],2) + pow(vd.template getProp<i_velocity>(a)[2],2));
+        
+        ++it; ++count;
+    }
+    
+    Tmean  /= count;
+    Pmean /= count;
+    Rhomean /= count;
+    Umean /= count;
+    Vxmean /= count;
+    Vymean /= count;
+    Vzmean /= count;     
+    Vmean /= count;
+
+    outputfile << step << ",";
+    outputfile << Vmean << "," << Vxmean << "," << Vymean << "," << Vzmean << ",";
+    outputfile << Pmean << "," << Tmean << "," << Rhomean << "," << Umean <<  "\n";
+}

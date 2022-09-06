@@ -37,7 +37,7 @@ debug:
 
 clean:
 	rm -f *.o *~ core $(RUNDIR)stoic
-	rm -f $(RUNDIR)*.vtp $(RUNDIR)*.pvtp $(RUNDIR)/stoic_output.csv
+	rm -f $(RUNDIR)*.vtp $(RUNDIR)*.pvtp $(RUNDIR)/*.csv
 
 flags:
 	echo "RUNDIR=" $(RUNDIR) 

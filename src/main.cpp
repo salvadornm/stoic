@@ -88,8 +88,8 @@ int main(int argc, char* argv[])
         initialize_pres(vd,simulation,key1,eng);
 
         //initialize remaining properties (placeholder values for now)
-        //vd.template getProp<i_pressure>(key) = 101300;  //[pa] atmospheric pressure <- EQTN TO UPDATE THIS?
-        vd.template getProp<i_temperature>(key) = 500;
+        //vd.template getProp<i_pressure>(key) = 1;  //[pa] atmospheric pressure <- EQTN TO UPDATE THIS?
+        vd.template getProp<i_temperature>(key) = 300;
        // vd.template getProp<i_energy>(key) = 1e-8; //temporary placeholder
        // vd.template getProp<i_rho>(key) = .1; //temporary placeholder
         
@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
     timer tsim;
     tsim.start();
     unsigned long int f = 0;
-    int count = 0;
+    double count = 0.0;
     double cfl = 0;
     double Pmean = 0; double Tmean = 0;
     
@@ -140,9 +140,10 @@ int main(int argc, char* argv[])
         auto it3 = vd.getDomainIterator();  //iterator that traverses the particles in the domain 
         std::cout << "--------step: " << i << " ------" << std::endl;
         find_neighbors(vd, NN, simulation, eng); //contaions properties of neighbors
-        outputdata_to_csv(vd, i);     
+        outputdata_to_csv(vd, i); 
+        outputmeans_to_csv(vd, i);    
 
-        count = 0;
+        count = 1e-8;
 
         // Particle loop...
         while (it3.isNext())
@@ -172,7 +173,7 @@ int main(int argc, char* argv[])
         Pmean = Pmean/count;
         //std::cout << "tmean: " << Tmean << endl;
         std::cout << Pmean << endl;
-        //std::cout << "cfl: " << cfl << endl;
+        std::cout << "cfl: " << cfl << endl;
         cfl = 0; Pmean = 0; Tmean = 0;
 
         //--OUTPUT--//  ------------------------------------
