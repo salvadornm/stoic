@@ -35,7 +35,7 @@ double DWab(Point<3,double> & dx, Point<3,double> & DW, double r, double H)
 
     r /= H;
     double factor = 0;
-    std::cout << "r/h = " << r << std::endl;
+    //std::cout << "r/h = " << r << std::endl;
     if (r < 1.0)
         factor = (c1*r + d1*r*r);
     else if (r < 2.0)

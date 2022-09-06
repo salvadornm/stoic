@@ -101,15 +101,34 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
                     //vd.template getProp<i_dvdmean>(a)[i][i_momentum] += (vd.getProp<i_rho>(b)/eng.volumeC)*dv.get(i)*DW.get(i);
                     
                     //cout << "DW: " << DW.get(i) << endl;
+
                     vd.template getProp<i_dvdmean>(a)[i][i_momentum] += (drho.get(i)*DW.get(i));
                     vd.template getProp<i_dvdmean>(a)[i][i_pressure]    += (dP*DW.get(i));
                     vd.template getProp<i_dvdmean>(a)[i][i_temperature] += (dT*DW.get(i));
                     vd.template getProp<i_dvdmean>(a)[i][i_visc] += (dviscP*DW.get(i));
-                }ingh++;
+                    /*
+                    vd.template getProp<i_dvdmean>(a)[i][i_momentum] += (drho.get(i)*factor);
+                    vd.template getProp<i_dvdmean>(a)[i][i_pressure]    += (dP*factor);
+                    vd.template getProp<i_dvdmean>(a)[i][i_temperature] += (dT*factor);
+                    vd.template getProp<i_dvdmean>(a)[i][i_visc] += (dviscP*factor);
+                    */
+                }
+                ingh++;
             }
             ++Np;
         }
-        
+
+        //cout << "ingh: " << ingh << endl;
+        //W ~ G/V
+        //to find the gradients need to divide by total kernel weight
+        for (size_t i = 0; i < 3 ; i++) //loop through x,y,z directions
+        {
+            vd.template getProp<i_dvdmean>(a)[i][i_momentum] /= tot_W; //ingh;
+            vd.template getProp<i_dvdmean>(a)[i][i_pressure]    /= tot_W; //ingh;
+            vd.template getProp<i_dvdmean>(a)[i][i_temperature] /= tot_W; //ingh;
+            vd.template getProp<i_dvdmean>(a)[i][i_visc] /= tot_W; //ingh;
+        }
+
         //divide by total kernel weight to get mean
         tot_W = max(tot_W,1.0);
         vd.template getProp<i_vdmean>(a)[i_rho] /= tot_W;

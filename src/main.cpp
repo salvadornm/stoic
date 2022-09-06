@@ -89,7 +89,7 @@ int main(int argc, char* argv[])
 
         //initialize remaining properties (placeholder values for now)
         //vd.template getProp<i_pressure>(key) = 1;  //[pa] atmospheric pressure <- EQTN TO UPDATE THIS?
-        vd.template getProp<i_temperature>(key) = 300;
+        vd.template getProp<i_temperature>(key) = 500;
        // vd.template getProp<i_energy>(key) = 1e-8; //temporary placeholder
        // vd.template getProp<i_rho>(key) = .1; //temporary placeholder
         
@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
     double cfl = 0;
     double Pmean = 0; double Tmean = 0;
     
-    auto NN = vd.getCellList(r_cut);  //define neighborhoods with radius (repeated at end of time loop)
+    auto NN = vd.getCellList(4*simulation.H);  //define neighborhoods with radius (repeated at end of time loop)
 
     // Time loop
     for (size_t i = 0; i < simulation.nsteps ; i++)
@@ -180,7 +180,7 @@ int main(int argc, char* argv[])
         // Map particles and re-sync the ghost
         vd.map();
         vd.template ghost_get<>();        
-        NN = vd.getCellList(r_cut);
+        NN = vd.getCellList(4*simulation.H);
 
         // collect statistics on the configuration
         if ((i+1) % simulation.frame == 0)
