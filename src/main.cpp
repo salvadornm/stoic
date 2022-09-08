@@ -88,10 +88,8 @@ int main(int argc, char* argv[])
         initialize_pres(vd,simulation,key1,eng);
 
         //initialize remaining properties (placeholder values for now)
-        //vd.template getProp<i_pressure>(key) = 1;  //[pa] atmospheric pressure <- EQTN TO UPDATE THIS?
+        vd.template getProp<i_pressure>(key) = 101300;  //[pa] atmospheric pressure <- EQTN TO UPDATE THIS?
         vd.template getProp<i_temperature>(key) = 500;
-       // vd.template getProp<i_energy>(key) = 1e-8; //temporary placeholder
-       // vd.template getProp<i_rho>(key) = .1; //temporary placeholder
         
         updateThermalProperties2(vd, key1);    //equation of state
         initialize_dvdmean(vd, key1);
@@ -105,14 +103,15 @@ int main(int argc, char* argv[])
         ++it;
         cnt++;
     }
+
     updateInitialProps(vd, simulation);
     simulation.m_tot = calculateMass(vd, eng);  //find mass of mixture: should not vary
     cout << "mtot: " << simulation.m_tot << endl;
 
     //-- Map Particles to grid --/
-    vd.map();       //distribute particle positions across the processors
+    vd.map();                           //distribute particle positions across the processors
     vd.write_frame("particles_",0);       
-    vd.ghost_get<>();   //syncs the ghost with the newly mapped particles
+    vd.ghost_get<>();                   //syncs the ghost with the newly mapped particles
 
     cout << " ---------  particles initialized  ------- " << cnt << endl;
 
@@ -137,14 +136,15 @@ int main(int argc, char* argv[])
         //updateSimulation(simulation, eng);
         //pistonInteraction(vd, simulation, eng);
 
-        auto it3 = vd.getDomainIterator();  //iterator that traverses the particles in the domain 
+        auto it3 = vd.getDomainIterator();          //iterator that traverses the particles in the domain 
         std::cout << "--------step: " << i << " ------" << std::endl;
-        find_neighbors(vd, NN, simulation, eng); //contaions properties of neighbors
+        find_neighbors(vd, NN, simulation, eng);    //contaions properties of neighbors
+        
+        //output data to csv's for review (fx in test)
         outputdata_to_csv(vd, i); 
         outputmeans_to_csv(vd, i);    
 
         count = 1e-8;
-
         // Particle loop...
         while (it3.isNext())
         {
@@ -152,7 +152,6 @@ int main(int argc, char* argv[])
             auto p = it3.get();
             int place = p.getKey();
 
-            //std::cout << count << " particle " << std::endl;
             //output_vd(vd,place);    //output particle properties
             
             updateParticleProperties(vd, place, simulation.dt, simulation.H, turb, simulation, eng);
@@ -161,11 +160,11 @@ int main(int argc, char* argv[])
             //updateThermalProperties1(cd, place);   //update pressure/temperature equation of state
 
             double cfl_temp = (simulation.dt/simulation.H) * (vd.template getProp<i_velocity>(p)[0]+vd.template getProp<i_velocity>(p)[1]+vd.template getProp<i_velocity>(p)[2]);
-            cfl = std::max(abs(cfl_temp),cfl);       //look for max not average. needs to be absolute.  should hold
-       
+            cfl = std::max(abs(cfl_temp),cfl);
 
             Tmean += vd.template getProp<i_temperature>(p);
             Pmean += vd.template getProp<i_pressure>(p);
+            
             ++it3;
         }
 

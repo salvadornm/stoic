@@ -69,10 +69,10 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     turb.k_sgs = 1e-8;
 
     //time scales
-    double Cu = 2.1; //Kolmogorov constant
+    double Cu = 2.1;        //Kolmogorov constant
     turb.C0 = 1.0;
     turb.delta = 9.92e-4;
-    double k = .025;    //[W/m K] thermal conductivity
+    double k = .025;        //[W/m K] thermal conductivity
 
     D_therm = k/(rho_p*cp_global);    //placeholder for thermal diffusivity (dependent on equivalence ratio)
 
@@ -95,9 +95,6 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     freq_mol = viscp/(rho_p*l*l);
     tau_mol = 1.0/freq_mol;
 
-    //cout << "tau_mol: " << tau_mol << " tau_sgs: " << tau_sgs << endl; 
-    //cout << "cu: " << Cu << " freq_sgs: " << freq_sgs << " freq_mol: " << freq_mol << endl; 
-
     //equivalent time scale
     freq_eq = Cu*freq_sgs + freq_mol;
     tau_eq = dt + 1.0/freq_eq;
@@ -106,7 +103,6 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     tau_eq_energy = dt + 1.0/freq_eq_energy;
 
     tau_eq_energy = tau_eq;
-
     //cout << "tau_eq: " << tau_eq << " tau_eq_energy: " << tau_eq_energy << endl; 
 
     //----------------------------------------------------------------------------
@@ -116,21 +112,19 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
 
     // (1) update density ---------------------------------
     rho_new = rho_p + drho;
-    //cout <<  "roh_p: " << rho_p << "droh: " << drho << "rho_nw: " << rho_new << endl;
     vd.template getProp<i_rho>(p) =  rho_new;
-    //cout << "drho: " << drho << " rhoNew: " << rho_new << endl;
    
     // (2) update momentum ---------------------
     Au_p = (0.5 + 0.75*Cu) * rho_p / tau_eq;
-    B = sqrt(turb.C0*turb.Eps_sgs);//* sqrt(dt); //is already in dWien term       //turbulent diffusion
-    
+    B = sqrt(turb.C0*turb.Eps_sgs);             //turbulent diffusion
+    //Au_p=0.0;
+    //B=0.0;
+
     //SNM
     double ke_p = 0;
     double ke = 0;
     double ke_mean = 0;
 
-    //Au_p=0.0;
-    //B=0.0;//<------------
 
     for (size_t i = 0; i < 3 ; i++) 
     {    
@@ -160,17 +154,17 @@ void updateParticleProperties(particleset  & vd, int p, double dt, double l, tur
     // (5) solve energy density ---------------------
     Ae_p = rho_p * dh/tau_eq_energy;
 
-    
     edensity_p = rho_p * energy_p;
-   // dvisc = (visc_grad[0] + visc_grad[1] + visc_grad[2])*dt;    //CHECK ... should this be velocity * P instead of visc*P?
-   // dvisc = 0;
+    //dvisc = (visc_grad[0] + visc_grad[1] + visc_grad[2])*dt;    //CHECK ... should this be velocity * P instead of visc*P?
+   
+    //dvisc = 0;
     //Ae_p = 0;
 
     edensity_p += Ae_p * dt;
-    energy_new = edensity_p/rho_new;    //specific total energy
+    energy_new = edensity_p/rho_new;                    //specific total energy
 
     //SNM: U = Etotal - Ekin
-    vd.template getProp<i_energy>(p)= energy_new - ke; //internal energy
+    vd.template getProp<i_energy>(p)= energy_new - ke;  //internal energy
     
     // (6) check continuity again - update temperature and pressure
     updateThermalProperties1(vd, p);
