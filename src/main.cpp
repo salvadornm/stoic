@@ -80,6 +80,7 @@ int main(int argc, char* argv[])
 
         // Assign a random position within engine cylinder
         vd.getPos(key)[2] = ((double)rand() / RAND_MAX) * eng.height;
+
         initialBoundary(vd.getPos(key)[0], vd.getPos(key)[1], eng, simulation);
 
         //initialize properties (functions in inputParams.h)
@@ -138,8 +139,11 @@ int main(int argc, char* argv[])
 
         auto it3 = vd.getDomainIterator();          //iterator that traverses the particles in the domain 
         std::cout << "--------step: " << i << " ------" << std::endl;
-        find_neighbors(vd, NN, simulation, eng);    //contaions properties of neighbors
+        find_neighbors(vd, NN, simulation);    //contaions properties of neighbors
         
+
+        exit(99);
+
         //output data to csv's for review (fx in test)
         outputdata_to_csv(vd, i); 
         outputmeans_to_csv(vd, i);    

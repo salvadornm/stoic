@@ -28,6 +28,9 @@ void initialize_geometry(Cfd &simulation, engine &eng){
     simulation.ppv = simulation.nparticles/eng.volumeC;
     simulation.dp = std::cbrt(1/simulation.ppv);
     simulation.H = (5/3)*simulation.dp;
+  
+    simulation.H = 0.02;
+
     std::cout << "simulation.H: " << simulation.H << std::endl; 
     simulation.lx = 2 * eng.bore;
     simulation.ly = 2 * eng.bore;

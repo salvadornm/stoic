@@ -19,6 +19,13 @@ constexpr int i_velx     = 0;
 constexpr int i_vely     = 5;
 constexpr int i_velz     = 6;
 
+constexpr int NDIM       = 3;
+constexpr int NVARSOLVE     = 5;
+constexpr int NVAR       = 7;
+
+
+
+
 // Initialize global vars
 const double pi = 3.14159265358979323846;
 const double H = 0.009; //0.017; //0.173205; //for kernel : sqrt(3.0*dp*dp) support of the kernel

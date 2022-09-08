@@ -18,7 +18,7 @@ void inputUserParams(Cfd &simulation, engine &eng )
     simulation.dp = 1/sqrt(simulation.nparticles);
 
     //engine geometery parameters (for the volvo td100)
-    eng.bore = 12.065/100;  //[m]
+    eng.bore = 1;//12.065/100;  //[m]
     eng.stroke = 14.0/100;  //[m]
     eng.conRod = 26.0/100;  //[m]
     eng.Rcomp = 15;
@@ -86,15 +86,17 @@ void initialize_pres(particleset &vd, Cfd &simulation, double key, engine eng)
     
     double radius = sqrt(pow((vd.getPos(key)[0]-r_cyl),2)+pow((vd.getPos(key)[1]-r_cyl),2));
 
-    if(radius < 0.2*eng.bore){
-        vd.template getProp<i_pressure>(key) = 10*101300;   //hot product temperature
-    } else{
-        vd.template getProp<i_pressure>(key) = 101300;
-    }
+    // if(radius < 0.2*eng.bore){
+    //     vd.template getProp<i_pressure>(key) = 10*101300;   //hot product temperature
+    // } else{
+    //     vd.template getProp<i_pressure>(key) = 101300;
+    // }
+
+
 
     //initialize pressure for kernel testing in 1 Dimension only!
     //vd.template getProp<i_pressure>(key) = 4*radius;
-    //vd.template getProp<i_pressure>(key) = 101300*vd.getPos(key)[0];
+    vd.template getProp<i_pressure>(key) = 101300*vd.getPos(key)[0] + 101300;
 }
 
 void initialize_dvdmean(particleset &vd, double key)

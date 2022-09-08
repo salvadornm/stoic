@@ -10,7 +10,7 @@ void kernel_test( double H, Point<3,double> dr)
 
     double r = -0.1;
     Point<3,double> DW;
-    double factor = DWab(dr,DW,r,H); // gradient kernel //
+    double factor = DWab(r,H,dr,DW); // gradient kernel //
     double W = Wab(r,H); //kernel
     
     double a = 1.0/(pi*pow(H,3));

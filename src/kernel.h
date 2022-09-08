@@ -7,7 +7,8 @@
 
 
 //SPH Kernel --> kernel.cpp
-double Wab(double r, double H);
-double DWab(Point<3,double> & dx, Point<3,double> & DW, double r, double H);
+double Wab(double r, double h);
+//double DWab(double r, double h,Point<3,double> dr, Point<3,double> & DW );
+double * DWab(double r, double h,Point<3,double> dr);
 
 #endif // _kernel_h
