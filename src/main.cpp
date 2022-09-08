@@ -83,21 +83,19 @@ int main(int argc, char* argv[])
         initialBoundary(vd.getPos(key)[0], vd.getPos(key)[1], eng, simulation);
 
         //initialize properties (functions in inputParams.h)
-        initialize_vel(vd,simulation,key1,eng);
-        initialize_temp(vd,simulation,key1,eng);
-        initialize_pres(vd,simulation,key1,eng);
+        initialize_vel(vd,simulation,key1,eng);             //[m/s]
+        initialize_temp(vd,simulation,key1,eng);            //[K]
+        initialize_pres(vd,simulation,key1,eng);            //[Pa]
 
-        //initialize remaining properties (placeholder values for now)
-        //vd.template getProp<i_pressure>(key) = 101300;  //[pa] atmospheric pressure <- EQTN TO UPDATE THIS?
-        vd.template getProp<i_temperature>(key) = 500;
+        //initialize remaining properties or constant properties if desired
+        //vd.template getProp<i_pressure>(key) = 101300;    //[pa] atmospheric pressure
+        vd.template getProp<i_temperature>(key) = 500;      //[K]
         
-        updateThermalProperties2(vd, key1);    //equation of state
+        updateThermalProperties2(vd, key1);                 //solve for density/energy
         initialize_dvdmean(vd, key1);
         
-        //updateChemicalProperties(vd); //initialize temperature and composition
-        //updateThermalProperties1(vd);   //update conductivity,diffusivity,specific haet capacity, based on T/Y 
-        //updateDensity(vd);
-        //checkContinuity
+        //updateChemicalProperties(vd);     //initialize temperature and composition
+        //updateThermalProperties1(vd);     //update conductivity,diffusivity,specific haet capacity, based on T/Y 
                 
         // next particle
         ++it;
@@ -105,12 +103,13 @@ int main(int argc, char* argv[])
     }
 
     updateInitialProps(vd, simulation);
-    simulation.m_tot = calculateMass(vd, eng);  //find mass of mixture: should not vary
-    cout << "mtot: " << simulation.m_tot << endl;
+    simulation.m_tot = calculateMass(vd, eng);      //find mass of mixture: should not vary
+    //updateDensity(vd);
+    //checkContinuity
 
     //-- Map Particles to grid --/
     vd.map();                           //distribute particle positions across the processors
-    vd.write_frame("particles_",0);       
+    vd.write_frame("particles_",0);     //output points at initialization state       
     vd.ghost_get<>();                   //syncs the ghost with the newly mapped particles
 
     cout << " ---------  particles initialized  ------- " << cnt << endl;
@@ -131,7 +130,8 @@ int main(int argc, char* argv[])
     for (size_t i = 0; i < simulation.nsteps ; i++)
     {
         // Move the Crank - function to solve for new cylinder geometry / move the piston
-        //update_CA(simulation.dt, eng);  //funtion in engineKinematics. updates piston and volume
+        // funtions defined in engineKinematics -----------------------------------------
+        //update_CA(simulation.dt, eng);  
         //movePiston(eng);
         //updateSimulation(simulation, eng);
         //pistonInteraction(vd, simulation, eng);
@@ -156,7 +156,6 @@ int main(int argc, char* argv[])
             
             updateParticleProperties(vd, place, simulation.dt, simulation.H, turb, simulation, eng);
             moveParticles(vd, place, simulation.dt, eng, simulation);
-            
             //updateThermalProperties1(cd, place);   //update pressure/temperature equation of state
 
             double cfl_temp = (simulation.dt/simulation.H) * (vd.template getProp<i_velocity>(p)[0]+vd.template getProp<i_velocity>(p)[1]+vd.template getProp<i_velocity>(p)[2]);

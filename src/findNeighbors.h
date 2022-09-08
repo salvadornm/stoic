@@ -87,12 +87,12 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
 
                 for (size_t i = 0; i < 3 ; i++) //loop through x,y,z directions
                 {   
-                    /*
+                    
                     vd.template getProp<i_dvdmean>(a)[i][i_momentum]    += (drho.get(i)*DW.get(i));
                     vd.template getProp<i_dvdmean>(a)[i][i_pressure]    += (dP*DW.get(i));
                     vd.template getProp<i_dvdmean>(a)[i][i_temperature] += (dT*DW.get(i));
                     vd.template getProp<i_dvdmean>(a)[i][i_visc]        += (dviscP*DW.get(i));
-                    */
+                    
 
                    /*
                     cout << dr.get(i) << endl;
@@ -103,11 +103,12 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
                     */
                    // because DW = factor*dr(i), above and below should be equivalent)
 
-                    vd.template getProp<i_dvdmean>(a)[i][i_momentum] += (drho.get(i)*factor);
+                    /*
+                    vd.template getProp<i_dvdmean>(a)[i][i_momentum]    += (drho.get(i)*factor);
                     vd.template getProp<i_dvdmean>(a)[i][i_pressure]    += (dP*factor);
                     vd.template getProp<i_dvdmean>(a)[i][i_temperature] += (dT*factor);
-                    vd.template getProp<i_dvdmean>(a)[i][i_visc] += (dviscP*factor);
-                    
+                    vd.template getProp<i_dvdmean>(a)[i][i_visc]        += (dviscP*factor);
+                    */
                 }
                 ingh++;
             }
@@ -123,6 +124,13 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
             vd.template getProp<i_dvdmean>(a)[i][i_pressure]    /= tot_W;
             vd.template getProp<i_dvdmean>(a)[i][i_temperature] /= tot_W;
             vd.template getProp<i_dvdmean>(a)[i][i_visc]        /= tot_W;
+
+            /*
+            vd.template getProp<i_dvdmean>(a)[i][i_momentum]    /= tot_factor;
+            vd.template getProp<i_dvdmean>(a)[i][i_pressure]    /= tot_factor;
+            vd.template getProp<i_dvdmean>(a)[i][i_temperature] /= tot_factor;
+            vd.template getProp<i_dvdmean>(a)[i][i_visc]        /= tot_factor;
+            */
         }
 
         //divide by total kernel weight to get mean
