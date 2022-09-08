@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
         initialize_pres(vd,simulation,key1,eng);
 
         //initialize remaining properties (placeholder values for now)
-        vd.template getProp<i_pressure>(key) = 101300;  //[pa] atmospheric pressure <- EQTN TO UPDATE THIS?
+        //vd.template getProp<i_pressure>(key) = 101300;  //[pa] atmospheric pressure <- EQTN TO UPDATE THIS?
         vd.template getProp<i_temperature>(key) = 500;
         
         updateThermalProperties2(vd, key1);    //equation of state

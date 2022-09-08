@@ -53,9 +53,9 @@ double DWab(Point<3,double> & dx, Point<3,double> & DW, double r, double H)
     //factor = factor*a2;
     factor = factor * (a2/H);
     
-    DW.get(0) = factor * dx.get(0);
-    DW.get(1) = factor * dx.get(1);
-    DW.get(2) = factor * dx.get(2);
+    DW.get(0) = factor * (dx.get(0));
+    DW.get(1) = factor * (dx.get(1));
+    DW.get(2) = factor * (dx.get(2));
     return factor;
 }
 

@@ -12,7 +12,7 @@ void inputUserParams(Cfd &simulation, engine &eng )
     //simulation parameters
     simulation.nparticles = 10000; //
     simulation.nsteps = 3; //100
-    simulation.dt = 0.0001;   //0.01
+    simulation.dt = 0.00005;   //0.01
     simulation.frame = 1;   //10
     simulation.rad = 2;
     simulation.dp = 1/sqrt(simulation.nparticles);
@@ -94,7 +94,7 @@ void initialize_pres(particleset &vd, Cfd &simulation, double key, engine eng)
 
     //initialize pressure for kernel testing in 1 Dimension only!
     //vd.template getProp<i_pressure>(key) = 4*radius;
-    vd.template getProp<i_pressure>(key) = 101300*vd.getPos(key)[0];
+    //vd.template getProp<i_pressure>(key) = 101300*vd.getPos(key)[0];
 }
 
 void initialize_dvdmean(particleset &vd, double key)

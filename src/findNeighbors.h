@@ -54,7 +54,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
             Point<3,double> vb = vd.getProp<i_velocity>(b);
                 
             // Get the distance between a and b
-            Point<3,double> dr = xa - xb;
+            Point<3,double> dr = xb - xa;
             double r2 = norm2(dr);                      //norm2 = (sum of the squares)
             double r = abs(sqrt(r2));
                         
@@ -77,33 +77,44 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
                 vd.template getProp<i_vdmean>(a)[i_velz]        += W*vd.getProp<i_velocity>(b)[2];
 
                 //gradient of particle property
-                Point<3,double> dv      = va - vb;
-                Point<3,double> drho    = vd.getProp<i_rho>(a)*va-vd.getProp<i_rho>(b)*vb;
-                double dP               = vd.getProp<i_pressure>(a) - vd.getProp<i_pressure>(b);
-                double dT               = vd.getProp<i_temperature>(a)-vd.getProp<i_temperature>(b);
-                double visc             = viscous(dr, r2, dv,vd.getProp<i_rho>(a), vd.getProp<i_rho>(b), 1, 0);
-                double dviscP           = visc*(vd.getProp<i_pressure>(a) - vd.getProp<i_pressure>(b));
-                //Point<3,double> dviscP =  va*vd.getProp<i_pressure>(a) - vb*vd.getProp<i_pressure>(b);
+                Point<3,double> dv      = vb - va;
+                Point<3,double> drho    = vd.getProp<i_rho>(b)*vb-vd.getProp<i_rho>(a)*va;
+                double dP               = vd.getProp<i_pressure>(b) - vd.getProp<i_pressure>(a);
+                double dT               = vd.getProp<i_temperature>(b)-vd.getProp<i_temperature>(a);
+                double visc             = viscous(dr, r2, dv,vd.getProp<i_rho>(b), vd.getProp<i_rho>(a), 1, 0);
+                double dviscP           = visc*(vd.getProp<i_pressure>(b) - vd.getProp<i_pressure>(a));
+                //Point<3,double> dviscP =  va*vd.getProp<i_pressure>(b) - vb*vd.getProp<i_pressure>(b);
 
                 for (size_t i = 0; i < 3 ; i++) //loop through x,y,z directions
-                {
+                {   
+                    /*
                     vd.template getProp<i_dvdmean>(a)[i][i_momentum]    += (drho.get(i)*DW.get(i));
                     vd.template getProp<i_dvdmean>(a)[i][i_pressure]    += (dP*DW.get(i));
                     vd.template getProp<i_dvdmean>(a)[i][i_temperature] += (dT*DW.get(i));
                     vd.template getProp<i_dvdmean>(a)[i][i_visc]        += (dviscP*DW.get(i));
-                    
-                    /*
+                    */
+
+                   /*
+                    cout << dr.get(i) << endl;
+                    vd.template getProp<i_dvdmean>(a)[i][i_momentum]    += (drho.get(i)/dr.get(i))*DW.get(i);
+                    vd.template getProp<i_dvdmean>(a)[i][i_pressure]    += (dP/dr.get(i))*DW.get(i);
+                    vd.template getProp<i_dvdmean>(a)[i][i_temperature] += (dT/dr.get(i))*DW.get(i);
+                    vd.template getProp<i_dvdmean>(a)[i][i_visc]        += (dviscP/dr.get(i))*DW.get(i);
+                    */
+                   // because DW = factor*dr(i), above and below should be equivalent)
+
                     vd.template getProp<i_dvdmean>(a)[i][i_momentum] += (drho.get(i)*factor);
                     vd.template getProp<i_dvdmean>(a)[i][i_pressure]    += (dP*factor);
                     vd.template getProp<i_dvdmean>(a)[i][i_temperature] += (dT*factor);
                     vd.template getProp<i_dvdmean>(a)[i][i_visc] += (dviscP*factor);
-                    */
+                    
                 }
                 ingh++;
             }
             ++Np;
         }
         //cout << "ingh: " << ingh << endl;
+        //cout << "tot_W: " << tot_W << endl;
 
         //to find the gradients need to divide by total kernel weight.....
         for (size_t i = 0; i < 3 ; i++)                 //loop through x,y,z directions
@@ -115,7 +126,7 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
         }
 
         //divide by total kernel weight to get mean
-        tot_W = max(tot_W,1.0);
+        //tot_W = max(tot_W,1);
         vd.template getProp<i_vdmean>(a)[i_rho]         /= tot_W;
         vd.template getProp<i_vdmean>(a)[i_temperature] /= tot_W;
         vd.template getProp<i_vdmean>(a)[i_pressure]    /= tot_W;
