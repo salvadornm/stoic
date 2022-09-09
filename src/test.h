@@ -20,7 +20,7 @@ void limit_velocity(particleset &vd, int key, int i);
 void outputdata_to_csv(particleset vd, int step);
 void outputmeans_to_csv(particleset vd, int step);
 
-template<typename CellList> int stateOfNeighbors(particleset  & vd, CellList & NN)
+template<typename CellList> int stateOfNeighbors(particleset  & vd, CellList & NN, Cfd simulation)
 {    auto part = vd.getDomainIterator();
 
     while(part.isNext())
@@ -40,7 +40,7 @@ template<typename CellList> int stateOfNeighbors(particleset  & vd, CellList & N
             double r2 = norm2(dr);
             double r = sqrt(r2);
 
-            if (r < H) {
+            if (r < simulation.H) {
                 cout << b << ":";
                 cout << "r = " << r << " , ";                 
             }

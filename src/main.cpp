@@ -138,7 +138,7 @@ int main(int argc, char* argv[])
 
         auto it3 = vd.getDomainIterator();          //iterator that traverses the particles in the domain 
         std::cout << "--------step: " << i << " ------" << std::endl;
-        find_neighbors(vd, NN, simulation, eng);    //contaions properties of neighbors
+        find_neighbors(vd, NN, simulation);    //contaions properties of neighbors
         
         //output data to csv's for review (fx in test)
         outputdata_to_csv(vd, i); 
