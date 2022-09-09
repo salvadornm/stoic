@@ -1,23 +1,6 @@
 #include "calculations.h"
 
-// Reference densitu 1000Kg/m^3
-const double rho_zero = 1000.0;
-double B = 20.0*20.0*9.81*1.0*rho_zero / 7.0; //(coeff_sound)*(coeff_sound)*gravity*h_swl*rho_zero / gamma_;
-
-//calculate pressure based on local density (called EqState in openfpm)
-void updateEqtnState(particleset & vd)
-{
-    auto it = vd.getDomainIterator();
-    while (it.isNext())
-    {
-        auto a = it.get();
-        double rho_a = vd.template getProp<i_rho>(a);
-        double rho_frac = rho_a / rho_zero;
-        vd.template getProp<i_pressure>(a) = B*( rho_frac*rho_frac*rho_frac*rho_frac*rho_frac*rho_frac*rho_frac - 1.0);
-        ++it;
-    }
-}
-
+// calculate the property means
 void calculateMeans(particleset & vd, Cfd &simulation)
 {   
     double Tmean = 0;
@@ -41,6 +24,8 @@ void calculateMeans(particleset & vd, Cfd &simulation)
     simulation.Rhomean = Rhomean / count;
 }
 
+
+// update initial cylinder properties for means
 void updateInitialProps(particleset & vd, Cfd &simulation)
 {
     calculateMeans(vd, simulation);
@@ -61,6 +46,7 @@ void updateThermalProperties2(particleset & vd, int a)
     vd.template getProp<i_energy>(a) = T*cv_global;
 }
 
+
 //solve for Pressure and Temperature from density and energy 
 // P = (rho*R*T)/M
 void updateThermalProperties1(particleset & vd, int a)
@@ -74,27 +60,8 @@ void updateThermalProperties1(particleset & vd, int a)
     vd.template getProp<i_pressure>(a) = rho*(R_air*vd.template getProp<i_temperature>(a));        //assume dry air for now
 }
 
-double cbar = 20.0 * sqrt(9.81*1.0); //cbar in formula //coeff_sound * sqrt(gravity * h_swl);
-const double visco = 0.1; // alpha in the formula
 
-//implements the viscous term
-double viscous(const Point<3,double> & dr, double rr2, Point<3,double> & dv, double rhoa, double rhob, double massb, double visc) //double & visc)
-{
-    const double dot = dr.get(0)*dv.get(0) + dr.get(1)*dv.get(1) + dr.get(2)*dv.get(2);
-    const double dot_rr2 = dot/(rr2+Eta2);
-    visc=std::max(dot_rr2,visc);
-    if(dot < 0)
-    {
-        const float amubar=H*dot_rr2;
-        const float robar=(rhoa+rhob)*0.5f;
-        const float pi_visc=(-visco*cbar*amubar/robar);
-        return pi_visc;
-    }
-    else
-        return 0.0;
-}
-
-
+// calculate mass of the volume in the cylinder
 double calculateMass(particleset & vd, engine eng)
 {
     auto it = vd.getDomainIterator();
@@ -113,6 +80,7 @@ double calculateMass(particleset & vd, engine eng)
     return mass_mix;
 }
 
+// calculate heat loss from interaction with walls of cylinder
 double calculateHeatloss(particleset & vd, Cfd simulation, engine eng)
 {
     double rho = simulation.m_tot / eng.volumeC;
@@ -169,4 +137,44 @@ double calculateHeatloss(particleset & vd, Cfd simulation, engine eng)
     double heat_flux = heat_transfer/(simulation.dt*10e5);    //[MW/m2]
     
     return heat_transfer;
+}
+
+
+//calculate pressure based on local density (EqState in OpenFPM)
+// Reference densitu 1000Kg/m^3
+const double rho_zero = 1000.0;
+double B = 20.0*20.0*9.81*1.0*rho_zero / 7.0; //(coeff_sound)*(coeff_sound)*gravity*h_swl*rho_zero / gamma_;
+
+void updateEqtnState(particleset & vd)
+{
+    auto it = vd.getDomainIterator();
+    while (it.isNext())
+    {
+        auto a = it.get();
+        double rho_a = vd.template getProp<i_rho>(a);
+        double rho_frac = rho_a / rho_zero;
+        vd.template getProp<i_pressure>(a) = B*( rho_frac*rho_frac*rho_frac*rho_frac*rho_frac*rho_frac*rho_frac - 1.0);
+        ++it;
+    }
+}
+
+//implements the viscous term (from OpenFPM)
+double cbar = 20.0 * sqrt(9.81*1.0);    //cbar in formula //coeff_sound * sqrt(gravity * h_swl);
+const double visco = 0.1;               // alpha in the formula
+
+double viscous(const Point<3,double> & dr, double rr2, Point<3,double> & dv, double rhoa, double rhob, double massb, double visc, Cfd simulation) //double & visc)
+{
+    double Eta2 = 0.01 * simulation.H * simulation.H;
+    const double dot = dr.get(0)*dv.get(0) + dr.get(1)*dv.get(1) + dr.get(2)*dv.get(2);
+    const double dot_rr2 = dot/(rr2+Eta2);
+    visc=std::max(dot_rr2,visc);
+    if(dot < 0)
+    {
+        const float amubar=simulation.H*dot_rr2;
+        const float robar=(rhoa+rhob)*0.5f;
+        const float pi_visc=(-visco*cbar*amubar/robar);
+        return pi_visc;
+    }
+    else
+        return 0.0;
 }

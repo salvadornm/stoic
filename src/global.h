@@ -13,16 +13,18 @@ constexpr int i_pressure    = 3;
 constexpr int i_temperature = 4;
 constexpr int i_scalars     = 5;
 constexpr int i_species     = 6;
-constexpr int i_vdmean     = 7;
+constexpr int i_vdmean      = 7;
 constexpr int i_dvdmean     = 8;
-constexpr int i_velx     = 0;
-constexpr int i_vely     = 5;
-constexpr int i_velz     = 6;
+constexpr int i_velx        = 0;
+constexpr int i_vely        = 5;
+constexpr int i_velz        = 6;
+
+constexpr int NDIM          = 3;
+constexpr int NVARSOLVE     = 5;
+constexpr int NVAR          = 7;
 
 // Initialize global vars
 const double pi = 3.14159265358979323846;
-const double H = 0.009; //0.017; //0.173205; //for kernel : sqrt(3.0*dp*dp) support of the kernel
-const double Eta2 = 0.01 * H*H;
 const double R_air = 287; //[J/kgK]
 const double R_global = 8.31; //[J/mol/K]
 const double cp_global = 1000; //[J/kgK]

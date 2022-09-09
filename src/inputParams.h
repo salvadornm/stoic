@@ -10,22 +10,22 @@
 void inputUserParams(Cfd &simulation, engine &eng )
 {
     //simulation parameters
-    simulation.nparticles = 10000; //
-    simulation.nsteps = 10; //100
-    simulation.dt = 0.00005;   //0.01
-    simulation.frame = 1;   //10
-    simulation.rad = 2;
-    simulation.dp = 1/sqrt(simulation.nparticles);
+    simulation.nparticles   = 10000; //
+    simulation.nsteps       = 2; //100
+    simulation.dt           = 0.00005;   //0.01
+    simulation.frame        = 1;   //10
+    simulation.rad          = 2;
+    simulation.dp           = 1/sqrt(simulation.nparticles);
 
     //engine geometery parameters (for the volvo td100)
-    eng.bore = 12.065/100;  //[m]
-    eng.stroke = 14.0/100;  //[m]
-    eng.conRod = 26.0/100;  //[m]
-    eng.Rcomp = 15;
-    eng.Nrpm = 1500;   //[rpm]
-    eng.ca_init = 180.0;  //start at BDC
+    eng.bore    = 12.065/100;   //[m]
+    eng.stroke  = 14.0/100;     //[m]
+    eng.conRod  = 26.0/100;     //[m]
+    eng.Rcomp   = 15;
+    eng.Nrpm    = 1500;         //[rpm]
+    eng.ca_init = 180.0;        //start at BDC
 
-    eng.Twall = 300; //[K]
+    eng.Twall = 300;            //[K]
 }
 
 void initialize_vel(particleset &vd, Cfd &simulation, double key, engine eng)
@@ -63,7 +63,6 @@ void initialize_vel(particleset &vd, Cfd &simulation, double key, engine eng)
 
 void initialize_temp(particleset &vd, Cfd &simulation, double key, engine eng)
 {
-    // Get the distance between a and b
     double r_cyl = eng.bore/2;
     Point<3,double> cyl_center {r_cyl, r_cyl};
     Point<3,double> pos {vd.getPos(key)[0], vd.getPos(key)[1]};
@@ -79,7 +78,6 @@ void initialize_temp(particleset &vd, Cfd &simulation, double key, engine eng)
 
 void initialize_pres(particleset &vd, Cfd &simulation, double key, engine eng)
 {
-    // Get the distance between a and b
     double r_cyl = eng.bore/2;
     Point<3,double> cyl_center {r_cyl, r_cyl};
     Point<3,double> pos {vd.getPos(key)[0], vd.getPos(key)[1]};
@@ -94,7 +92,7 @@ void initialize_pres(particleset &vd, Cfd &simulation, double key, engine eng)
 
     //initialize pressure for kernel testing in 1 Dimension only!
     //vd.template getProp<i_pressure>(key) = 4*radius;
-    //vd.template getProp<i_pressure>(key) = 101300*vd.getPos(key)[0];
+    vd.template getProp<i_pressure>(key) = 101300*vd.getPos(key)[0] + 101300;
 }
 
 void initialize_dvdmean(particleset &vd, double key)
@@ -107,8 +105,8 @@ void initialize_dvdmean(particleset &vd, double key)
     for (size_t j = 0; j < 3 ; j++)
     { 
         vd.template getProp<i_dvdmean>(key)[j][i_momentum]  = 0.0;
-        vd.template getProp<i_dvdmean>(key)[j][i_rho]  = 0.0;
-        vd.template getProp<i_dvdmean>(key)[j][i_energy]  = 0.0;
+        vd.template getProp<i_dvdmean>(key)[j][i_rho]       = 0.0;
+        vd.template getProp<i_dvdmean>(key)[j][i_energy]    = 0.0;
         vd.template getProp<i_dvdmean>(key)[j][i_pressure]  = 0.0;
         vd.template getProp<i_dvdmean>(key)[j][i_temperature]  = 0.0;
     }

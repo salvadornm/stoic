@@ -48,7 +48,7 @@ Point<3,double> wallIntersect(Point <3,double> pos, Point <3,double> pos_new, Po
 void hitFirst(vector<double> vel, Point <3,double> pos_zero, Point <3,double> pos_wall, Point<3,double> & psi)
 {
     double deltaT;
-    for (size_t i = 0; i < 3 ; i++) 
+    for (size_t i = 0; i < NDIM ; i++) 
     {  
         deltaT = (pos_wall[i] - pos_zero[i])/vel[i];
         psi[i] = deltaT;
