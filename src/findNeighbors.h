@@ -10,14 +10,16 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
     int n,ingh,ip;
     float iavg=0;
     double avg_error, avg_grad, avg_mean;
+    double avg_errorx, avg_errory, avg_errorz;
+    double avg_gradx, avg_grady, avg_gradz;
     double *dW; double W;
     
     auto part = vd.getDomainIterator();
     vd.updateCellList(NN);
     
     //stateOfNeighbors(vd, NN);     //output for testing
-    timer tsim;
-    tsim.start();
+    //timer tsim;
+    //tsim.start();
 
     // For each particle ...
     ip = 0;   
@@ -90,25 +92,34 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
                 double dT               = vd.getProp<i_temperature>(b)-vd.getProp<i_temperature>(a);
                 //double visc             = viscous(dr, r2, dv,vd.getProp<i_rho>(b), vd.getProp<i_rho>(a), 1, 0);
                 //double dviscP           = visc*(vd.getProp<i_pressure>(b) - vd.getProp<i_pressure>(a));
+                //cout << "dP: " << dP << " dT: " << dT << endl;
 
                 for (size_t i = 0; i < NDIM ; i++) //loop through x,y,z directions
                 {   
                     double dx = 1/(dr.get(i) + 1e-8);
-                    //cout << "dx: " << dx << endl;
-                    //cout << "W: " << W << endl;
                     
-                    //Using Approach 1
+                    //Using Approach 1 
+                    vd.template getProp<i_dvdmean>(a)[i][i_momentum]    += (W*drho.get(i)*dW[i]);
+                    vd.template getProp<i_dvdmean>(a)[i][i_pressure]    += (W*dP*dW[i]);
+                    vd.template getProp<i_dvdmean>(a)[i][i_temperature] += (W*dT*dW[i]);
+                    //vd.template getProp<i_dvdmean>(a)[i][i_visc]        += (W*dviscP*DW.get(i));
+
+                    /*
                     vd.template getProp<i_dvdmean>(a)[i][i_momentum]    += (W*drho.get(i)*dx);
                     vd.template getProp<i_dvdmean>(a)[i][i_pressure]    += (W*dP*dx);
                     vd.template getProp<i_dvdmean>(a)[i][i_temperature] += (W*dT*dx);
-                    //vd.template getProp<i_dvdmean>(a)[i][i_visc]        += (W*dviscP*DW.get(i));
+                    */
                                         
                     /*
-                    vd.template getProp<i_dvdmean>(a)[i][i_momentum]    += (drho.get(i)*factor);
-                    vd.template getProp<i_dvdmean>(a)[i][i_pressure]    += (dP*factor);
-                    vd.template getProp<i_dvdmean>(a)[i][i_temperature] += (dT*factor);
-                    vd.template getProp<i_dvdmean>(a)[i][i_visc]        += (dviscP*factor);
+                    vd.template getProp<i_dvdmean>(a)[i][i_momentum]    += (drho.get(i)*dW.get(i));
+                    vd.template getProp<i_dvdmean>(a)[i][i_pressure]    += (dP*dW.get(i));
+                    vd.template getProp<i_dvdmean>(a)[i][i_temperature] += (dT*dW.get(i));
+                    vd.template getProp<i_dvdmean>(a)[i][i_visc]        += (dviscP*dW.get(i));
                     */
+                    //cout << "1/dx: " << dx ;
+                    //cout << ", W: " << W << endl;
+                    //cout << "Pgrad = " << W*dP*dx << " Tgrad = " << W*dT*dx << endl;
+                    //if (W*dP*dx > 1000000) cout << "ERROR PGRAD TOO HIGH TO BE VALID" << endl;
                 }
                 ingh++;
             }
@@ -143,18 +154,23 @@ template<typename CellList> void find_neighbors(particleset  & vd, CellList & NN
         //cout << "totdW= " << tot_dW;
         //cout << ", dp/dx= " << vd.template getProp<i_dvdmean>(a)[0][i_pressure] << endl;
         
-        avg_error += abs(vd.template getProp<i_dvdmean>(a)[0][i_pressure] - 101300)/101300;
-        avg_grad += vd.template getProp<i_dvdmean>(a)[0][i_pressure];
+        //avg_errorx += abs(vd.template getProp<i_dvdmean>(a)[0][i_pressure] - 101300)/101300;
+        //avg_errorx += abs(vd.template getProp<i_dvdmean>(a)[0][i_pressure] - cos(vd.getPos(a)[0]))/cos(vd.getPos(a)[0]);
+        //avg_errory += abs(vd.template getProp<i_dvdmean>(a)[1][i_pressure] - 101300)/101300;
+        //avg_errorz += abs(vd.template getProp<i_dvdmean>(a)[2][i_pressure] - 101300)/101300;
+        avg_gradx += vd.template getProp<i_dvdmean>(a)[0][i_pressure];
+        avg_grady += vd.template getProp<i_dvdmean>(a)[1][i_pressure];
+        avg_gradz += vd.template getProp<i_dvdmean>(a)[2][i_pressure];
         avg_mean += vd.template getProp<i_vdmean>(a)[i_pressure];
     }
 
     cout << " Avg number of neighbours=" << iavg/ip << endl;
-    cout << " Avg error=" << avg_error*100/ip << " %" << endl;
-    cout << " Avg grad =" << avg_grad/ip << endl;
+    //cout << " Avg error=" << avg_errorx*100/ip << "%, " << avg_errory*100/ip << "%, "<< avg_errorz*100/ip << "% "<< endl;
+    cout << " Avg grad =" << avg_gradx/ip << " , " << avg_grady/ip << " , " << avg_gradz/ip << endl;
     cout << " Avg mean =" << avg_mean/ip << endl;
 
-    tsim.stop();
-    std::cout << "Time: " << tsim.getwct() << std::endl;
+    //tsim.stop();
+    //std::cout << "Time: " << tsim.getwct() << std::endl;
 }
 
 #endif // _neighbors_h

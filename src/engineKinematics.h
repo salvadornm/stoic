@@ -27,8 +27,8 @@ void initialize_geometry(Cfd &simulation, engine &eng){
     //calculations
     simulation.ppv  = simulation.nparticles/eng.volumeC;
     simulation.dp   = std::cbrt(1/simulation.ppv);      //equation from monaghan 199
-    simulation.H    = (5/3)*simulation.dp;
-    simulation.H    = 0.02;                             //manually set H for testing
+    simulation.H    = (5.0/3.0)*simulation.dp;
+    //simulation.H    = 0.008;                             //manually set H for testing
     simulation.lx   = 2 * eng.bore;
     simulation.ly   = 2 * eng.bore;
     simulation.lz   = 2 * eng.height;
