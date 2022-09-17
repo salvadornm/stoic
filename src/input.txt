@@ -1,0 +1,9 @@
+%
+hello
+%
+cfd.nsteps=100
+cfd.nparts=100
+%
+jkj cfd=33
+cfd.nframe=88
+
