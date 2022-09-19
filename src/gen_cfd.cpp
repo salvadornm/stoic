@@ -3,6 +3,12 @@
 #include <sstream>
 using namespace std;
 
+constexpr int NKEYINT=3;    // number of key word with integer
+constexpr int NKEYFLOAT=4;  // number of key word with float
+string cfd_keyint[NKEYINT]={".nsteps",".nparts",".nframe"};
+string cfd_keydbl[NKEYFLOAT]={".dt",".lx",".ly",".lz"};    
+
+
 class Cfd
     {
     public:
@@ -11,24 +17,21 @@ class Cfd
         int nsteps;
         int nparticles;
         int frame;
-        double dt,dx;
+        double dt;
         double lx, ly, lz;  
         //engine eng; (outer class) 
         void displayCfd();
         void inputCfd(std::string filename);
     private:
-        int NKEYINT;
-        int  cfd_int[3];
-        double cfd_double[3];    
+        int    cfd_int[NKEYINT];
+        double cfd_dbl[NKEYFLOAT];  
+        void assignCfd();  
     };
     Cfd::Cfd() // constructor
-    {
-    nsteps = 0; nparticles = 0; frame = 0;
-    dt = 0.0;dx = 0.0;
-    lx = 1.0; ly=1.0;lz=1.0;
-    NKEYINT = 3;
-    //cfd_int= new int [NKEYINT];
-    for (int nv = 0; nv < NKEYINT ; nv++) cfd_int[nv]=0;    
+    {        
+        for (int nv = 0; nv < NKEYINT   ; nv++) cfd_int[nv]=0;    
+        for (int nv = 0; nv < NKEYFLOAT ; nv++) cfd_dbl[nv]=0;   
+        assignCfd();     
     }
     Cfd::~Cfd() // destructor (take sno action)
     {    
@@ -39,9 +42,21 @@ class Cfd
     cout << "------ CFD display  ------ \n"; 
     cout << " nsteps = " << nsteps << " \n"; 
     cout << " nparts = " << nparticles << " \n";  
-    cout << " nframe = " << frame << " \n";         
+    cout << " nframe = " << frame << " \n";   
+    cout << " dt = " << dt << " \n";             
+    cout << " lx = " << lx << "  ly = " << ly << "  lz = " << lz << "\n";             
     cout << "-------------------------- \n";     
     }  
+
+    // fill public variables  (change if you add more keywords)
+    void Cfd::assignCfd()
+    {
+        nparticles = cfd_int[0];
+        nsteps     = cfd_int[1];
+        frame      = cfd_int[2];
+        dt  = cfd_dbl[0];
+        lx = cfd_dbl[1];ly = cfd_dbl[2];lz = cfd_dbl[3];   
+    }
 
     // read file
     void Cfd::inputCfd(std::string filename)
@@ -50,11 +65,10 @@ class Cfd
     string item_name;
     ifstream nameFileout;
     nameFileout.open(filename);
-    int NCHAR=6; //length of key workds 
+    int NCHAR=6,NCHAR2=2; //length of key workds (integer and float)
     int NUMLENGTH=8; //length of number
     char cword[NUMLENGTH];
     string line;
-    string cfd_keyint[3]={".nsteps",".nparts",".nframe"};
     int nline=0,nt;
     while(getline(nameFileout, line))
         {    
@@ -84,13 +98,23 @@ class Cfd
                     }
                 }
             // look for key doubles                            
+            for (int nv = 0; nv < NKEYFLOAT ; nv++)
+                {
+                size_t found = line.find(cfd_keydbl[nv]);
+                if (found!=string::npos)
+                    {
+                    int pos = found; 
+                    cout << cfd_keydbl[nv] << " found at: " << pos << "\n";                  
+                    for (int j = 0; j < NUMLENGTH ; j++) {cword[j]=line[pos+NCHAR2+2+j];}
+                    string sword(cword);                            
+                    cfd_dbl[nv]= stod(sword);
+                    }
+                }
+
             }        
         } 
-        }
-        // assign values
-        nparticles = cfd_int[0];
-        nsteps     = cfd_int[1];
-        frame      = cfd_int[2];
+        }        
+        assignCfd(); // assign values
     }
 
 ///// TESTING /////////////////////////////////

@@ -4,6 +4,10 @@ hello
 cfd.nsteps=100
 cfd.nparts=100
 %
-jkj cfd=33
 cfd.nframe=88
+cfd.dt= 0.001
+cfd.lx= 0.2
+cfd.ly= 0.1
+cfd.lz= 0.3
+
 
